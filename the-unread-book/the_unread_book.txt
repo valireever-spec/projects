@@ -1,0 +1,82 @@
+PROJECT BRIEF — The Unread Book
+Channel Concept
+A short-form video channel translating and explaining unknown/unfamiliar Quran verses to European Christian audiences. The mission is educational and interfaith — not conversion, not preaching. The tone is warm, scholarly, curious, and non-polemical. Think: "Here is what the Quran actually says, and here is where you've seen something similar in the Bible."
+Channel Name
+The Unread Book
+
+🇬🇧 English: The Unread Book
+🇫🇷 French: Le Livre Non Lu
+🇩🇪 German: Das Ungelesene Buch
+
+Tagline
+Verses you were never shown
+Target Audience
+European Christians — English, French, and German speaking. Educated, secular-leaning, curious but entirely unfamiliar with the Quran. They know Islam only from headlines. They have never read a single Quran verse.
+Platforms
+YouTube Shorts and TikTok — separate accounts per language, managed from one Google account (Brand Accounts). One video = one language = one platform. This maximises algorithm geo-targeting.
+Video Format
+45–60 seconds. Structured as:
+
+Hook / curiosity question (3–5s)
+Arabic verse shown on screen (5–8s)
+Translation read aloud (8–10s)
+Biblical parallel (8–10s)
+Brief explanation / reflection (15–18s)
+Call to action (5–7s)
+
+Monetisation Strategy
+
+YouTube/TikTok ad revenue
+Sponsorships from publishers, cultural organisations, educational platforms
+Online courses
+Patreon
+Speaking engagements
+Book deals
+No YouTube or TikTok publishing APIs needed — content is generated and posted manually.
+
+Tools Used
+
+Anthropic Claude API (claude-sonnet-4-20250514) for all AI generation
+React (JSX) frontend
+Google Fonts: Playfair Display, Lato, Fira Code
+
+Current Build
+A React JSX application (quran-explained-studio.jsx) with two tabs:
+Tab 1 — Short Generator
+
+Surah selector (with verse range)
+Bridge theme selector (e.g. Jesus in the Quran, Mary/Maryam, Abraham, Moses, Forgiveness, etc.)
+Language selector: 🇬🇧 English / 🇫🇷 French / 🇩🇪 German
+Platform selector: YouTube Shorts / TikTok
+Generates: Arabic text, transliteration, single-language translation, Biblical parallel with citation, doctrinal context for Christians, common misconception cleared, 60s narration script, hook, CTA, platform title, description, hashtags, posting tip
+Everything generated in the selected language only
+
+Tab 2 — Visibility Advisor
+
+Paste existing title, caption, hashtags
+Scores: SEO, Hook Strength, Algorithm Fit, Christian Accessibility, Interfaith Sensitivity
+Outputs: strengths, improvements, quick wins, monetisation tips, optimised title/caption/hashtags
+
+Design System
+
+Dark theme: background #09090f, card #0e0e18
+Gold accent: #c5a028
+Sky blue: #4a9ebb
+Emerald: #27ae78
+Typography: Playfair Display (display/serif), Lato (body), Fira Code (mono)
+Aesthetic: editorial, warm, scholarly — not techy, not corporate
+
+Key Design Decisions Already Made
+
+No "Both platforms" option — one video per language per platform
+No multi-language output per video — fully localised single-language generation
+No YouTube/TikTok API integration needed
+Gmail account to register: try theunreadbook@gmail.com first
+
+Next Development Priorities (pick up from here)
+
+ Add video timing breakdown output (timestamps per segment)
+ Add content calendar view (plan a week of videos across languages)
+ Add persistent storage so generated videos are saved per session
+ Mobile responsive polish
+ Export output as a formatted PDF or text file ready for video production

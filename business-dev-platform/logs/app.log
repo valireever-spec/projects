@@ -1,0 +1,181 @@
+Mon May 18 07:23:09 PM CEST 2026: Port 8000 is in use, trying next...
+Mon May 18 07:23:09 PM CEST 2026: Port 8001 is available. Starting service on http://localhost:8001
+Mon May 18 07:23:09 PM CEST 2026: Starting Business Dev Platform on port 8001
+INFO:     Started server process [222106]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [222106]
+Mon May 18 07:28:43 PM CEST 2026: Port 8000 is in use, trying next...
+Mon May 18 07:28:43 PM CEST 2026: Port 8001 is available. Starting service on http://localhost:8001
+Mon May 18 07:28:43 PM CEST 2026: Starting Business Dev Platform on port 8001
+INFO:     Started server process [224018]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:60658 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60658 - "POST /sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60674 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60674 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44968 - "GET /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60000 - "GET /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60014 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60274 - "GET /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33400 - "GET /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33408 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36660 - "PATCH /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47326 - "PATCH /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47326 - "PATCH /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47326 - "PATCH /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47326 - "PATCH /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47326 - "PATCH /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47326 - "PATCH /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47326 - "GET /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [224018]
+Mon May 18 08:05:33 PM CEST 2026: Port 8000 is in use, trying next...
+Mon May 18 08:05:33 PM CEST 2026: Port 8001 is available. Starting service on http://localhost:8001
+Mon May 18 08:05:33 PM CEST 2026: Starting Business Dev Platform on port 8001
+INFO:     Started server process [229687]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:45038 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45038 - "GET /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45052 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45052 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40394 - "PATCH /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45768 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45768 - "GET /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45778 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43096 - "PATCH /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56480 - "GET /sessions/988d8bc7-be18-4fa3-8821-f9ed86cff434 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55502 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [229687]
+Sun May 31 09:06:29 AM CEST 2026: Port 8000 is available. Starting service on http://localhost:8000
+Sun May 31 09:06:29 AM CEST 2026: Starting Business Dev Platform on port 8000
+INFO:     Started server process [1459]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1459]
+Mon Jun  1 08:36:45 PM CEST 2026: Port 8000 is available. Starting service on http://localhost:8000
+Mon Jun  1 08:36:45 PM CEST 2026: Starting Business Dev Platform on port 8000
+INFO:     Started server process [1457]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     192.168.30.137:0 - "GET / HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "POST /sessions HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47970 - "GET /api/watchlist HTTP/1.1" 404 Not Found
+INFO:     192.168.30.137:0 - "GET / HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /sessions/9b12476d-bd19-472d-8565-b48dbb860cdd HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET / HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /sessions/9b12476d-bd19-472d-8565-b48dbb860cdd HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET / HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /sessions/9b12476d-bd19-472d-8565-b48dbb860cdd HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET / HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /sessions/9b12476d-bd19-472d-8565-b48dbb860cdd HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54014 - "GET /api/watchlist HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54022 - "POST /api/watchlist HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54028 - "POST /api/watchlist HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1457]
+Sat Jun  6 03:59:10 PM CEST 2026: Port 8000 is available. Starting service on http://localhost:8000
+Sat Jun  6 03:59:10 PM CEST 2026: Starting Business Dev Platform on port 8000
+INFO:     Started server process [1466]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     192.168.30.137:0 - "GET / HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /sessions/9b12476d-bd19-472d-8565-b48dbb860cdd HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     192.168.30.137:0 - "GET / HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /sessions/9b12476d-bd19-472d-8565-b48dbb860cdd HTTP/1.1" 200 OK
+INFO:     192.168.30.137:0 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1466]
+Mon Jun  8 11:43:49 AM CEST 2026: Port 8000 is available. Starting service on http://localhost:8000
+Mon Jun  8 11:43:49 AM CEST 2026: Starting Business Dev Platform on port 8000
+INFO:     Started server process [1471]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:34886 - "POST /api/guardian/ask HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34888 - "POST /api/guardian/ask HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34898 - "POST /api/guardian/ask HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34914 - "POST /api/guardian/ask HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34922 - "POST /api/guardian/ask HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34932 - "GET /api/universe HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34936 - "POST /api/guardian/ask HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:33184 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49382 - "GET / HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1471]
+Tue Jun  9 08:03:02 PM CEST 2026: Port 8000 is available. Starting service on http://localhost:8000
+Tue Jun  9 08:03:02 PM CEST 2026: Starting Business Dev Platform on port 8000
+INFO:     Started server process [1459]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:34290 - "GET /api/live/quotes HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "GET /api/live/macro HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34290 - "GET /api/symbols HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34306 - "GET /api/strategies HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34306 - "GET /api/guardian/backend-status HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34290 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34290 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34306 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34290 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34310 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34326 - "GET /api/ingest/status HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "GET /sw.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "GET /api/errors/list?limit=1&unresolved_only=true HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:35992 - "GET /api/health/system HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34298 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1459]

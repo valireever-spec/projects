@@ -1,0 +1,16 @@
+[Unit]
+Description=Business Dev Platform - German Business Plan Generator
+After=network.target
+
+[Service]
+Type=simple
+User=vali
+WorkingDirectory=/home/vali/projects/business-dev-platform
+ExecStart=/bin/bash /home/vali/projects/business-dev-platform/start_service.sh
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/vali/projects/business-dev-platform/logs/service.log
+StandardError=append:/home/vali/projects/business-dev-platform/logs/service.log
+
+[Install]
+WantedBy=multi-user.target

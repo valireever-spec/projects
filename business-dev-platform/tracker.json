@@ -1,0 +1,6 @@
+{
+  "name": "business-dev-platform",
+  "description": "Internal business development tools",
+  "tech_stack": "Python Django PostgreSQL",
+  "tracked": true
+}

@@ -1,0 +1,6 @@
+{
+  "name": "pfSense",
+  "description": "Firewall and router config",
+  "tech_stack": "FreeBSD",
+  "tracked": true
+}

@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Dev Platform - Geschäftsplan Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            color: white;
+            padding: 2rem;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+
+        .wizard-steps {
+            list-style: none;
+        }
+
+        .wizard-step {
+            padding: 1rem 0;
+            border-left: 3px solid transparent;
+            padding-left: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .wizard-step.active {
+            border-left-color: #3b82f6;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .wizard-step.completed::before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            margin-top: 2rem;
+            background: rgba(255,255,255,0.2);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #10b981;
+            transition: width 0.3s ease;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .step {
+            display: none;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .step-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #1e40af;
+        }
+
+        .step-description {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .domain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .domain-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .domain-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            border-color: #3b82f6;
+        }
+
+        .domain-card.selected {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .domain-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .domain-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        .domain-score-badge {
+            font-size: 0.85rem;
+            font-weight: bold;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .score-excellent { background: #10b981; color: white; }
+        .score-good { background: #3b82f6; color: white; }
+        .score-moderate { background: #f59e0b; color: white; }
+        .score-saturated { background: #ef4444; color: white; }
+
+        .domain-stats {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .domain-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .slider-container {
+            margin-top: 0.5rem;
+        }
+
+        .slider-container input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            margin-top: 0.5rem;
+            font-weight: bold;
+            color: #1e40af;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: flex-end;
+        }
+
+        .button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .button-primary {
+            background: #1e40af;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: #1e3a8a;
+        }
+
+        .button-primary:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .button-secondary {
+            background: white;
+            color: #1e40af;
+            border: 2px solid #1e40af;
+        }
+
+        .button-secondary:hover {
+            background: #f5f7fa;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 1rem;
+                height: auto;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .domain-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">📊 Business Dev</div>
+            <ul class="wizard-steps">
+                <li class="wizard-step active" data-step="1">1. Domäne wählen</li>
+                <li class="wizard-step" data-step="2">2. Geschäftsprofil</li>
+                <li class="wizard-step" data-step="3">3. Marktanalyse</li>
+                <li class="wizard-step" data-step="4">4. Finanzen</li>
+                <li class="wizard-step" data-step="5">5. Risiken</li>
+                <li class="wizard-step" data-step="6">6. Zusammenfassung</li>
+            </ul>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 16.67%"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Step 1: Domain Discovery -->
+            <div class="step active" data-step="1">
+                <h1 class="step-title">Geschäftsdomäne wählen</h1>
+                <p class="step-description">Entdecken Sie trendige Geschäftsmöglichkeiten mit niedriger Konkurrenz in Deutschland</p>
+
+                <div id="loading-domains" class="alert alert-info">
+                    Lade trendige Domänen...
+                </div>
+
+                <div id="domain-list" class="domain-grid"></div>
+
+                <div class="buttons">
+                    <button class="button button-primary" id="btn-next-step2" disabled>
+                        Nächster Schritt →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Business Profile Builder -->
+            <div class="step" data-step="2">
+                <h1 class="step-title">Geschäftsprofil</h1>
+                <p class="step-description">Erzählen Sie uns mehr über Ihr geplantes Unternehmen</p>
+
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label for="business-name">Geschäftsname</label>
+                        <input type="text" id="business-name" name="business_name" placeholder="z.B. TechStart GmbH">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="legal-form">Rechtsform</label>
+                            <select id="legal-form" name="legal_form">
+                                <option value="">-- Wählen Sie eine Rechtsform --</option>
+                                <option value="Einzelunternehmen">Einzelunternehmen</option>
+                                <option value="GbR">GbR (Gesellschaft bürgerlichen Rechts)</option>
+                                <option value="UG">UG (Unternehmergesellschaft)</option>
+                                <option value="GmbH">GmbH (Gesellschaft mit beschränkter Haftung)</option>
+                                <option value="AG">AG (Aktiengesellschaft)</option>
+                                <option value="Freiberufler">Freiberufler</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="city">Stadt</label>
+                            <input type="text" id="city" name="city" placeholder="z.B. Berlin" list="cities">
+                            <datalist id="cities">
+                                <option value="Berlin">
+                                <option value="Munich">
+                                <option value="Hamburg">
+                                <option value="Frankfurt">
+                                <option value="Cologne">
+                                <option value="Dresden">
+                                <option value="Düsseldorf">
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="target-market">Zielmarkt</label>
+                        <textarea id="target-market" name="target_market" placeholder="Beschreiben Sie Ihre Zielgruppe und den Markt"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usp">Einzigartiges Verkaufsversprechen (USP)</label>
+                        <textarea id="usp" name="unique_value_proposition" placeholder="Was macht Ihr Angebot besonders?"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="founder-bg">Gründer-Hintergrund</label>
+                        <textarea id="founder-bg" name="founder_background" placeholder="Ihre Erfahrung und Qualifikationen"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="initial-capital">Geschätztes Startkapital</label>
+                        <div class="slider-container">
+                            <input type="range" id="initial-capital" name="initial_capital" min="5000" max="500000" step="5000" value="50000">
+                            <div class="slider-value">€ <span id="capital-value">50.000</span></div>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="buttons">
+                    <button class="button button-secondary" id="btn-prev-step1">← Zurück</button>
+                    <button class="button button-primary" id="btn-next-step3">Marktanalyse starten →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Market Analysis -->
+            <div class="step" data-step="3">
+                <h1 class="step-title">Marktanalyse</h1>
+                <p class="step-description">Verstehen Sie Ihren Markt: Größe, Wachstum, Konkurrenz und Chancen</p>
+
+                <div id="market-loading" class="alert alert-info">
+                    Analysiere Markt...
+                </div>
+
+                <div id="market-content" style="display: none;">
+                    <!-- Market Size Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">Gesamtmarkt (DE)</div>
+                            <div id="tam-value" style="font-size: 1.5rem; font-weight: bold; color: #1e40af;">-</div>
+                        </div>
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">Adressierbarer Markt (Stadt)</div>
+                            <div id="sam-value" style="font-size: 1.5rem; font-weight: bold; color: #3b82f6;">-</div>
+                        </div>
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">Erreichbarer Markt</div>
+                            <div id="som-value" style="font-size: 1.5rem; font-weight: bold; color: #10b981;">-</div>
+                        </div>
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">Wachstumsrate / Jahr</div>
+                            <div id="growth-value" style="font-size: 1.5rem; font-weight: bold; color: #f59e0b;">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Market Maturity & Competition -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h3 style="color: #1e40af; margin-bottom: 1rem;">Marktreife</h3>
+                            <div id="maturity-badge" style="display: inline-block; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold; background: #dbeafe; color: #1e40af;">-</div>
+                            <p id="maturity-desc" style="font-size: 0.9rem; color: #666; margin-top: 1rem;">-</p>
+                        </div>
+
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h3 style="color: #1e40af; margin-bottom: 1rem;">Wettbewerbs-Intensität</h3>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="font-size: 0.9rem; font-weight: bold; color: #666; margin-bottom: 0.5rem;">
+                                    <span id="competition-level">Mittel</span> (Punkte: <span id="competition-score">50</span>/100)
+                                </div>
+                                <div style="background: #f0f0f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                                    <div id="competition-bar" style="background: #f59e0b; height: 100%; width: 50%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Information -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h3 style="color: #1e40af; margin-bottom: 1rem;">🚧 Markteintritts-Barrieren</h3>
+                            <ul id="barriers-list" style="list-style: none; padding: 0;">
+                            </ul>
+                        </div>
+
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h3 style="color: #1e40af; margin-bottom: 1rem;">💡 Differenzierungschancen</h3>
+                            <ul id="differentiation-list" style="list-style: none; padding: 0;">
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Market Trends -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <h3 style="color: #1e40af; margin-bottom: 1rem;">📈 Aktuelle Markttrends</h3>
+                        <ul id="trends-list" style="list-style: none; padding: 0;">
+                        </ul>
+                    </div>
+
+                    <!-- News Feed -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <h3 style="color: #1e40af; margin-bottom: 1rem;">📰 Aktuelle Nachrichten</h3>
+                        <div id="news-feed">
+                        </div>
+                        <p id="news-empty" style="color: #666; font-size: 0.9rem;">Keine aktuellen Nachrichten verfügbar</p>
+                    </div>
+
+                    <!-- Industry Background -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <h3 style="color: #1e40af; margin-bottom: 1rem;">📚 Industrie-Hintergrund</h3>
+                        <p id="industry-bg" style="color: #555; line-height: 1.6;">-</p>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="button button-secondary" id="btn-prev-step2">← Zurück</button>
+                    <button class="button button-primary" id="btn-next-step4">Finanzen & Break-Even →</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Financial Projections -->
+            <div class="step" data-step="4">
+                <h1 class="step-title">Finanzielle Planung</h1>
+                <p class="step-description">36-Monats-Finanzprognose, Break-Even-Analyse und Szenarien-Modellierung</p>
+
+                <!-- Revenue Model Selection -->
+                <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                    <h3 style="color: #1e40af; margin-bottom: 1rem;">Einnahmemodell</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
+                        <button class="revenue-model-btn active" data-model="subscription" style="padding: 0.75rem; border: 2px solid #3b82f6; background: #dbeafe; color: #1e40af; border-radius: 4px; font-weight: 600; cursor: pointer;">
+                            💳 Abonnement
+                        </button>
+                        <button class="revenue-model-btn" data-model="hourly" style="padding: 0.75rem; border: 2px solid #cbd5e1; background: white; color: #333; border-radius: 4px; font-weight: 600; cursor: pointer;">
+                            ⏱️ Stundenhonorar
+                        </button>
+                        <button class="revenue-model-btn" data-model="product_sale" style="padding: 0.75rem; border: 2px solid #cbd5e1; background: white; color: #333; border-radius: 4px; font-weight: 600; cursor: pointer;">
+                            📦 Produktverkauf
+                        </button>
+                        <button class="revenue-model-btn" data-model="commission" style="padding: 0.75rem; border: 2px solid #cbd5e1; background: white; color: #333; border-radius: 4px; font-weight: 600; cursor: pointer;">
+                            💰 Provision
+                        </button>
+                        <button class="revenue-model-btn" data-model="hybrid" style="padding: 0.75rem; border: 2px solid #cbd5e1; background: white; color: #333; border-radius: 4px; font-weight: 600; cursor: pointer;">
+                            🔄 Hybrid
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Revenue Estimate -->
+                <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                    <h3 style="color: #1e40af; margin-bottom: 1rem;">Geschätzter monatlicher Umsatz</h3>
+                    <div class="form-group">
+                        <div class="slider-container">
+                            <input type="range" id="monthly-revenue" min="1000" max="100000" step="1000" value="10000">
+                            <div class="slider-value">€ <span id="revenue-value">10.000</span>/Monat</div>
+                        </div>
+                    </div>
+                    <button class="button button-primary" id="btn-calculate-financials" style="margin-top: 1rem;">
+                        Finanzprojektion berechnen
+                    </button>
+                </div>
+
+                <!-- Loading State -->
+                <div id="financial-loading" class="alert alert-info" style="display: none;">
+                    Berechne Finanzprognose...
+                </div>
+
+                <!-- Financial Results -->
+                <div id="financial-content" style="display: none;">
+                    <!-- Break-Even Card -->
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 2rem; border-radius: 8px; margin-bottom: 2rem;">
+                        <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">Break-Even Point</div>
+                        <div style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;">
+                            <span id="breakeven-month">12</span> Monate
+                        </div>
+                        <p id="breakeven-desc" style="font-size: 0.95rem;">Kumulierter Cashflow positiv im Monat 12</p>
+                    </div>
+
+                    <!-- Key Metrics Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">Startinvestition</div>
+                            <div id="startup-cost" style="font-size: 1.5rem; font-weight: bold; color: #1e40af;">€0</div>
+                        </div>
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">Jahr 1 Gewinn</div>
+                            <div id="year1-net" style="font-size: 1.5rem; font-weight: bold; color: #10b981;">€0</div>
+                        </div>
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">Jahr 3 Gewinn (monatlich)</div>
+                            <div id="year3-net" style="font-size: 1.5rem; font-weight: bold; color: #3b82f6;">€0</div>
+                        </div>
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">EBITDA Marge Jahr 1</div>
+                            <div id="margin-year1" style="font-size: 1.5rem; font-weight: bold; color: #f59e0b;">0%</div>
+                        </div>
+                    </div>
+
+                    <!-- 36-Month Cash Flow Chart -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <h3 style="color: #1e40af; margin-bottom: 1rem;">36-Monats Kumulierter Cashflow</h3>
+                        <canvas id="cashflow-chart" style="max-height: 300px;"></canvas>
+                    </div>
+
+                    <!-- Scenario Comparison -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <h3 style="color: #1e40af; margin-bottom: 1rem;">📊 Szenario-Vergleich</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div style="border-left: 4px solid #ef4444; padding: 1rem;">
+                                <div style="font-weight: bold; color: #ef4444; margin-bottom: 0.5rem;">Pessimistisch (60%)</div>
+                                <div style="font-size: 0.9rem; color: #666;">
+                                    <div>Breakeven: <span id="cons-breakeven">-</span> Mo.</div>
+                                    <div>Jahr 1 Gewinn: <span id="cons-net">-</span></div>
+                                    <div style="margin-top: 0.5rem; color: #999;">Vorsichtige Annahmen</div>
+                                </div>
+                            </div>
+                            <div style="border-left: 4px solid #3b82f6; padding: 1rem;">
+                                <div style="font-weight: bold; color: #3b82f6; margin-bottom: 0.5rem;">Basis (100%)</div>
+                                <div style="font-size: 0.9rem; color: #666;">
+                                    <div>Breakeven: <span id="base-breakeven">-</span> Mo.</div>
+                                    <div>Jahr 1 Gewinn: <span id="base-net">-</span></div>
+                                    <div style="margin-top: 0.5rem; color: #999;">Realistische Annahmen</div>
+                                </div>
+                            </div>
+                            <div style="border-left: 4px solid #10b981; padding: 1rem;">
+                                <div style="font-weight: bold; color: #10b981; margin-bottom: 0.5rem;">Optimistisch (150%)</div>
+                                <div style="font-size: 0.9rem; color: #666;">
+                                    <div>Breakeven: <span id="opt-breakeven">-</span> Mo.</div>
+                                    <div>Jahr 1 Gewinn: <span id="opt-net">-</span></div>
+                                    <div style="margin-top: 0.5rem; color: #999;">Aggressive Annahmen</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confidence Section -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <h3 style="color: #1e40af; margin-bottom: 1rem;">📊 Projektions-Konfidenz</h3>
+                        <div style="margin-bottom: 1.5rem;">
+                            <div id="confidence-badge" style="display: inline-block; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: bold; font-size: 1.1rem; background: #d1fae5; color: #065f46;">
+                                Hoch
+                            </div>
+                        </div>
+                        <table id="confidence-band-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;">
+                            <thead style="background: #f5f7fa;">
+                                <tr>
+                                    <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: left;">Kennzahl</th>
+                                    <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;">Unteres Ende</th>
+                                    <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;">Erwartet</th>
+                                    <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;">Oberes Ende</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">Jahr 1 Umsatz</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;" id="cb-revenue-lower">—</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right; font-weight: bold;" id="cb-revenue-expected">—</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;" id="cb-revenue-upper">—</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">Jahr 1 Nettoeinkommen</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;" id="cb-net-lower">—</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right; font-weight: bold;" id="cb-net-expected">—</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;" id="cb-net-upper">—</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd;">Break-Even Monat</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;" id="cb-breakeven-lower">—</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right; font-weight: bold;" id="cb-breakeven-expected">—</td>
+                                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;" id="cb-breakeven-upper">—</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div id="confidence-drivers-list" style="background: #f5f7fa; padding: 1rem; border-radius: 4px; font-size: 0.9rem;">
+                            <!-- Drivers will be rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- Sensitivity Section -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <h3 style="color: #1e40af; margin-bottom: 1rem;">📉 Sensitivitätsanalyse — Was treibt das Ergebnis?</h3>
+                        <canvas id="sensitivity-chart" style="max-height: 300px; margin-bottom: 1rem;"></canvas>
+                        <div id="key-driver-label" style="background: #f5f7fa; padding: 1rem; border-radius: 4px; text-align: center; font-weight: bold; color: #1e40af;">
+                            <!-- Key driver will be rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- Monthly P&L Table (Year 1) -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <h3 style="color: #1e40af; margin-bottom: 1rem;">📈 Jahr 1 Monatsgewinne (€)</h3>
+                        <div style="overflow-x: auto;">
+                            <table id="year1-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                                <thead style="background: #f5f7fa;">
+                                    <tr>
+                                        <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: left;">Monat</th>
+                                        <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;">Umsatz</th>
+                                        <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;">Kosten</th>
+                                        <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;">EBITDA</th>
+                                        <th style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;">Cashflow (kumul.)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="year1-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="button button-secondary" id="btn-prev-step3">← Zurück</button>
+                    <button class="button button-primary" id="btn-next-step5" disabled>Risiken & Compliance →</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Risk & Regulatory Assessment -->
+            <div class="step" data-step="5">
+                <h1 class="step-title">Risiken & Compliance</h1>
+                <p class="step-description">Geschäftsrisiken analysieren und deutsche Compliance-Anforderungen verstehen</p>
+
+                <div id="risk-loading" class="alert alert-info">
+                    Analysiere Risiken und Compliance-Anforderungen...
+                </div>
+
+                <div id="risk-content" style="display: none;">
+                    <!-- Risk Matrix Header -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <div>
+                                <h2 style="color: #1e40af; font-size: 1.5rem; margin-bottom: 0.5rem;">Geschäftsrisiko-Matrix</h2>
+                                <p style="color: #666; font-size: 0.95rem;">8 Dimensionen analysiert</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Gesamt-Risiko</div>
+                                <div id="overall-risk-badge" style="display: inline-block; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: bold; font-size: 1.2rem; background: #fed7aa; color: #92400e;">
+                                    Mittel
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 8 Risk Dimensions -->
+                        <div id="risk-matrix" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                            <!-- Risk factors will be rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- Top 3 Risks & Mitigation -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <h3 style="color: #1e40af; margin-bottom: 1rem;">⚠️ Top 3 Risiken & Maßnahmen</h3>
+                        <div id="top-risks-list">
+                            <!-- Top 3 risks will be rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- Regulatory Requirements -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <h3 style="color: #1e40af; margin-bottom: 1rem;">📋 Deutsche Compliance-Anforderungen</h3>
+
+                        <!-- Cost & Timeline Summary -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div style="background: #f5f7fa; padding: 1rem; border-radius: 4px;">
+                                <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Geschätzte Gesamtkosten</div>
+                                <div id="compliance-total-cost" style="font-size: 1.5rem; font-weight: bold; color: #1e40af;">€0</div>
+                            </div>
+                            <div style="background: #f5f7fa; padding: 1rem; border-radius: 4px;">
+                                <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Geschätzte Timeline</div>
+                                <div id="compliance-total-days" style="font-size: 1.5rem; font-weight: bold; color: #f59e0b;">0 Tage</div>
+                            </div>
+                        </div>
+
+                        <!-- Requirements Grouped by Category -->
+                        <div id="requirements-grouped" style="display: grid; gap: 1.5rem;">
+                            <!-- Categories will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="button button-secondary" id="btn-prev-step4">← Zurück</button>
+                    <button class="button button-primary" id="btn-next-step6">Plan-Übersicht & Export →</button>
+                </div>
+            </div>
+
+            <!-- Step 6: Business Plan Review & Export -->
+            <div class="step" data-step="6">
+                <h1 class="step-title">Geschäftsplan: Übersicht & Export</h1>
+                <p class="step-description">Überprüfen Sie Ihren vollständigen Geschäftsplan und exportieren Sie ihn</p>
+
+                <div id="plan-loading" class="alert alert-info">
+                    Stelle Geschäftsplan zusammen...
+                </div>
+
+                <div id="plan-content" style="display: none;">
+                    <!-- Executive Summary -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
+                        <h3 style="color: #1e40af; cursor: pointer; user-select: none; margin-bottom: 1rem;">▼ Executive Summary</h3>
+                        <div class="plan-section">
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">
+                                <div style="background: #f5f7fa; padding: 1rem; border-radius: 4px;">
+                                    <div style="font-size: 0.85rem; color: #666;">Startkapital</div>
+                                    <div id="plan-startup" style="font-size: 1.25rem; font-weight: bold; color: #1e40af;">—</div>
+                                </div>
+                                <div style="background: #f5f7fa; padding: 1rem; border-radius: 4px;">
+                                    <div style="font-size: 0.85rem; color: #666;">Break-Even</div>
+                                    <div id="plan-breakeven" style="font-size: 1.25rem; font-weight: bold; color: #1e40af;">—</div>
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                                <div style="background: #f5f7fa; padding: 1rem; border-radius: 4px;">
+                                    <div style="font-size: 0.85rem; color: #666;">Jahr 1 Umsatz</div>
+                                    <div id="plan-year1-revenue" style="font-size: 1.25rem; font-weight: bold; color: #27ae60;">—</div>
+                                </div>
+                                <div style="background: #f5f7fa; padding: 1rem; border-radius: 4px;">
+                                    <div style="font-size: 0.85rem; color: #666;">Jahr 1 Nettoeinkommen</div>
+                                    <div id="plan-year1-net" style="font-size: 1.25rem; font-weight: bold; color: #27ae60;">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Company Description -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
+                        <h3 style="color: #1e40af; cursor: pointer; user-select: none; margin-bottom: 1rem;">▼ Unternehmensbeschreibung</h3>
+                        <div class="plan-section">
+                            <div id="plan-mission" style="margin-bottom: 1rem;"></div>
+                            <div id="plan-vision" style="margin-bottom: 1rem;"></div>
+                            <div id="plan-business-model" style="margin-bottom: 1rem;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Market Analysis -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
+                        <h3 style="color: #1e40af; cursor: pointer; user-select: none; margin-bottom: 1rem;">▼ Marktanalyse</h3>
+                        <div class="plan-section">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="background: #f5f7fa; padding: 1rem; border-radius: 4px;">
+                                    <div style="font-size: 0.85rem; color: #666;">Marktgröße</div>
+                                    <div id="plan-market-size" style="font-size: 1rem; font-weight: bold; color: #1e40af;">—</div>
+                                </div>
+                                <div style="background: #f5f7fa; padding: 1rem; border-radius: 4px;">
+                                    <div style="font-size: 0.85rem; color: #666;">Wettbewerb</div>
+                                    <div id="plan-competition" style="font-size: 1rem; font-weight: bold; color: #1e40af;">—</div>
+                                </div>
+                            </div>
+                            <div id="plan-barriers" style="margin-top: 1rem;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Plan -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
+                        <h3 style="color: #1e40af; cursor: pointer; user-select: none; margin-bottom: 1rem;">▼ Finanzplan</h3>
+                        <div class="plan-section">
+                            <div id="plan-financial" style="margin-top: 1rem;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Assessment -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
+                        <h3 style="color: #1e40af; cursor: pointer; user-select: none; margin-bottom: 1rem;">▼ Risikobewertung</h3>
+                        <div class="plan-section">
+                            <div id="plan-risk" style="margin-top: 1rem;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Export Buttons -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h3 style="color: #1e40af; margin-bottom: 1rem;">📥 Geschäftsplan exportieren</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <button id="btn-export-markdown" class="button button-primary" style="width: 100%;">
+                                📄 Als Markdown herunterladen
+                            </button>
+                            <button id="btn-export-html" class="button button-primary" style="width: 100%;">
+                                🖨️ Als HTML anzeigen (drucken)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="button button-secondary" id="btn-prev-step5">← Zurück</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "";
+        const CITIES = ["Berlin", "Munich", "Hamburg", "Frankfurt", "Cologne", "Dresden", "Düsseldorf", "Stuttgart", "Bonn", "Mannheim"];
+
+        // Session management
+        let SESSION_ID = localStorage.getItem("session_id");
+        let SELECTED_DOMAIN = localStorage.getItem("selected_domain");
+        let CURRENT_STEP = parseInt(localStorage.getItem("current_step") || "1");
+
+        // Initialize
+        document.addEventListener("DOMContentLoaded", () => {
+            initializeSession();
+            loadDomains();
+            setupFormHandlers();
+            setupNavigationHandlers();
+            updateProgressBar();
+        });
+
+        async function initializeSession() {
+            if (!SESSION_ID) {
+                const response = await fetch(`${API_BASE}/sessions`, {
+                    method: "POST",
+                });
+                const data = await response.json();
+                SESSION_ID = data.session_id;
+                localStorage.setItem("session_id", SESSION_ID);
+                console.log("Created session:", SESSION_ID);
+            } else {
+                // Load existing session
+                const response = await fetch(`${API_BASE}/sessions/${SESSION_ID}`);
+                const session = await response.json();
+                CURRENT_STEP = ["domain_selection", "business_profile", "market_analysis", "financial_model", "risk_assessment", "plan_review"].indexOf(session.current_step) + 1;
+                if (session.profile.domain_slug) {
+                    SELECTED_DOMAIN = session.profile.domain_slug;
+                    localStorage.setItem("selected_domain", SELECTED_DOMAIN);
+                }
+            }
+        }
+
+        async function loadDomains() {
+            try {
+                const response = await fetch(`${API_BASE}/domains/trending`);
+                const domains = await response.json();
+
+                document.getElementById("loading-domains").style.display = "none";
+
+                const gridHTML = domains.map(domain => `
+                    <div class="domain-card" data-slug="${domain.slug}">
+                        <div class="domain-header">
+                            <div class="domain-name">${domain.name_de}</div>
+                            <span class="domain-score-badge score-${domain.grade.toLowerCase()}">
+                                ${domain.composite_score}/100
+                            </span>
+                        </div>
+                        <div class="domain-stats">
+                            <div class="domain-stat">
+                                <span>Trend:</span>
+                                <strong>${domain.trend_momentum.toFixed(1)}</strong>
+                            </div>
+                            <div class="domain-stat">
+                                <span>Markt:</span>
+                                <strong>${domain.market_growth.toFixed(1)}</strong>
+                            </div>
+                            <div class="domain-stat">
+                                <span>Konkurrenz:</span>
+                                <strong>${domain.competition_density.toFixed(1)}</strong>
+                            </div>
+                        </div>
+                        <p style="font-size: 0.85rem; color: #666;">
+                            ${domain.market_size_estimate || "Marktgröße: Berechnung läuft..."}
+                        </p>
+                    </div>
+                `).join("");
+
+                document.getElementById("domain-list").innerHTML = gridHTML;
+
+                // Add click handlers
+                document.querySelectorAll(".domain-card").forEach(card => {
+                    card.addEventListener("click", () => selectDomain(card));
+                });
+
+                // Restore selection if exists
+                if (SELECTED_DOMAIN) {
+                    const selectedCard = document.querySelector(`[data-slug="${SELECTED_DOMAIN}"]`);
+                    if (selectedCard) {
+                        selectedCard.classList.add("selected");
+                        document.getElementById("btn-next-step2").disabled = false;
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading domains:", error);
+                document.getElementById("loading-domains").innerHTML = "Fehler beim Laden der Domänen. Bitte versuchen Sie es später erneut.";
+            }
+        }
+
+        function selectDomain(card) {
+            document.querySelectorAll(".domain-card").forEach(c => c.classList.remove("selected"));
+            card.classList.add("selected");
+            SELECTED_DOMAIN = card.getAttribute("data-slug");
+            localStorage.setItem("selected_domain", SELECTED_DOMAIN);
+            document.getElementById("btn-next-step2").disabled = false;
+
+            // Save to session
+            saveSessionStep(SELECTED_DOMAIN);
+        }
+
+        function setupFormHandlers() {
+            const form = document.getElementById("profile-form");
+            const capitalSlider = document.getElementById("initial-capital");
+
+            // Update capital display
+            capitalSlider.addEventListener("input", () => {
+                const value = parseInt(capitalSlider.value);
+                document.getElementById("capital-value").textContent = value.toLocaleString("de-DE");
+            });
+
+            // Auto-save form fields
+            form.addEventListener("change", () => {
+                saveFormData();
+            });
+
+            form.addEventListener("input", debounce(() => {
+                saveFormData();
+            }, 800));
+        }
+
+        function setupNavigationHandlers() {
+            // Step 1 -> Step 2
+            document.getElementById("btn-next-step2").addEventListener("click", () => {
+                goToStep(2);
+            });
+
+            // Step 2 -> Step 1
+            document.getElementById("btn-prev-step1").addEventListener("click", () => {
+                goToStep(1);
+            });
+
+            // Step 2 -> Step 3
+            document.getElementById("btn-next-step3").addEventListener("click", () => {
+                goToStep(3);
+            });
+
+            // Sidebar navigation
+            document.querySelectorAll(".wizard-step").forEach(el => {
+                el.addEventListener("click", () => {
+                    const step = parseInt(el.getAttribute("data-step"));
+                    goToStep(step);
+                });
+            });
+        }
+
+        function goToStep(stepNum) {
+            // Hide all steps
+            document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+
+            // Show target step
+            document.querySelector(`[data-step="${stepNum}"]`).classList.add("active");
+
+            // Update sidebar
+            document.querySelectorAll(".wizard-step").forEach(s => s.classList.remove("active"));
+            document.querySelector(`[data-step="${stepNum}"]`).classList.add("active");
+
+            CURRENT_STEP = stepNum;
+            localStorage.setItem("current_step", stepNum);
+            updateProgressBar();
+
+            // Load form data if moving to Step 2
+            if (stepNum === 2) {
+                loadFormData();
+            }
+        }
+
+        async function saveSessionStep(domain) {
+            try {
+                await fetch(`${API_BASE}/sessions/${SESSION_ID}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        profile: { domain_slug: domain }
+                    })
+                });
+            } catch (error) {
+                console.error("Error saving session:", error);
+            }
+        }
+
+        async function saveFormData() {
+            const formData = new FormData(document.getElementById("profile-form"));
+            const profile = Object.fromEntries(formData);
+
+            try {
+                await fetch(`${API_BASE}/sessions/${SESSION_ID}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ profile })
+                });
+            } catch (error) {
+                console.error("Error saving form data:", error);
+            }
+        }
+
+        async function loadFormData() {
+            try {
+                const response = await fetch(`${API_BASE}/sessions/${SESSION_ID}`);
+                const session = await response.json();
+
+                if (session.profile) {
+                    Object.entries(session.profile).forEach(([key, value]) => {
+                        const input = document.querySelector(`[name="${key}"]`);
+                        if (input && value) {
+                            input.value = value;
+                        }
+                    });
+
+                    // Update capital slider display
+                    if (session.profile.initial_capital) {
+                        document.getElementById("initial-capital").value = session.profile.initial_capital;
+                        document.getElementById("capital-value").textContent = parseInt(session.profile.initial_capital).toLocaleString("de-DE");
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading form data:", error);
+            }
+        }
+
+        function updateProgressBar() {
+            const progress = (CURRENT_STEP / 6) * 100;
+            document.querySelector(".progress-fill").style.width = progress + "%";
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Step 3 Navigation
+        document.getElementById("btn-prev-step2").addEventListener("click", () => goToStep(2));
+        document.getElementById("btn-next-step3").addEventListener("click", () => {
+            loadMarketAnalysis();
+            goToStep(3);
+        });
+        document.getElementById("btn-next-step4").addEventListener("click", () => goToStep(4));
+
+        async function loadMarketAnalysis() {
+            const domain = SELECTED_DOMAIN;
+            const city = document.getElementById("city").value || "Berlin";
+
+            if (!domain) {
+                alert("Bitte wählen Sie zunächst eine Domäne");
+                return;
+            }
+
+            document.getElementById("market-loading").style.display = "block";
+            document.getElementById("market-content").style.display = "none";
+
+            try {
+                const response = await fetch(`${API_BASE}/market/analysis?domain=${domain}&city=${city}`);
+                const analysis = await response.json();
+
+                if (!analysis || Object.keys(analysis).length === 0) {
+                    document.getElementById("market-loading").innerHTML = "Fehler beim Laden der Marktanalyse. Bitte versuchen Sie es später erneut.";
+                    return;
+                }
+
+                // Render market data
+                renderMarketAnalysis(analysis);
+
+                document.getElementById("market-loading").style.display = "none";
+                document.getElementById("market-content").style.display = "block";
+
+                // Save to session
+                saveSessionData({ market_analysis: analysis }, "market_analysis");
+            } catch (error) {
+                console.error("Error loading market analysis:", error);
+                document.getElementById("market-loading").innerHTML = "Fehler beim Laden der Marktanalyse: " + error.message;
+            }
+        }
+
+        function renderMarketAnalysis(analysis) {
+            const market = analysis.market || {};
+            const competition = analysis.competition || {};
+
+            // Market Size Cards
+            document.getElementById("tam-value").textContent = market.market_size_estimate || "N/A";
+            document.getElementById("sam-value").textContent = market.city_market_estimate || "N/A";
+            document.getElementById("som-value").textContent = formatEuro((market.som_eur || 0) / 1_000_000) + "M";
+            document.getElementById("growth-value").textContent = (market.growth_rate_pct || 0).toFixed(1) + "%";
+
+            // Market Maturity
+            const maturityBadges = {
+                "emerging": { label: "Aufstrebend 🚀", color: "#10b981" },
+                "growing": { label: "Wachsend 📈", color: "#3b82f6" },
+                "mature": { label: "Reif 🏢", color: "#f59e0b" },
+                "declining": { label: "Rückläufig 📉", color: "#ef4444" },
+            };
+            const maturityInfo = maturityBadges[market.maturity] || maturityBadges.mature;
+            document.getElementById("maturity-badge").textContent = maturityInfo.label;
+            document.getElementById("maturity-badge").style.background = maturityInfo.color;
+            document.getElementById("maturity-badge").style.color = "white";
+
+            // Competition
+            const competitionLevels = {
+                "low": { label: "Niedrig 🟢", color: "#10b981", color2: "#10b981" },
+                "medium": { label: "Mittel 🟡", color: "#f59e0b", color2: "#f59e0b" },
+                "high": { label: "Hoch 🔴", color: "#ef4444", color2: "#ef4444" },
+            };
+            const compInfo = competitionLevels[competition.level] || competitionLevels.medium;
+            document.getElementById("competition-level").textContent = compInfo.label;
+            document.getElementById("competition-score").textContent = Math.round(competition.intensity_score || 50);
+            document.getElementById("competition-bar").style.width = (competition.intensity_score || 50) + "%";
+            document.getElementById("competition-bar").style.background = compInfo.color2;
+
+            // Barriers to entry
+            const barriersList = document.getElementById("barriers-list");
+            barriersList.innerHTML = "";
+            (competition.barriers_to_entry || []).forEach(barrier => {
+                const li = document.createElement("li");
+                li.style.padding = "0.5rem 0";
+                li.style.color = "#555";
+                li.innerHTML = "• " + barrier;
+                barriersList.appendChild(li);
+            });
+
+            // Differentiation opportunities
+            const differentiationList = document.getElementById("differentiation-list");
+            differentiationList.innerHTML = "";
+            (competition.differentiation_opportunities || []).forEach(idea => {
+                const li = document.createElement("li");
+                li.style.padding = "0.5rem 0";
+                li.style.color = "#555";
+                li.innerHTML = "• " + idea;
+                differentiationList.appendChild(li);
+            });
+
+            // Market trends
+            const trendsList = document.getElementById("trends-list");
+            trendsList.innerHTML = "";
+            (competition.trends || []).forEach(trend => {
+                const li = document.createElement("li");
+                li.style.padding = "0.5rem 0";
+                li.style.color = "#555";
+                li.innerHTML = "• " + trend;
+                trendsList.appendChild(li);
+            });
+
+            // News feed
+            const newsFeed = document.getElementById("news-feed");
+            const newsEmpty = document.getElementById("news-empty");
+            newsFeed.innerHTML = "";
+
+            const articles = analysis.news?.recent_articles || [];
+            if (articles.length > 0) {
+                newsEmpty.style.display = "none";
+                articles.forEach(article => {
+                    const articleDiv = document.createElement("div");
+                    articleDiv.style.marginBottom = "1rem";
+                    articleDiv.style.paddingBottom = "1rem";
+                    articleDiv.style.borderBottom = "1px solid #eee";
+                    articleDiv.innerHTML = `
+                        <div style="font-weight: 600; color: #1e40af; margin-bottom: 0.3rem;">
+                            ${article.title || "Keine Überschrift"}
+                        </div>
+                        <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">
+                            ${article.source || "Quelle unbekannt"} • ${new Date(article.publishedAt).toLocaleDateString('de-DE')}
+                        </div>
+                        <div style="color: #555; font-size: 0.95rem;">
+                            ${article.description || ""}
+                        </div>
+                        <a href="${article.url}" target="_blank" style="color: #3b82f6; text-decoration: none; font-size: 0.9rem;">
+                            Mehr lesen →
+                        </a>
+                    `;
+                    newsFeed.appendChild(articleDiv);
+                });
+            } else {
+                newsEmpty.style.display = "block";
+            }
+
+            // Industry background
+            document.getElementById("industry-bg").textContent = analysis.industry_background || "Keine Informationen verfügbar";
+        }
+
+        function formatEuro(value) {
+            if (value >= 1000) return (value / 1000).toFixed(1) + " Mrd.";
+            if (value >= 1) return value.toFixed(1);
+            return value.toFixed(0);
+        }
+
+        async function saveSessionData(updates, analysisType) {
+            try {
+                await fetch(`${API_BASE}/sessions/${SESSION_ID}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(updates)
+                });
+            } catch (error) {
+                console.error("Error saving session data:", error);
+            }
+        }
+
+        // Step 4 Financial Projections
+        let CURRENT_REVENUE_MODEL = "subscription";
+        let FINANCIAL_DATA = null;
+        let CASHFLOW_CHART = null;
+        let SENSITIVITY_CHART = null;
+
+        // Revenue model button handlers
+        document.querySelectorAll(".revenue-model-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".revenue-model-btn").forEach(b => {
+                    b.style.borderColor = "#cbd5e1";
+                    b.style.background = "white";
+                    b.style.color = "#333";
+                });
+                btn.style.borderColor = "#3b82f6";
+                btn.style.background = "#dbeafe";
+                btn.style.color = "#1e40af";
+                CURRENT_REVENUE_MODEL = btn.getAttribute("data-model");
+            });
+        });
+
+        // Revenue slider
+        document.getElementById("monthly-revenue").addEventListener("input", (e) => {
+            const value = parseInt(e.target.value);
+            document.getElementById("revenue-value").textContent = value.toLocaleString("de-DE");
+        });
+
+        // Calculate button
+        document.getElementById("btn-calculate-financials").addEventListener("click", () => {
+            calculateFinancialProjections();
+        });
+
+        // Navigation
+        document.getElementById("btn-prev-step3").addEventListener("click", () => goToStep(3));
+        document.getElementById("btn-next-step5").addEventListener("click", () => {
+            if (FINANCIAL_DATA) {
+                saveSessionData({ financial_projection: FINANCIAL_DATA }, "financial_model");
+                goToStep(5);
+            }
+        });
+
+        async function calculateFinancialProjections() {
+            const monthlyRevenue = parseInt(document.getElementById("monthly-revenue").value);
+
+            document.getElementById("financial-loading").style.display = "block";
+            document.getElementById("financial-content").style.display = "none";
+
+            try {
+                const response = await fetch(`${API_BASE}/financials/project`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        session_id: SESSION_ID,
+                        revenue_model: CURRENT_REVENUE_MODEL,
+                        monthly_revenue_estimate: monthlyRevenue,
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data || Object.keys(data).length === 0) {
+                    document.getElementById("financial-loading").innerHTML = "Fehler bei der Berechnung. Bitte versuchen Sie es später erneut.";
+                    return;
+                }
+
+                FINANCIAL_DATA = data;
+                renderFinancialData(data);
+
+                document.getElementById("financial-loading").style.display = "none";
+                document.getElementById("financial-content").style.display = "block";
+                document.getElementById("btn-next-step5").disabled = false;
+            } catch (error) {
+                console.error("Error calculating financials:", error);
+                document.getElementById("financial-loading").innerHTML = "Fehler bei der Berechnung: " + error.message;
+            }
+        }
+
+        function renderFinancialData(data) {
+            const metrics = data.key_metrics || {};
+            const scenarios = data.scenarios || {};
+            const months = data.months_1_12 || [];
+
+            // Break-even
+            document.getElementById("breakeven-month").textContent = data.break_even_month || "12";
+
+            // Startup costs
+            const startup = data.startup_costs || {};
+            document.getElementById("startup-cost").textContent = formatEuroShort(startup.total || 0);
+
+            // Year 1 & 3 metrics
+            const y1 = metrics.year_1 || {};
+            const y3 = metrics.year_3 || {};
+            document.getElementById("year1-net").textContent = formatEuroShort(y1.net_income || 0);
+            document.getElementById("year3-net").textContent = formatEuroShort(y3.ebitda || 0);
+            document.getElementById("margin-year1").textContent = (y1.ebitda_margin_pct || 0).toFixed(1) + "%";
+
+            // Scenarios
+            const cons = scenarios.conservative || {};
+            const base = scenarios.base || {};
+            const opt = scenarios.optimistic || {};
+
+            document.getElementById("cons-breakeven").textContent = cons.break_even_month || "—";
+            document.getElementById("cons-net").textContent = formatEuroShort(cons.year_1_net_income || 0);
+            document.getElementById("base-breakeven").textContent = base.break_even_month || "—";
+            document.getElementById("base-net").textContent = formatEuroShort(base.year_1_net_income || 0);
+            document.getElementById("opt-breakeven").textContent = opt.break_even_month || "—";
+            document.getElementById("opt-net").textContent = formatEuroShort(opt.year_1_net_income || 0);
+
+            // Draw cashflow chart
+            drawCashflowChart(months);
+
+            // Render year 1 table
+            renderYear1Table(months);
+
+            // Fetch confidence and sensitivity (parallel, silent fail)
+            const revenueModel = document.querySelector('[name="revenue-model"]:checked')?.value || "subscription";
+            const monthlyRevenue = parseFloat(document.getElementById("monthly-revenue")?.value || 5000);
+
+            Promise.all([
+                fetch(`${API_BASE}/financials/${SESSION_ID}/confidence?revenue_model=${revenueModel}&monthly_revenue=${monthlyRevenue}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null),
+                fetch(`${API_BASE}/financials/${SESSION_ID}/sensitivity?revenue_model=${revenueModel}&monthly_revenue=${monthlyRevenue}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null),
+            ]).then(([confidenceData, sensitivityData]) => {
+                if (confidenceData) renderConfidence(confidenceData, data);
+                if (sensitivityData) renderSensitivity(sensitivityData);
+            });
+        }
+
+        function drawCashflowChart(months) {
+            if (!months || months.length === 0) return;
+
+            const labels = months.map(m => "M" + m.month);
+            const cashflows = months.map(m => m.cumulative_cf || 0);
+
+            const ctx = document.getElementById("cashflow-chart");
+            if (!ctx) return;
+
+            if (CASHFLOW_CHART) {
+                CASHFLOW_CHART.destroy();
+            }
+
+            CASHFLOW_CHART = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Kumulierter Cashflow (€)",
+                        data: cashflows,
+                        borderColor: "#3b82f6",
+                        backgroundColor: "rgba(59, 130, 246, 0.1)",
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 3,
+                        pointBackgroundColor: "#3b82f6",
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: "top",
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: "EUR"
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderYear1Table(months) {
+            const tbody = document.getElementById("year1-tbody");
+            tbody.innerHTML = "";
+
+            months.forEach(month => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td style="padding: 0.75rem; border: 1px solid #ddd;">${month.month}</td>
+                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;">${formatEuroShort(month.revenue || 0)}</td>
+                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right;">${formatEuroShort(month.total_costs || 0)}</td>
+                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right; color: ${month.ebitda >= 0 ? '#10b981' : '#ef4444'};">
+                        ${formatEuroShort(month.ebitda || 0)}
+                    </td>
+                    <td style="padding: 0.75rem; border: 1px solid #ddd; text-align: right; font-weight: bold;">
+                        ${formatEuroShort(month.cumulative_cf || 0)}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderConfidence(confidenceData, projectionData) {
+            const score = confidenceData.confidence_score || 0;
+            const tier = confidenceData.confidence_tier || "medium";
+            const bandPct = confidenceData.confidence_band_pct || 25;
+            const drivers = confidenceData.drivers || [];
+            const warnings = confidenceData.warnings || [];
+
+            // Update badge color by tier
+            const badgeEl = document.getElementById("confidence-badge");
+            if (tier === "high") {
+                badgeEl.style.background = "#d1fae5";
+                badgeEl.style.color = "#065f46";
+                badgeEl.textContent = "🟢 Hoch";
+            } else if (tier === "medium") {
+                badgeEl.style.background = "#fef3c7";
+                badgeEl.style.color = "#78350f";
+                badgeEl.textContent = "🟡 Mittel";
+            } else {
+                badgeEl.style.background = "#fee2e2";
+                badgeEl.style.color = "#7f1d1d";
+                badgeEl.textContent = "🔴 Niedrig";
+            }
+
+            // Populate confidence band table
+            const projData = projectionData || {};
+            const y1Revenue = projData.key_metrics?.year_1?.revenue || 0;
+            const y1Net = projData.key_metrics?.year_1?.net_income || 0;
+            const breakeven = projData.break_even_month || 12;
+
+            const bandLower = bandPct / 100;
+            const bandUpper = bandPct / 100;
+
+            document.getElementById("cb-revenue-lower").textContent = formatEuroShort(y1Revenue * (1 - bandLower));
+            document.getElementById("cb-revenue-expected").textContent = formatEuroShort(y1Revenue);
+            document.getElementById("cb-revenue-upper").textContent = formatEuroShort(y1Revenue * (1 + bandUpper));
+
+            document.getElementById("cb-net-lower").textContent = formatEuroShort(y1Net * (1 - bandLower));
+            document.getElementById("cb-net-expected").textContent = formatEuroShort(y1Net);
+            document.getElementById("cb-net-upper").textContent = formatEuroShort(y1Net * (1 + bandUpper));
+
+            const breakLower = Math.max(1, Math.round(breakeven * (1 - bandLower)));
+            const breakUpper = Math.round(breakeven * (1 + bandUpper));
+
+            document.getElementById("cb-breakeven-lower").textContent = breakLower + " Mo.";
+            document.getElementById("cb-breakeven-expected").textContent = breakeven + " Mo.";
+            document.getElementById("cb-breakeven-upper").textContent = breakUpper + " Mo.";
+
+            // Render drivers
+            const driversHtml = drivers
+                .map(d => {
+                    const pct = (d.weight * 100).toFixed(0);
+                    return `<div style="margin-bottom: 0.5rem;"><strong>${d.factor}</strong>: ${d.score.toFixed(0)}/100 (${pct}% weight)</div>`;
+                })
+                .join("");
+
+            const warningsHtml = warnings.length > 0
+                ? `<div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #ddd; font-size: 0.85rem; color: #d97706;">⚠️ ${warnings.join(", ")}</div>`
+                : "";
+
+            document.getElementById("confidence-drivers-list").innerHTML = driversHtml + warningsHtml;
+        }
+
+        function renderSensitivity(sensitivityData) {
+            const matrix = sensitivityData.sensitivity_matrix || {};
+            const keyDriver = sensitivityData.key_driver || "revenue";
+            const impactRanking = sensitivityData.impact_ranking || [];
+
+            const revenueVar = matrix.revenue_variance || [];
+            const costVar = matrix.cost_variance || [];
+            const marginVar = matrix.margin_variance || [];
+
+            // Prepare chart data
+            const changePcts = [-30, -20, -10, 0, 10, 20, 30];
+            const revenueDeltas = revenueVar.map(v => v.year_1_net_delta || 0);
+            const costDeltas = costVar.map(v => v.year_1_net_delta || 0);
+            const marginDeltas = marginVar.map(v => v.year_1_net_delta || 0);
+
+            const ctx = document.getElementById("sensitivity-chart");
+            if (!ctx) return;
+
+            if (SENSITIVITY_CHART) {
+                SENSITIVITY_CHART.destroy();
+            }
+
+            SENSITIVITY_CHART = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: changePcts.map(p => p + "%"),
+                    datasets: [
+                        {
+                            label: "Umsatzvariation",
+                            data: revenueDeltas,
+                            backgroundColor: keyDriver === "revenue" ? "#3b82f6" : "#bfdbfe",
+                            borderColor: "#3b82f6",
+                            borderWidth: 1,
+                        },
+                        {
+                            label: "Kostenvariation",
+                            data: costDeltas,
+                            backgroundColor: keyDriver === "costs" ? "#ef4444" : "#fca5a5",
+                            borderColor: "#ef4444",
+                            borderWidth: 1,
+                        },
+                        {
+                            label: "Margenvariation",
+                            data: marginDeltas,
+                            backgroundColor: keyDriver === "margin" ? "#10b981" : "#a7f3d0",
+                            borderColor: "#10b981",
+                            borderWidth: 1,
+                        },
+                    ]
+                },
+                options: {
+                    indexAxis: "y",
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: true, position: "top" }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Jahresgewinn-Delta (€)"
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Key driver label
+            const driverLabels = {
+                "revenue": "🎯 Haupttreiber: Umsatz — Umsatzsteigerungen haben den größten Einfluss auf die Rentabilität.",
+                "costs": "🎯 Haupttreiber: Kosten — Kostenkontrolle ist entscheidend für die Rentabilität.",
+                "margin": "🎯 Haupttreiber: Marge — Preisgestaltung und Kostenstruktur bestimmen das Ergebnis."
+            };
+
+            document.getElementById("key-driver-label").textContent = driverLabels[keyDriver] || "Auswirkungsanalyse";
+        }
+
+        function formatEuroShort(value) {
+            if (value >= 1_000_000) {
+                return "€" + (value / 1_000_000).toFixed(1) + "M";
+            } else if (value >= 1_000) {
+                return "€" + (value / 1_000).toFixed(0) + "K";
+            } else {
+                return "€" + Math.round(value);
+            }
+        }
+
+        // Step 5 Risk & Regulatory
+        document.getElementById("btn-prev-step4").addEventListener("click", () => goToStep(4));
+        document.getElementById("btn-next-step6").addEventListener("click", () => goToStep(6));
+
+        // Load risk data when moving to Step 5
+        document.querySelectorAll(".wizard-step").forEach(step => {
+            if (step.getAttribute("data-step") === "5") {
+                step.addEventListener("click", loadRiskAssessment);
+            }
+        });
+
+        async function loadRiskAssessment() {
+            const domain = SELECTED_DOMAIN;
+            if (!domain) return;
+
+            document.getElementById("risk-loading").style.display = "block";
+            document.getElementById("risk-content").style.display = "none";
+
+            try {
+                // Fetch risk assessment
+                const riskResponse = await fetch(`${API_BASE}/risk/assess?session_id=${SESSION_ID}&domain=${domain}`);
+                const riskData = await riskResponse.json();
+
+                // Fetch regulatory requirements
+                const regResponse = await fetch(
+                    `${API_BASE}/risk/regulatory?domain=${domain}&legal_form=${document.getElementById("legal-form").value || "Einzelunternehmen"}`
+                );
+                const regData = await regResponse.json();
+
+                renderRiskAssessment(riskData, regData);
+
+                document.getElementById("risk-loading").style.display = "none";
+                document.getElementById("risk-content").style.display = "block";
+            } catch (error) {
+                console.error("Error loading risk assessment:", error);
+                document.getElementById("risk-loading").innerHTML = "Fehler beim Laden der Risiken. Bitte versuchen Sie es später.";
+            }
+        }
+
+        function renderRiskAssessment(riskData, regData) {
+            // Overall risk badge
+            const riskLevel = riskData.overall_risk_level || "medium";
+            const badgeColors = {
+                "low": { bg: "#d1fae5", color: "#065f46", label: "Niedrig 🟢" },
+                "medium": { bg: "#fed7aa", color: "#92400e", label: "Mittel 🟡" },
+                "high": { bg: "#fee2e2", color: "#991b1b", label: "Hoch 🔴" },
+            };
+            const colors = badgeColors[riskLevel] || badgeColors.medium;
+            const badge = document.getElementById("overall-risk-badge");
+            badge.textContent = colors.label;
+            badge.style.background = colors.bg;
+            badge.style.color = colors.color;
+
+            // Risk matrix (8 dimensions)
+            const riskMatrix = document.getElementById("risk-matrix");
+            riskMatrix.innerHTML = "";
+
+            (riskData.risk_factors || []).forEach(factor => {
+                const colorClass = _getRiskColorClass(factor.score);
+                const card = document.createElement("div");
+                card.style.borderLeft = "4px solid " + _getRiskColorHex(factor.score);
+                card.style.padding = "1rem";
+                card.style.background = "#f9fafb";
+                card.style.borderRadius = "4px";
+
+                card.innerHTML = `
+                    <div style="font-weight: bold; color: #1e40af; margin-bottom: 0.5rem;">
+                        ${factor.name}
+                    </div>
+                    <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.75rem;">
+                        ${factor.description}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-size: 0.85rem; color: #999;">Score:</span>
+                            <span style="font-weight: bold; margin-left: 0.5rem;">${factor.score}</span>
+                        </div>
+                        <div style="
+                            display: inline-block;
+                            padding: 0.25rem 0.75rem;
+                            border-radius: 12px;
+                            font-size: 0.85rem;
+                            font-weight: bold;
+                            background: ${_getRiskColorHex(factor.score)};
+                            color: white;
+                        ">
+                            ${_getRiskLabel(factor.score)}
+                        </div>
+                    </div>
+                `;
+                riskMatrix.appendChild(card);
+            });
+
+            // Top 3 risks
+            const topRisksList = document.getElementById("top-risks-list");
+            topRisksList.innerHTML = "";
+
+            (riskData.top_3_risks || []).forEach((risk, index) => {
+                const riskDiv = document.createElement("div");
+                riskDiv.style.marginBottom = "1.5rem";
+                riskDiv.style.borderLeft = "4px solid " + _getRiskColorHex(risk.score);
+                riskDiv.style.paddingLeft = "1rem";
+
+                const mitigationItems = (risk.mitigation_strategies || [])
+                    .slice(0, 2)
+                    .map(s => `<li style="padding: 0.25rem 0;">• ${s}</li>`)
+                    .join("");
+
+                riskDiv.innerHTML = `
+                    <div style="font-weight: bold; color: #1e40af; margin-bottom: 0.5rem;">
+                        ${index + 1}. ${risk.name} (Score: ${risk.score})
+                    </div>
+                    <p style="color: #666; font-size: 0.95rem; margin-bottom: 0.75rem;">
+                        ${risk.description}
+                    </p>
+                    <div style="font-size: 0.9rem; color: #555;">
+                        <strong>Maßnahmen:</strong>
+                        <ul style="list-style: none; padding: 0; margin-top: 0.5rem;">
+                            ${mitigationItems}
+                        </ul>
+                    </div>
+                `;
+                topRisksList.appendChild(riskDiv);
+            });
+
+            // Regulatory requirements
+            document.getElementById("compliance-total-cost").textContent = formatEuroShort(regData.total_estimated_cost || 0);
+            document.getElementById("compliance-total-days").textContent = (regData.total_estimated_days || 0) + " Tage";
+
+            const grouped = regData.grouped_by_category || {};
+            const groupedDiv = document.getElementById("requirements-grouped");
+            groupedDiv.innerHTML = "";
+
+            Object.entries(grouped).forEach(([category, items]) => {
+                const categoryDiv = document.createElement("div");
+                categoryDiv.style.background = "#f9fafb";
+                categoryDiv.style.padding = "1.25rem";
+                categoryDiv.style.borderRadius = "4px";
+                categoryDiv.style.borderLeft = "4px solid #3b82f6";
+
+                let itemsHtml = (items || [])
+                    .map(item => `
+                        <div style="padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb;">
+                            <div style="font-weight: 600; color: #1e40af; font-size: 0.95rem;">
+                                ${item.requirement}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+                                Behörde: ${item.authority || "—"}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #666;">
+                                Kosten: €${item.estimated_cost_eur || 0} | Tage: ${item.estimated_days || 0}
+                            </div>
+                            ${item.reference_url ? `
+                                <a href="${item.reference_url}" target="_blank" style="font-size: 0.85rem; color: #3b82f6; text-decoration: none;">
+                                    Mehr Info →
+                                </a>
+                            ` : ""}
+                        </div>
+                    `)
+                    .join("");
+
+                categoryDiv.innerHTML = `
+                    <h4 style="color: #1e40af; margin-bottom: 1rem; font-size: 1rem;">
+                        ${category}
+                    </h4>
+                    <div>${itemsHtml}</div>
+                `;
+                groupedDiv.appendChild(categoryDiv);
+            });
+        }
+
+        function _getRiskLabel(score) {
+            if (score <= 5) return "Niedrig";
+            if (score <= 10) return "Mittel";
+            if (score <= 15) return "Hoch";
+            return "Kritisch";
+        }
+
+        function _getRiskColorHex(score) {
+            if (score <= 5) return "#10b981";
+            if (score <= 10) return "#f59e0b";
+            if (score <= 15) return "#f97316";
+            return "#ef4444";
+        }
+
+        function _getRiskColorClass(score) {
+            return _getRiskColorHex(score);
+        }
+
+        // Step 6: Business Plan Review & Export
+        document.getElementById("btn-prev-step5").addEventListener("click", () => goToStep(5));
+
+        document.getElementById("btn-export-markdown").addEventListener("click", exportMarkdown);
+        document.getElementById("btn-export-html").addEventListener("click", exportHTML);
+
+        // Load plan when moving to Step 6
+        document.querySelectorAll(".wizard-step").forEach(step => {
+            if (step.getAttribute("data-step") === "6") {
+                step.addEventListener("click", loadBusinessPlan);
+            }
+        });
+
+        async function loadBusinessPlan() {
+            document.getElementById("plan-loading").style.display = "block";
+            document.getElementById("plan-content").style.display = "none";
+
+            try {
+                // Fetch the assembled plan
+                const response = await fetch(`${API_BASE}/export/${SESSION_ID}/summary`);
+                const data = await response.json();
+
+                // Fetch full plan data (assuming it's embedded in the summary or fetched separately)
+                // For now, we'll use the summary to show key information
+                const sessionResponse = await fetch(`${API_BASE}/sessions/${SESSION_ID}`);
+                const sessionData = await sessionResponse.json();
+
+                renderPlanPreview(sessionData);
+
+                document.getElementById("plan-loading").style.display = "none";
+                document.getElementById("plan-content").style.display = "block";
+            } catch (error) {
+                console.error("Error loading plan:", error);
+                document.getElementById("plan-loading").innerHTML = "Fehler beim Laden des Plans. Bitte versuchen Sie es später.";
+            }
+        }
+
+        function renderPlanPreview(session) {
+            // Executive Summary
+            const profile = session.profile || {};
+            const financial = session.financial_projection || {};
+            const metrics = financial.key_metrics || {};
+            const yr1 = metrics.year_1 || {};
+
+            document.getElementById("plan-startup").textContent = formatEuroShort(financial.startup_costs?.total || 0);
+            document.getElementById("plan-breakeven").textContent = `Monat ${financial.break_even_month || 0}`;
+            document.getElementById("plan-year1-revenue").textContent = formatEuroShort(yr1.total_revenue || 0);
+            document.getElementById("plan-year1-net").textContent = formatEuroShort(yr1.net_income || 0);
+
+            // Company Description
+            document.getElementById("plan-mission").innerHTML = `<strong>Mission:</strong> Unternehmen in der Domäne ${SELECTED_DOMAIN}`;
+            document.getElementById("plan-vision").innerHTML = `<strong>Vision:</strong> Führendes Unternehmen auf dem Markt werden`;
+            document.getElementById("plan-business-model").innerHTML = `<strong>Geschäftsmodell:</strong> ${profile.unique_value_proposition || "Innovatives Geschäftsmodell"}`;
+
+            // Market Analysis
+            const market = session.market_analysis?.market || {};
+            const competition = session.market_analysis?.competition || {};
+            document.getElementById("plan-market-size").textContent = market.market_size_estimate || "N/A";
+            document.getElementById("plan-competition").textContent = competition.level?.charAt(0).toUpperCase() + competition.level?.slice(1) || "Mittel";
+
+            const barriers = (competition.barriers_to_entry || []).map(b => `• ${b}`).join("\n");
+            document.getElementById("plan-barriers").innerHTML = `<strong>Markteintrittsbarrieren:</strong><div style="margin-top: 0.5rem; color: #666; font-size: 0.95rem; white-space: pre-wrap;">${barriers || "—"}</div>`;
+
+            // Financial Plan Summary
+            const scenarios = financial.scenarios || {};
+            let scenarioHTML = "";
+            for (const [name, data] of Object.entries(scenarios)) {
+                const y1 = data.year_1 || {};
+                scenarioHTML += `
+                    <div style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">
+                        <strong>${name.replace(/_/g, " ")}</strong><br>
+                        <span style="font-size: 0.85rem; color: #666;">
+                            Jahr 1: ${formatEuroShort(y1.total_revenue || 0)} | Marge: ${(y1.ebitda_margin_pct || 0).toFixed(1)}%
+                        </span>
+                    </div>
+                `;
+            }
+            document.getElementById("plan-financial").innerHTML = `<strong>3-Szenario-Vergleich:</strong><div style="margin-top: 0.5rem; background: #f5f7fa; border-radius: 4px; overflow: hidden;">${scenarioHTML}</div>`;
+
+            // Risk Assessment
+            const riskData = session.risk_assessment || {};
+            const riskLevel = riskData.overall_risk_level || "medium";
+            const riskColors = {
+                "low": { bg: "#d1fae5", color: "#065f46", label: "Niedrig 🟢" },
+                "medium": { bg: "#fed7aa", color: "#92400e", label: "Mittel 🟡" },
+                "high": { bg: "#fee2e2", color: "#991b1b", label: "Hoch 🔴" },
+            };
+            const colors = riskColors[riskLevel] || riskColors.medium;
+
+            document.getElementById("plan-risk").innerHTML = `
+                <div style="padding: 1rem; border-radius: 4px; background: ${colors.bg}; color: ${colors.color}; margin-bottom: 1rem;">
+                    <strong>Gesamtes Geschäftsrisiko:</strong> ${colors.label} (Score: ${riskData.risk_score || 0}/100)
+                </div>
+                <strong>Top 3 Risiken:</strong>
+                <div style="margin-top: 0.5rem;">
+                    ${(riskData.top_3_risks || [])
+                        .slice(0, 3)
+                        .map((r, i) => `
+                            <div style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">
+                                ${i + 1}. <strong>${r.title || r.name}</strong> (Score: ${r.score || 0})
+                            </div>
+                        `)
+                        .join("")}
+                </div>
+            `;
+
+            // Make section headers clickable to collapse/expand
+            document.querySelectorAll(".plan-section").forEach(section => {
+                const header = section.previousElementSibling;
+                header.addEventListener("click", () => {
+                    const isVisible = section.style.display !== "none";
+                    section.style.display = isVisible ? "none" : "block";
+                    header.textContent = (isVisible ? "▶ " : "▼ ") + header.textContent.substring(2);
+                });
+            });
+        }
+
+        async function exportMarkdown() {
+            try {
+                const response = await fetch(`${API_BASE}/export/plan/${SESSION_ID}/markdown`);
+                if (!response.ok) throw new Error("Export failed");
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `Geschaeftsplan_${new Date().toISOString().split('T')[0]}.md`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error("Error exporting markdown:", error);
+                alert("Fehler beim Exportieren des Plans. Bitte versuchen Sie es später.");
+            }
+        }
+
+        async function exportHTML() {
+            try {
+                const response = await fetch(`${API_BASE}/export/plan/${SESSION_ID}/html`);
+                if (!response.ok) throw new Error("Export failed");
+
+                const html = await response.text();
+                const newWindow = window.open();
+                newWindow.document.write(html);
+                newWindow.document.close();
+                newWindow.print();
+            } catch (error) {
+                console.error("Error exporting HTML:", error);
+                alert("Fehler beim Exportieren des Plans. Bitte versuchen Sie es später.");
+            }
+        }
+    </script>
+</body>
+</html>

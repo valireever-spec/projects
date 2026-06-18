@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geschäftsplan: {{ metadata.business_name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: white;
+        }
+
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .metadata {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        .metadata-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .metadata-label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.3em;
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            font-size: 1.1em;
+            color: #7f8c8d;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .highlight-box {
+            background: #ecf0f1;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .risk-high {
+            background: #ffcccc;
+            border-left-color: #e74c3c;
+        }
+
+        .risk-medium {
+            background: #ffe6cc;
+            border-left-color: #f39c12;
+        }
+
+        .risk-low {
+            background: #e6ffe6;
+            border-left-color: #27ae60;
+        }
+
+        .financial-metric {
+            display: inline-block;
+            background: #ecf0f1;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .financial-value {
+            color: #27ae60;
+            font-size: 1.1em;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .toc ol {
+            margin-left: 20px;
+        }
+
+        .toc li {
+            margin-bottom: 10px;
+        }
+
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        .phase-box {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .phase-box h4 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+
+        .milestone {
+            color: #27ae60;
+            font-weight: 500;
+        }
+
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .page-break {
+            page-break-after: always;
+            margin-bottom: 40px;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                padding: 0;
+                max-width: 100%;
+            }
+
+            h2 {
+                page-break-before: always;
+            }
+
+            .page-break {
+                page-break-after: always;
+            }
+
+            a {
+                color: #3498db;
+                text-decoration: none;
+            }
+        }
+
+        .risk-factor {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #bdc3c7;
+        }
+
+        .risk-factor.high {
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+        }
+
+        .risk-factor.medium {
+            border-left-color: #f39c12;
+            background: #fffbf0;
+        }
+
+        .risk-factor.low {
+            border-left-color: #27ae60;
+            background: #f0fff4;
+        }
+
+        .risk-score {
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+
+        .risk-high .risk-score {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .risk-medium .risk-score {
+            background: #f39c12;
+            color: white;
+        }
+
+        .risk-low .risk-score {
+            background: #27ae60;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Geschäftsplan</h1>
+            <h2 style="font-size: 1.5em; margin-top: 0; border: none; padding: 0; color: #34495e;">{{ metadata.business_name }}</h2>
+
+            <div class="metadata">
+                <div class="metadata-item">
+                    <span class="metadata-label">Erstellt am:</span>
+                    <span>{{ generated_at }}</span>
+                </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Geschäftsdomäne:</span>
+                    <span>{{ metadata.domain }}</span>
+                </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Standort:</span>
+                    <span>{{ metadata.city }}</span>
+                </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Rechtsform:</span>
+                    <span>{{ metadata.legal_form }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h3>Inhaltsverzeichnis</h3>
+            <ol>
+                <li><a href="#executive-summary">Executive Summary</a></li>
+                <li><a href="#company-description">Unternehmensbeschreibung</a></li>
+                <li><a href="#market-analysis">Marktanalyse</a></li>
+                <li><a href="#financial-plan">Finanzplan</a></li>
+                <li><a href="#risk-assessment">Risikobewertung</a></li>
+                <li><a href="#regulatory">Regulatorische Anforderungen</a></li>
+                <li><a href="#competitive-advantages">Wettbewerbsvorteile</a></li>
+                <li><a href="#action-plan">Aktionsplan</a></li>
+            </ol>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- Section 1: Executive Summary -->
+        <h2 id="executive-summary">Executive Summary</h2>
+
+        <p><strong>Geschäftsname:</strong> {{ executive_summary.business_name }}</p>
+
+        <h3>Geschäftsidee</h3>
+        <p>{{ executive_summary.elevator_pitch }}</p>
+
+        <h3>Marktgelegenheit</h3>
+        <p>{{ executive_summary.market_opportunity }}</p>
+
+        <h3>Finanzielle Highlights</h3>
+        <div>
+            <div class="financial-metric">
+                Startinvestitionen: <span class="financial-value">€{{ "{:,.0f}".format(executive_summary.financial_highlights.startup_investment) }}</span>
+            </div>
+            <div class="financial-metric">
+                Break-Even: <span class="financial-value">Monat {{ executive_summary.financial_highlights.break_even_month }}</span>
+            </div>
+            <div class="financial-metric">
+                Jahr 1 Umsatz: <span class="financial-value">€{{ "{:,.0f}".format(executive_summary.financial_highlights.year_1_revenue) }}</span>
+            </div>
+            <div class="financial-metric">
+                Jahr 1 Nettoeinkommen: <span class="financial-value">€{{ "{:,.0f}".format(executive_summary.financial_highlights.year_1_net_income) }}</span>
+            </div>
+        </div>
+
+        <h3>Erfolgsfaktoren</h3>
+        <ul>
+            {% for factor in executive_summary.key_success_factors %}
+            <li>{{ factor }}</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Section 2: Company Description -->
+        <h2 id="company-description">Unternehmensbeschreibung</h2>
+
+        <h3>Mission</h3>
+        <p>{{ company_description.mission }}</p>
+
+        <h3>Vision</h3>
+        <p>{{ company_description.vision }}</p>
+
+        <h3>Geschäftsmodell</h3>
+        <p>{{ company_description.business_model }}</p>
+
+        <h3>Zielmarkt</h3>
+        <p>{{ company_description.target_market }}</p>
+
+        <h3>Gründer</h3>
+        <p><strong>Hintergrund:</strong> {{ company_description.founders.background }}</p>
+        <p><strong>Erfahrung:</strong> {{ company_description.founders.experience }}</p>
+
+        <h3>Unternehmensdetails</h3>
+        <table>
+            <tr>
+                <td><strong>Standort</strong></td>
+                <td>{{ company_description.location }}</td>
+            </tr>
+            <tr>
+                <td><strong>Rechtsform</strong></td>
+                <td>{{ company_description.legal_form }}</td>
+            </tr>
+            <tr>
+                <td><strong>Geschäftsdomäne</strong></td>
+                <td>{{ company_description.business_domain }}</td>
+            </tr>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- Section 3: Market Analysis -->
+        <h2 id="market-analysis">Marktanalyse</h2>
+
+        <h3>Marktgröße und Wachstum</h3>
+        <ul>
+            <li><strong>Geschätzter Marktumfang:</strong> {{ market_analysis.market.market_size_estimate }}</li>
+            <li><strong>Wachstumsrate:</strong> {{ market_analysis.market.growth_rate_pct }}% pro Jahr</li>
+            <li><strong>Marktreife:</strong> {{ market_analysis.market.market_maturity }}</li>
+        </ul>
+
+        <h3>Wettbewerb</h3>
+        <p><strong>Wettbewerbsintensität:</strong> {{ market_analysis.competition.level | capitalize }}</p>
+
+        <h4>Hauptwettbewerber</h4>
+        <ul>
+            {% for player in market_analysis.competition.main_players %}
+            <li>{{ player }}</li>
+            {% else %}
+            <li>N/A</li>
+            {% endfor %}
+        </ul>
+
+        <h4>Markteintrittsbarrieren</h4>
+        <ul>
+            {% for barrier in market_analysis.competition.barriers_to_entry %}
+            <li>{{ barrier }}</li>
+            {% endfor %}
+        </ul>
+
+        <h4>Differenzierungsmöglichkeiten</h4>
+        <ul>
+            {% for diff in market_analysis.competition.differentiation_opportunities %}
+            <li>{{ diff }}</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Section 4: Financial Plan -->
+        <h2 id="financial-plan">Finanzplan</h2>
+
+        <h3>Startkapital</h3>
+        <table>
+            <tr>
+                <th>Kategorie</th>
+                <th>Betrag</th>
+            </tr>
+            {% for category, amount in financial_plan.startup_costs.items() %}
+            {% if category != 'total' %}
+            <tr>
+                <td>{{ category | replace('_', ' ') | title }}</td>
+                <td>€{{ "{:,.0f}".format(amount) }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+            <tr style="font-weight: bold; background: #ecf0f1;">
+                <td>Gesamt</td>
+                <td>€{{ "{:,.0f}".format(financial_plan.startup_costs.total) }}</td>
+            </tr>
+        </table>
+
+        <h3>Einnahmemodell</h3>
+        <p>{{ financial_plan.revenue_model }}</p>
+        <p><strong>Geschätzte monatliche Einnahmen:</strong> €{{ "{:,.0f}".format(financial_plan.monthly_revenue_estimate) }}</p>
+
+        <h3>Break-Even Analyse</h3>
+        <div class="highlight-box">
+            <p><strong>Monatlich erforderlich:</strong> €{{ "{:,.0f}".format(financial_plan.break_even_analysis.monthly_revenue_needed) }}</p>
+            <p><strong>Break-Even Monat:</strong> {{ financial_plan.break_even_analysis.break_even_month }}</p>
+            <p><strong>Erreichbar:</strong> {% if financial_plan.break_even_analysis.achievable %}Ja{% else %}Nein{% endif %}</p>
+        </div>
+
+        <h3>Szenarien (36 Monate)</h3>
+        {% if financial_plan.scenarios %}
+        <table>
+            <tr>
+                <th>Szenario</th>
+                <th>Jahr 1 Umsatz</th>
+                <th>Jahr 3 Umsatz</th>
+                <th>EBITDA Marge Jahr 1</th>
+            </tr>
+            {% for scenario_name, scenario_data in financial_plan.scenarios.items() %}
+            <tr>
+                <td>{{ scenario_name | replace('_', ' ') | title }}</td>
+                <td>€{{ "{:,.0f}".format(scenario_data.year_1.total_revenue) }}</td>
+                <td>€{{ "{:,.0f}".format(scenario_data.year_3.total_revenue) }}</td>
+                <td>{{ "{:.1f}".format(scenario_data.year_1.ebitda_margin_pct) }}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endif %}
+
+        <div class="page-break"></div>
+
+        <!-- Section 5: Risk Assessment -->
+        <h2 id="risk-assessment">Risikobewertung</h2>
+
+        <div class="highlight-box risk-{% if risk_assessment.overall_risk_level == 'high' %}high{% elif risk_assessment.overall_risk_level == 'medium' %}medium{% else %}low{% endif %}">
+            <p><strong>Gesamtes Risiko:</strong> {{ risk_assessment.overall_risk_level | upper }}</p>
+            <p><strong>Risikowert (0-100):</strong> {{ risk_assessment.risk_score }}</p>
+        </div>
+
+        <h3>Risikoanalyse (8 Dimensionen)</h3>
+
+        {% for factor in risk_assessment.risk_factors %}
+        <div class="risk-factor {% if factor.color == 'red' %}high{% elif factor.color == 'orange' %}medium{% else %}low{% endif %}">
+            <div style="flex: 1;">
+                <strong>{{ factor.name }}</strong><br>
+                <small>{{ factor.description }}</small>
+            </div>
+            <div class="risk-score">{{ factor.score }}</div>
+        </div>
+        {% endfor %}
+
+        <h3>Top 3 Risiken</h3>
+        {% for risk_item in risk_assessment.top_3_risks %}
+        <div class="highlight-box risk-high">
+            <h4>{{ loop.index }}. {{ risk_item.title }}</h4>
+            <p><strong>Beschreibung:</strong> {{ risk_item.description }}</p>
+            <p><strong>Mitigation:</strong> {{ risk_item.mitigation }}</p>
+        </div>
+        {% endfor %}
+
+        <!-- Section 6: Regulatory Requirements -->
+        <h2 id="regulatory">Regulatorische Anforderungen</h2>
+
+        <div class="highlight-box">
+            <p><strong>Geschätzte Gesamtkosten:</strong> €{{ "{:,.0f}".format(regulatory_requirements.total_estimated_cost) }}</p>
+            <p><strong>Geschätzte Tage:</strong> {{ regulatory_requirements.total_estimated_days }}</p>
+        </div>
+
+        {% for category, requirements in regulatory_requirements.grouped_by_category.items() %}
+        <h3>{{ category }}</h3>
+        <table>
+            <tr>
+                <th>Anforderung</th>
+                <th>Behörde</th>
+                <th>Kosten</th>
+                <th>Tage</th>
+            </tr>
+            {% for req in requirements %}
+            <tr>
+                <td><strong>{{ req.requirement }}</strong><br><small>{{ req.description }}</small></td>
+                <td>{{ req.authority }}</td>
+                <td>€{{ "{:,.0f}".format(req.estimated_cost_eur) }}</td>
+                <td>{{ req.estimated_days }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endfor %}
+
+        <div class="page-break"></div>
+
+        <!-- Section 7: Competitive Advantages -->
+        <h2 id="competitive-advantages">Wettbewerbsvorteile</h2>
+
+        <h3>Differenzierungsstrategien</h3>
+        <ul>
+            {% for strategy in competitive_advantages.differentiation_strategies %}
+            <li>{{ strategy }}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Wettbewerbsbarrieren</h3>
+        <ul>
+            {% for barrier in competitive_advantages.competitive_barriers %}
+            <li>{{ barrier }}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Marktposition</h3>
+        <p>{{ competitive_advantages.market_position }}</p>
+
+        <h3>Schlüsselvorteile</h3>
+        <ul>
+            {% for advantage in competitive_advantages.key_advantages %}
+            <li>{{ advantage }}</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Section 8: Action Plan -->
+        <h2 id="action-plan">90-Tage-Aktionsplan</h2>
+
+        {% for phase_key, phase in action_plan.items() %}
+        <div class="phase-box">
+            <h3>{{ phase.title }}</h3>
+
+            <h4>Aufgaben</h4>
+            <ul>
+                {% for task in phase.tasks %}
+                <li>{{ task }}</li>
+                {% endfor %}
+            </ul>
+
+            <h4>Meilensteine</h4>
+            <ul>
+                {% for milestone in phase.milestones %}
+                <li class="milestone">☐ {{ milestone }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Dieser Geschäftsplan wurde automatisch generiert und sollte als Grundlage für weitere detaillierte Planung und Analyse verwendet werden.</p>
+            <p>© 2026 Business Development Platform</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "openhab",
+  "description": "Smart home automation",
+  "tech_stack": "Java OpenHAB",
+  "tracked": true
+}

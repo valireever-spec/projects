@@ -1,0 +1,6 @@
+{
+  "name": "claude_helper",
+  "description": "Claude integration helper library",
+  "tech_stack": "Python",
+  "tracked": true
+}

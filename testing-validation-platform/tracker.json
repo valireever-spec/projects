@@ -1,0 +1,6 @@
+{
+  "name": "testing-validation-platform",
+  "description": "Testing and validation framework",
+  "tech_stack": "Python pytest",
+  "tracked": true
+}

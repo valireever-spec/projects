@@ -1,0 +1,6 @@
+{
+  "name": "the-ignored-signal",
+  "description": "Signal processing research",
+  "tech_stack": "Python NumPy",
+  "tracked": true
+}

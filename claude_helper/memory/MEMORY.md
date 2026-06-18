@@ -1,0 +1,2 @@
+- [Best practices system](best-practices-system.md) — 9 core practices from Anthropic course for applying Claude across all projects
+- [Interactive guidance approach](interactive-guidance.md) — When to ask user for decisions vs. proceeding autonomously
