@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getProjects, createProject } from '../api'
+import API from '../api'
 
 function Dashboard() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [importing, setImporting] = useState(false)
   const [formData, setFormData] = useState({ name: '', tech_stack: '', description: '' })
   const navigate = useNavigate()
 
@@ -42,6 +44,20 @@ function Dashboard() {
     }
   }
 
+  const handleImportProjects = async () => {
+    setImporting(true)
+    try {
+      const { data } = await API.post('/import-projects')
+      fetchProjects()
+      alert(`Imported ${data.imported} projects (${data.skipped} already tracked)`)
+    } catch (err) {
+      console.error('Failed to import projects:', err)
+      alert('Failed to import projects')
+    } finally {
+      setImporting(false)
+    }
+  }
+
   const getStatusEmoji = (status) => {
     const map = { '✅': '✅', 'Met': '✅', '⚠️': '⚠️', 'Partial': '⚠️', '❌': '❌', 'Gap': '❌' }
     return map[status] || '•'
@@ -59,11 +75,22 @@ function Dashboard() {
       </div>
 
       <div className="container">
-        {!showForm && (
-          <button onClick={() => setShowForm(true)} style={{ marginBottom: '20px' }}>
-            + New Project
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+          {!showForm && (
+            <>
+              <button onClick={() => setShowForm(true)}>
+                + New Project
+              </button>
+              <button
+                onClick={handleImportProjects}
+                disabled={importing}
+                style={{ background: '#666' }}
+              >
+                {importing ? 'Importing...' : '📦 Import from tracker.json'}
+              </button>
+            </>
+          )}
+        </div>
 
         {showForm && (
           <div className="card" style={{ marginBottom: '20px' }}>

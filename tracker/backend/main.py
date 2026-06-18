@@ -7,6 +7,7 @@ from schemas import ProjectCreate, Project as ProjectSchema, ScorecardEntryCreat
 from typing import List
 import os
 from dotenv import load_dotenv
+from project_scanner import scan_for_projects
 
 load_dotenv()
 
@@ -147,6 +148,31 @@ def get_rules():
 def get_playbooks():
     playbooks = load_framework_playbooks()
     return playbooks
+
+@app.post("/api/import-projects", response_model=dict)
+def import_projects(db: Session = Depends(get_db)):
+    """Scan /home/vali/projects/ for tracker.json and import projects"""
+    scanned = scan_for_projects()
+    imported = 0
+    skipped = 0
+
+    for project_data in scanned:
+        existing = db.query(Project).filter(Project.name == project_data['name']).first()
+        if existing:
+            skipped += 1
+            continue
+
+        db_project = Project(
+            name=project_data['name'],
+            description=project_data.get('description'),
+            tech_stack=project_data.get('tech_stack'),
+            path=project_data.get('path')
+        )
+        db.add(db_project)
+        imported += 1
+
+    db.commit()
+    return {"imported": imported, "skipped": skipped, "projects": [p['name'] for p in scanned]}
 
 def calculate_maturity(scorecard):
     if not scorecard:
