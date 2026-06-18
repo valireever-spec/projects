@@ -20,6 +20,7 @@ class Project(Base):
     scorecard_entries = relationship("ScorecardEntry", back_populates="project")
     gaps = relationship("Gap", back_populates="project")
     reviews = relationship("Review", back_populates="project")
+    requirements = relationship("Requirement", back_populates="project")
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -44,11 +45,33 @@ class ScorecardEntry(Base):
 
     project = relationship("Project", back_populates="scorecard_entries")
 
+class Requirement(Base):
+    __tablename__ = "requirements"
+
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    req_id = Column(String)  # FR-001, NFR-002, etc.
+    req_type = Column(String)  # "Functional", "Non-Functional"
+    category = Column(String, nullable=True)  # "Performance", "Security", etc.
+    title = Column(String)
+    description = Column(Text)
+    acceptance_criteria = Column(Text, nullable=True)
+    measurement_method = Column(Text, nullable=True)
+    target = Column(String, nullable=True)
+    status = Column(String, default="Proposed")  # Proposed, Accepted, Implemented, Validated
+    test_case = Column(String, nullable=True)  # reference to test file
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    project = relationship("Project", back_populates="requirements")
+    gaps = relationship("Gap", back_populates="requirement")
+
 class Gap(Base):
     __tablename__ = "gaps"
 
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey("projects.id"))
+    requirement_id = Column(Integer, ForeignKey("requirements.id"), nullable=True)
     pillar = Column(String)
     rule_id = Column(String, nullable=True)
     title = Column(String)
@@ -60,3 +83,4 @@ class Gap(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     project = relationship("Project", back_populates="gaps")
+    requirement = relationship("Requirement", back_populates="gaps")
