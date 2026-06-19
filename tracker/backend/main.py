@@ -8,6 +8,11 @@ from typing import List
 import os
 from dotenv import load_dotenv
 from project_scanner import scan_for_projects
+from requirement_parser import load_and_parse_project_requirements
+from requirement_sync import sync_requirements_to_files, RequirementSyncManager
+from requirement_linking import RequirementLinker
+from portfolio_analytics import PortfolioAnalytics
+import json
 
 load_dotenv()
 
@@ -139,6 +144,121 @@ def delete_gap(project_id: int, gap_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "deleted"}
 
+@app.get("/api/projects/{project_id}/gaps/{gap_id}/suggest-requirements", response_model=list)
+def suggest_requirements_for_gap(project_id: int, gap_id: int, db: Session = Depends(get_db)):
+    """Suggest requirements that might be violated by this gap."""
+    gap = db.query(Gap).filter(Gap.id == gap_id, Gap.project_id == project_id).first()
+    if not gap:
+        raise HTTPException(status_code=404, detail="Gap not found")
+
+    requirements = db.query(Requirement).filter(Requirement.project_id == project_id).all()
+
+    req_list = []
+    for r in requirements:
+        req_list.append({
+            "id": r.id,
+            "req_id": r.req_id,
+            "title": r.title,
+            "req_type": r.req_type,
+            "category": r.category,
+            "description": r.description,
+            "acceptance_criteria": r.acceptance_criteria,
+            "test_case": r.test_case
+        })
+
+    suggestions = RequirementLinker.suggest_requirements(gap.title, gap.description, req_list)
+    return suggestions
+
+@app.put("/api/projects/{project_id}/gaps/{gap_id}/link-requirement", response_model=dict)
+def link_requirement_to_gap(project_id: int, gap_id: int, link_data: dict, db: Session = Depends(get_db)):
+    """Link a gap to a requirement it violates."""
+    gap = db.query(Gap).filter(Gap.id == gap_id, Gap.project_id == project_id).first()
+    if not gap:
+        raise HTTPException(status_code=404, detail="Gap not found")
+
+    requirement_id = link_data.get('requirement_id')
+    acceptance_criterion_id = link_data.get('acceptance_criterion_id')  # Optional: specific CR-XXX
+
+    requirement = db.query(Requirement).filter(
+        Requirement.id == requirement_id,
+        Requirement.project_id == project_id
+    ).first()
+    if not requirement:
+        raise HTTPException(status_code=404, detail="Requirement not found")
+
+    # Link the gap to the requirement
+    gap.requirement_id = requirement_id
+    gap.violation_type = requirement.req_type
+    gap.acceptance_criterion_id = acceptance_criterion_id
+
+    db.commit()
+
+    return {
+        "status": "linked",
+        "gap_id": gap_id,
+        "requirement_id": requirement_id,
+        "requirement_req_id": requirement.req_id
+    }
+
+@app.get("/api/projects/{project_id}/requirements/{requirement_id}/linked-gaps", response_model=list)
+def get_gaps_for_requirement(project_id: int, requirement_id: int, db: Session = Depends(get_db)):
+    """Get all gaps that violate a specific requirement."""
+    requirement = db.query(Requirement).filter(
+        Requirement.id == requirement_id,
+        Requirement.project_id == project_id
+    ).first()
+    if not requirement:
+        raise HTTPException(status_code=404, detail="Requirement not found")
+
+    gaps = db.query(Gap).filter(
+        Gap.requirement_id == requirement_id,
+        Gap.project_id == project_id
+    ).all()
+
+    result = []
+    for gap in gaps:
+        result.append({
+            "id": gap.id,
+            "title": gap.title,
+            "description": gap.description,
+            "status": gap.status,
+            "severity": gap.severity,
+            "effort": gap.effort,
+            "acceptance_criterion_id": gap.acceptance_criterion_id,
+            "pillar": gap.pillar
+        })
+
+    return result
+
+@app.get("/api/projects/{project_id}/requirement-health", response_model=list)
+def get_requirement_health(project_id: int, db: Session = Depends(get_db)):
+    """Get health status of all requirements (how many gaps violate each)."""
+    requirements = db.query(Requirement).filter(Requirement.project_id == project_id).all()
+
+    result = []
+    for req in requirements:
+        related_gaps = db.query(Gap).filter(
+            Gap.requirement_id == req.id,
+            Gap.project_id == project_id
+        ).all()
+
+        req_dict = {
+            "id": req.id,
+            "req_id": req.req_id,
+            "title": req.title,
+            "req_type": req.req_type,
+            "category": req.category,
+            "status": req.status,
+            "description": req.description,
+            "acceptance_criteria": req.acceptance_criteria,
+            "test_case": req.test_case
+        }
+
+        health = RequirementLinker.analyze_requirement_health(req_dict, [g.__dict__ for g in related_gaps])
+        result.append(health)
+
+    return result
+
 @app.get("/api/rules", response_model=dict)
 def get_rules():
     rules = load_framework_rules()
@@ -205,20 +325,233 @@ def get_requirements(project_id: int, db: Session = Depends(get_db)):
     result = []
     for r in requirements:
         gap_count = db.query(Gap).filter(Gap.requirement_id == r.id).count()
+
+        # Parse JSON fields if they are strings
+        acceptance_criteria = r.acceptance_criteria
+        if acceptance_criteria and isinstance(acceptance_criteria, str):
+            try:
+                acceptance_criteria = json.loads(acceptance_criteria)
+            except:
+                acceptance_criteria = [{"description": acceptance_criteria}]
+
+        test_case = r.test_case
+        if test_case and isinstance(test_case, str):
+            try:
+                test_case = json.loads(test_case)
+            except:
+                test_case = [test_case]
+
         result.append({
             "id": r.id,
             "req_id": r.req_id,
             "title": r.title,
+            "description": r.description,
             "req_type": r.req_type,
             "category": r.category,
             "status": r.status,
-            "acceptance_criteria": r.acceptance_criteria,
+            "acceptance_criteria": acceptance_criteria,
             "measurement_method": r.measurement_method,
             "target": r.target,
-            "test_case": r.test_case,
+            "test_case": test_case,
             "gap_count": gap_count
         })
     return result
+
+@app.post("/api/projects/{project_id}/import-requirements", response_model=dict)
+def import_requirements_from_project(project_id: int, project_path: str = None, db: Session = Depends(get_db)):
+    """Import requirements from project files into tracker database"""
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Use provided path or the project's path from database
+    path_to_scan = project_path or project.path
+    if not path_to_scan:
+        raise HTTPException(status_code=400, detail="No project path available")
+
+    # Parse requirements from project files
+    parsed = load_and_parse_project_requirements(path_to_scan)
+
+    # Clear existing requirements for this project
+    db.query(Requirement).filter(Requirement.project_id == project_id).delete()
+
+    imported_count = 0
+
+    # Import functional requirements
+    for fr in parsed.get("functional", []):
+        acceptance_criteria = json.dumps([
+            {"id": c["id"], "description": c["description"]}
+            for c in fr.acceptance_criteria
+        ])
+        test_cases = json.dumps(fr.test_cases)
+        components = json.dumps(fr.components)
+
+        db_req = Requirement(
+            project_id=project_id,
+            req_id=fr.req_id,
+            req_type="Functional",
+            category=fr.category,
+            title=fr.title,
+            description=f"Actor: {fr.actor}\n\nUse Case:\n{fr.use_case}",
+            acceptance_criteria=acceptance_criteria,
+            test_case=test_cases,
+            measurement_method=None,
+            target=None,
+            status="Proposed"
+        )
+        db.add(db_req)
+        imported_count += 1
+
+    # Import non-functional requirements
+    for nfr in parsed.get("nonfunctional", []):
+        db_req = Requirement(
+            project_id=project_id,
+            req_id=nfr.req_id,
+            req_type="Non-Functional",
+            category=nfr.category,
+            title=nfr.title,
+            description=nfr.specification,
+            acceptance_criteria=None,
+            test_case=nfr.test_case,
+            measurement_method=nfr.measurement_method,
+            target=nfr.target,
+            status="Proposed"
+        )
+        db.add(db_req)
+        imported_count += 1
+
+    db.commit()
+
+    return {
+        "status": "imported",
+        "imported_count": imported_count,
+        "functional_count": len(parsed.get("functional", [])),
+        "nonfunctional_count": len(parsed.get("nonfunctional", [])),
+        "errors": parsed.get("errors", [])
+    }
+
+@app.put("/api/projects/{project_id}/requirements/{requirement_id}", response_model=dict)
+def update_requirement(project_id: int, requirement_id: int, req_data: dict, db: Session = Depends(get_db)):
+    """Update a requirement in the tracker"""
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    requirement = db.query(Requirement).filter(
+        Requirement.id == requirement_id,
+        Requirement.project_id == project_id
+    ).first()
+    if not requirement:
+        raise HTTPException(status_code=404, detail="Requirement not found")
+
+    # Update fields
+    if 'title' in req_data:
+        requirement.title = req_data['title']
+    if 'description' in req_data:
+        requirement.description = req_data['description']
+    if 'category' in req_data:
+        requirement.category = req_data['category']
+    if 'status' in req_data:
+        requirement.status = req_data['status']
+    if 'acceptance_criteria' in req_data:
+        criteria = req_data['acceptance_criteria']
+        requirement.acceptance_criteria = json.dumps(criteria) if not isinstance(criteria, str) else criteria
+    if 'test_case' in req_data:
+        test = req_data['test_case']
+        requirement.test_case = json.dumps(test) if isinstance(test, list) else test
+    if 'measurement_method' in req_data:
+        requirement.measurement_method = req_data['measurement_method']
+    if 'target' in req_data:
+        requirement.target = req_data['target']
+
+    db.commit()
+    db.refresh(requirement)
+
+    return {
+        "id": requirement.id,
+        "req_id": requirement.req_id,
+        "status": "updated"
+    }
+
+@app.post("/api/projects/{project_id}/sync-requirements", response_model=dict)
+def sync_requirements_to_project_files(project_id: int, db: Session = Depends(get_db)):
+    """Sync requirements from tracker back to project files"""
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if not project.path:
+        raise HTTPException(status_code=400, detail="No project path available")
+
+    # Get all requirements from tracker
+    requirements = db.query(Requirement).filter(Requirement.project_id == project_id).all()
+
+    req_list = []
+    for r in requirements:
+        # Parse JSON fields
+        acceptance_criteria = r.acceptance_criteria
+        if acceptance_criteria and isinstance(acceptance_criteria, str):
+            try:
+                acceptance_criteria = json.loads(acceptance_criteria)
+            except:
+                acceptance_criteria = []
+
+        test_case = r.test_case
+        if test_case and isinstance(test_case, str):
+            try:
+                test_case = json.loads(test_case)
+            except:
+                test_case = [test_case]
+
+        req_list.append({
+            "req_id": r.req_id,
+            "req_type": r.req_type,
+            "title": r.title,
+            "category": r.category,
+            "description": r.description,
+            "acceptance_criteria": acceptance_criteria,
+            "test_case": test_case,
+            "measurement_method": r.measurement_method,
+            "target": r.target,
+            "status": r.status
+        })
+
+    # Write to files
+    result = sync_requirements_to_files(project.path, req_list)
+
+    return {
+        "status": result["status"],
+        "message": "Requirements synced to project files",
+        "functional": result.get("functional"),
+        "nonfunctional": result.get("nonfunctional"),
+        "errors": result.get("errors", [])
+    }
+
+@app.get("/api/projects/{project_id}/sync-status", response_model=dict)
+def get_sync_status(project_id: int, db: Session = Depends(get_db)):
+    """Get sync status between tracker and project files"""
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if not project.path:
+        raise HTTPException(status_code=400, detail="No project path available")
+
+    requirements = db.query(Requirement).filter(Requirement.project_id == project_id).all()
+
+    req_list = [
+        {
+            "req_id": r.req_id,
+            "req_type": r.req_type,
+            "title": r.title
+        }
+        for r in requirements
+    ]
+
+    manager = RequirementSyncManager(project.path)
+    status = manager.get_sync_status(req_list)
+
+    return status
 
 @app.get("/api/projects/{project_id}/requirements-coverage", response_model=dict)
 def get_requirements_coverage(project_id: int, db: Session = Depends(get_db)):
@@ -242,6 +575,208 @@ def get_requirements_coverage(project_id: int, db: Session = Depends(get_db)):
         "total_met": functional_met + nonfunctional_met,
         "overall_coverage": f"{int(((functional_met + nonfunctional_met) / len(requirements) * 100)) if requirements else 0}%" if requirements else "N/A"
     }
+
+@app.get("/api/portfolio/health", response_model=dict)
+def get_portfolio_health(db: Session = Depends(get_db)):
+    """Get aggregate requirement health across all projects."""
+    projects = db.query(Project).all()
+
+    projects_health = {}
+
+    for project in projects:
+        requirements = db.query(Requirement).filter(Requirement.project_id == project.id).all()
+        health_data = []
+
+        for req in requirements:
+            related_gaps = db.query(Gap).filter(
+                Gap.requirement_id == req.id,
+                Gap.project_id == project.id
+            ).all()
+
+            req_dict = {
+                "id": req.id,
+                "req_id": req.req_id,
+                "title": req.title,
+                "req_type": req.req_type,
+                "category": req.category,
+                "status": req.status,
+                "description": req.description
+            }
+
+            health = RequirementLinker.analyze_requirement_health(req_dict, [g.__dict__ for g in related_gaps])
+            health_data.append(health)
+
+        if health_data:
+            projects_health[str(project.id)] = health_data
+
+    # Aggregate metrics
+    metrics = PortfolioAnalytics.aggregate_requirement_health(projects_health)
+    score = PortfolioAnalytics.calculate_portfolio_health_score(metrics)
+
+    return {
+        "portfolio_score": score,
+        "total_requirements": metrics["total_requirements"],
+        "healthy": metrics["healthy"],
+        "at_risk": metrics["at_risk"],
+        "unvalidated": metrics["unvalidated"],
+        "coverage_percent": metrics["coverage_percent"],
+        "at_risk_percent": metrics["at_risk_percent"],
+        "total_gaps": metrics["total_gaps"],
+        "critical_risk_count": metrics["critical_risk_count"]
+    }
+
+@app.get("/api/portfolio/by-project", response_model=list)
+def get_portfolio_by_project(db: Session = Depends(get_db)):
+    """Get requirement health summary per project."""
+    projects = db.query(Project).all()
+
+    projects_health = {}
+
+    for project in projects:
+        requirements = db.query(Requirement).filter(Requirement.project_id == project.id).all()
+        health_data = []
+
+        for req in requirements:
+            related_gaps = db.query(Gap).filter(
+                Gap.requirement_id == req.id,
+                Gap.project_id == project.id
+            ).all()
+
+            req_dict = {
+                "id": req.id,
+                "req_id": req.req_id,
+                "title": req.title,
+                "req_type": req.req_type,
+                "category": req.category,
+                "status": req.status
+            }
+
+            health = RequirementLinker.analyze_requirement_health(req_dict, [g.__dict__ for g in related_gaps])
+            health_data.append(health)
+
+        if health_data:
+            projects_health[str(project.id)] = health_data
+
+    summary = PortfolioAnalytics.get_by_project_summary(projects_health)
+
+    # Add project names
+    project_map = {str(p.id): p.name for p in projects}
+    for item in summary:
+        item["project_name"] = project_map.get(item["project_id"], "Unknown")
+
+    return summary
+
+@app.get("/api/portfolio/at-risk", response_model=list)
+def get_portfolio_at_risk(db: Session = Depends(get_db), limit: int = 20):
+    """Get most at-risk requirements across portfolio."""
+    projects = db.query(Project).all()
+
+    projects_health = {}
+
+    for project in projects:
+        requirements = db.query(Requirement).filter(Requirement.project_id == project.id).all()
+        health_data = []
+
+        for req in requirements:
+            related_gaps = db.query(Gap).filter(
+                Gap.requirement_id == req.id,
+                Gap.project_id == project.id
+            ).all()
+
+            req_dict = {
+                "id": req.id,
+                "req_id": req.req_id,
+                "title": req.title,
+                "req_type": req.req_type,
+                "category": req.category,
+                "status": req.status
+            }
+
+            health = RequirementLinker.analyze_requirement_health(req_dict, [g.__dict__ for g in related_gaps])
+            health_data.append(health)
+
+        if health_data:
+            projects_health[str(project.id)] = health_data
+
+    metrics = PortfolioAnalytics.aggregate_requirement_health(projects_health)
+    at_risk = PortfolioAnalytics.get_top_at_risk_requirements(metrics, limit)
+
+    # Add project names
+    project_map = {str(p.id): p.name for p in projects}
+    for item in at_risk:
+        item["project_name"] = project_map.get(item["project_id"], "Unknown")
+
+    return at_risk
+
+@app.get("/api/portfolio/category-breakdown", response_model=dict)
+def get_portfolio_category_breakdown(db: Session = Depends(get_db)):
+    """Get requirement breakdown by category across portfolio."""
+    projects = db.query(Project).all()
+
+    projects_health = {}
+
+    for project in projects:
+        requirements = db.query(Requirement).filter(Requirement.project_id == project.id).all()
+        health_data = []
+
+        for req in requirements:
+            related_gaps = db.query(Gap).filter(
+                Gap.requirement_id == req.id,
+                Gap.project_id == project.id
+            ).all()
+
+            req_dict = {
+                "id": req.id,
+                "req_id": req.req_id,
+                "title": req.title,
+                "req_type": req.req_type,
+                "category": req.category,
+                "status": req.status
+            }
+
+            health = RequirementLinker.analyze_requirement_health(req_dict, [g.__dict__ for g in related_gaps])
+            health_data.append(health)
+
+        if health_data:
+            projects_health[str(project.id)] = health_data
+
+    metrics = PortfolioAnalytics.aggregate_requirement_health(projects_health)
+    return PortfolioAnalytics.get_requirement_category_breakdown(metrics["all_requirements"])
+
+@app.get("/api/portfolio/type-breakdown", response_model=dict)
+def get_portfolio_type_breakdown(db: Session = Depends(get_db)):
+    """Get requirement breakdown by type (Functional vs Non-Functional)."""
+    projects = db.query(Project).all()
+
+    projects_health = {}
+
+    for project in projects:
+        requirements = db.query(Requirement).filter(Requirement.project_id == project.id).all()
+        health_data = []
+
+        for req in requirements:
+            related_gaps = db.query(Gap).filter(
+                Gap.requirement_id == req.id,
+                Gap.project_id == project.id
+            ).all()
+
+            req_dict = {
+                "id": req.id,
+                "req_id": req.req_id,
+                "title": req.title,
+                "req_type": req.req_type,
+                "category": req.category,
+                "status": req.status
+            }
+
+            health = RequirementLinker.analyze_requirement_health(req_dict, [g.__dict__ for g in related_gaps])
+            health_data.append(health)
+
+        if health_data:
+            projects_health[str(project.id)] = health_data
+
+    metrics = PortfolioAnalytics.aggregate_requirement_health(projects_health)
+    return PortfolioAnalytics.get_requirement_type_breakdown(metrics["all_requirements"])
 
 def calculate_maturity(scorecard):
     if not scorecard:

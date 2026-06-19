@@ -75,7 +75,7 @@ function Dashboard() {
       </div>
 
       <div className="container">
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
           {!showForm && (
             <>
               <button onClick={() => setShowForm(true)}>
@@ -87,6 +87,12 @@ function Dashboard() {
                 style={{ background: '#666' }}
               >
                 {importing ? 'Importing...' : '📦 Import from tracker.json'}
+              </button>
+              <button
+                onClick={() => navigate('/portfolio')}
+                style={{ background: '#0066cc' }}
+              >
+                📊 Portfolio Dashboard
               </button>
             </>
           )}

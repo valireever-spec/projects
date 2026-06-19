@@ -4,6 +4,8 @@ import { getProject, updateScorecard, createGap, updateGap, deleteGap } from '..
 import Scorecard from '../components/Scorecard'
 import GapsBoard from '../components/GapsBoard'
 import Rules from '../components/Rules'
+import Requirements from '../components/Requirements'
+import RequirementHealth from '../components/RequirementHealth'
 
 function ProjectHome() {
   const { id } = useParams()
@@ -112,6 +114,18 @@ function ProjectHome() {
             Gaps & Bugs
           </button>
           <button
+            className={activeTab === 'requirements' ? 'active' : ''}
+            onClick={() => setActiveTab('requirements')}
+          >
+            Requirements
+          </button>
+          <button
+            className={activeTab === 'health' ? 'active' : ''}
+            onClick={() => setActiveTab('health')}
+          >
+            Health & At-Risk
+          </button>
+          <button
             className={activeTab === 'rules' ? 'active' : ''}
             onClick={() => setActiveTab('rules')}
           >
@@ -132,6 +146,8 @@ function ProjectHome() {
               onDelete={handleGapDelete}
             />
           )}
+          {activeTab === 'requirements' && <Requirements project={project} />}
+          {activeTab === 'health' && <RequirementHealth project={project} />}
           {activeTab === 'rules' && <Rules project={project} />}
         </div>
       </div>

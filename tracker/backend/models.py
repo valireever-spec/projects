@@ -76,9 +76,11 @@ class Gap(Base):
     rule_id = Column(String, nullable=True)
     title = Column(String)
     description = Column(Text)
-    status = Column(String, default="Discovered")
-    severity = Column(String, nullable=True)
-    effort = Column(String, nullable=True)
+    status = Column(String, default="Discovered")  # Discovered, Prioritized, In Remediation, Done
+    severity = Column(String, nullable=True)  # Critical, High, Medium, Low
+    effort = Column(String, nullable=True)  # Small, Medium, Large
+    violation_type = Column(String, nullable=True)  # Type of requirement violated (FR/NFR)
+    acceptance_criterion_id = Column(String, nullable=True)  # Reference to specific CR-XXX that's violated
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
