@@ -555,6 +555,7 @@ function Requirements({ project }) {
                   )}
                 </div>
               )}
+              </div>
             </div>
           ))}
         </div>
