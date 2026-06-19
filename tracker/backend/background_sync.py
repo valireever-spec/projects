@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from models import Project, Requirement
 from database import SessionLocal
 from requirement_parser import load_and_parse_project_requirements
+from project_board_sync import ProjectBoardSyncer
 import json
 
 logger = logging.getLogger(__name__)
@@ -45,7 +46,7 @@ class RequirementsAutoImporter:
             logger.info("⏹️  Background requirement sync scheduler stopped")
 
     def sync_all_projects(self):
-        """Sync requirements from all projects."""
+        """Sync requirements from projects AND export tracker data back to projects."""
         db = SessionLocal()
         try:
             projects = db.query(Project).all()
@@ -53,6 +54,7 @@ class RequirementsAutoImporter:
             total_updated = 0
             projects_with_changes = []
 
+            # Step 1: Import requirements FROM projects
             for project in projects:
                 if not project.path:
                     continue
@@ -70,16 +72,23 @@ class RequirementsAutoImporter:
 
                 self.last_sync_times[project.id] = datetime.now()
 
+            # Step 2: Export tracker data back TO all projects (V-Model boards)
+            export_result = ProjectBoardSyncer.sync_all_projects(db)
+            projects_exported = export_result["synced"]
+
             self.sync_count += 1
 
             if projects_with_changes:
                 logger.info(
-                    f"✅ Auto-sync #{self.sync_count}: Imported {total_imported} new requirements, "
-                    f"updated {total_updated} existing. Changes in {len(projects_with_changes)} projects: "
-                    f"{', '.join([p['name'] for p in projects_with_changes])}"
+                    f"✅ Auto-sync #{self.sync_count}: "
+                    f"IMPORT: {total_imported} new, {total_updated} updated | "
+                    f"EXPORT: {projects_exported} project boards updated"
                 )
             else:
-                logger.debug(f"✓ Auto-sync #{self.sync_count}: No changes detected in any project")
+                logger.debug(
+                    f"✓ Auto-sync #{self.sync_count}: "
+                    f"No changes to import | {projects_exported} boards updated"
+                )
 
         except Exception as e:
             logger.error(f"❌ Error during auto-sync: {e}", exc_info=True)

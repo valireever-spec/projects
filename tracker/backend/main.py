@@ -13,6 +13,7 @@ from requirement_sync import sync_requirements_to_files, RequirementSyncManager
 from requirement_linking import RequirementLinker
 from portfolio_analytics import PortfolioAnalytics
 from background_sync import importer
+from project_board_sync import ProjectBoardSyncer
 import json
 import logging
 
@@ -292,6 +293,39 @@ def get_playbooks():
 def get_auto_import_status():
     """Get status of background requirement auto-import."""
     return importer.get_status()
+
+@app.get("/api/projects/{project_id}/board", response_model=dict)
+def get_project_board(project_id: int, db: Session = Depends(get_db)):
+    """Get the V-Model board for a project (markdown content)."""
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    board_content = ProjectBoardSyncer.generate_project_board(db, project)
+    return {
+        "project_id": project_id,
+        "project_name": project.name,
+        "board": board_content
+    }
+
+@app.post("/api/projects/{project_id}/sync-board", response_model=dict)
+def sync_project_board(project_id: int, db: Session = Depends(get_db)):
+    """Manually sync V-Model board for a project to its local file."""
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    board_content = ProjectBoardSyncer.generate_project_board(db, project)
+    success = ProjectBoardSyncer.write_project_board(project, board_content)
+
+    if success:
+        return {
+            "status": "synced",
+            "project": project.name,
+            "file_path": str(project.path) + "/V_MODEL_BOARD.md"
+        }
+    else:
+        raise HTTPException(status_code=500, detail="Failed to write board file")
 
 @app.post("/api/import-projects", response_model=dict)
 def import_projects(db: Session = Depends(get_db)):
