@@ -81,6 +81,14 @@ class Gap(Base):
     effort = Column(String, nullable=True)  # Small, Medium, Large
     violation_type = Column(String, nullable=True)  # Type of requirement violated (FR/NFR)
     acceptance_criterion_id = Column(String, nullable=True)  # Reference to specific CR-XXX that's violated
+
+    # Solution tracking fields
+    solution_summary = Column(Text, nullable=True)  # How was the bug fixed?
+    fixed_code_file = Column(String, nullable=True)  # Which file was changed (e.g., src/auth.py:45)
+    fixed_commit_hash = Column(String, nullable=True)  # Commit that fixed the bug
+    fixed_at = Column(DateTime, nullable=True)  # When was it fixed
+    fixed_by = Column(String, nullable=True)  # Who fixed it
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

@@ -23,6 +23,14 @@ class GapCreate(BaseModel):
     status: str = "Discovered"
     severity: Optional[str] = None
     effort: Optional[str] = None
+    requirement_id: Optional[int] = None
+
+    # Solution tracking fields
+    solution_summary: Optional[str] = None
+    fixed_code_file: Optional[str] = None
+    fixed_commit_hash: Optional[str] = None
+    fixed_at: Optional[datetime] = None
+    fixed_by: Optional[str] = None
 
 class Gap(GapCreate):
     id: int

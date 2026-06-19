@@ -171,6 +171,18 @@ class ProjectBoardSyncer:
                 if gap.description:
                     lines.append(f"  - Description: {gap.description}")
 
+                # Solution info if gap is fixed
+                if gap.solution_summary:
+                    lines.append(f"  - **Solution:** {gap.solution_summary}")
+                if gap.fixed_code_file:
+                    lines.append(f"  - **Code:** {gap.fixed_code_file}")
+                if gap.fixed_commit_hash:
+                    lines.append(f"  - **Commit:** {gap.fixed_commit_hash}")
+                if gap.fixed_by:
+                    lines.append(f"  - **Fixed by:** {gap.fixed_by}")
+                if gap.fixed_at:
+                    lines.append(f"  - **Fixed:** {gap.fixed_at.strftime('%Y-%m-%d %H:%M')}")
+
         # Requirements needing validation
         lines.extend([
             "",

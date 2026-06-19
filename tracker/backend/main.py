@@ -220,6 +220,55 @@ def link_requirement_to_gap(project_id: int, gap_id: int, link_data: dict, db: S
         "requirement_req_id": requirement.req_id
     }
 
+@app.get("/api/projects/{project_id}/gaps/{gap_id}/traceability", response_model=dict)
+def get_gap_traceability(project_id: int, gap_id: int, db: Session = Depends(get_db)):
+    """Get complete traceability chain: Gap → Requirement → Solution."""
+    gap = db.query(Gap).filter(Gap.id == gap_id, Gap.project_id == project_id).first()
+    if not gap:
+        raise HTTPException(status_code=404, detail="Gap not found")
+
+    # Build traceability object
+    traceability = {
+        "gap": {
+            "id": gap.id,
+            "title": gap.title,
+            "description": gap.description,
+            "status": gap.status,
+            "severity": gap.severity,
+            "effort": gap.effort,
+            "pillar": gap.pillar,
+            "created_at": gap.created_at.isoformat() if gap.created_at else None,
+        },
+        "requirement": None,
+        "solution": None
+    }
+
+    # Get linked requirement if exists
+    if gap.requirement_id:
+        req = db.query(Requirement).filter(Requirement.id == gap.requirement_id).first()
+        if req:
+            traceability["requirement"] = {
+                "id": req.id,
+                "req_id": req.req_id,
+                "title": req.title,
+                "req_type": req.req_type,
+                "status": req.status,
+                "category": req.category,
+                "description": req.description[:100] if req.description else None,
+            }
+
+    # Get solution if gap is fixed
+    if gap.solution_summary or gap.fixed_commit_hash:
+        traceability["solution"] = {
+            "summary": gap.solution_summary,
+            "code_file": gap.fixed_code_file,
+            "commit_hash": gap.fixed_commit_hash,
+            "fixed_at": gap.fixed_at.isoformat() if gap.fixed_at else None,
+            "fixed_by": gap.fixed_by,
+        }
+
+    return traceability
+
 @app.get("/api/projects/{project_id}/requirements/{requirement_id}/linked-gaps", response_model=list)
 def get_gaps_for_requirement(project_id: int, requirement_id: int, db: Session = Depends(get_db)):
     """Get all gaps that violate a specific requirement."""
