@@ -12,13 +12,32 @@ from requirement_parser import load_and_parse_project_requirements
 from requirement_sync import sync_requirements_to_files, RequirementSyncManager
 from requirement_linking import RequirementLinker
 from portfolio_analytics import PortfolioAnalytics
+from background_sync import importer
 import json
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Design & Bug Tracker")
+
+# Background sync events
+@app.on_event("startup")
+async def startup_event():
+    """Start background requirement sync on app startup."""
+    importer.start()
+    logger.info("🚀 Application started with auto-import enabled")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Stop background requirement sync on app shutdown."""
+    importer.stop()
+    logger.info("🛑 Application shutting down, auto-import stopped")
 
 app.add_middleware(
     CORSMiddleware,
@@ -268,6 +287,11 @@ def get_rules():
 def get_playbooks():
     playbooks = load_framework_playbooks()
     return playbooks
+
+@app.get("/api/auto-import-status", response_model=dict)
+def get_auto_import_status():
+    """Get status of background requirement auto-import."""
+    return importer.get_status()
 
 @app.post("/api/import-projects", response_model=dict)
 def import_projects(db: Session = Depends(get_db)):

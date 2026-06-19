@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getProjects, createProject } from '../api'
+import { getProjects, createProject, getAutoImportStatus } from '../api'
 import API from '../api'
 
 function Dashboard() {
@@ -8,6 +8,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [autoImportStatus, setAutoImportStatus] = useState(null)
   const [formData, setFormData] = useState({ name: '', tech_stack: '', description: '' })
   const navigate = useNavigate()
 
@@ -19,6 +20,10 @@ function Dashboard() {
 
   useEffect(() => {
     fetchProjects()
+    fetchAutoImportStatus()
+    // Refresh auto-import status every 30 seconds
+    const interval = setInterval(fetchAutoImportStatus, 30000)
+    return () => clearInterval(interval)
   }, [])
 
   const fetchProjects = async () => {
@@ -29,6 +34,15 @@ function Dashboard() {
       console.error('Failed to fetch projects:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchAutoImportStatus = async () => {
+    try {
+      const { data } = await getAutoImportStatus()
+      setAutoImportStatus(data)
+    } catch (err) {
+      console.error('Failed to fetch auto-import status:', err)
     }
   }
 
@@ -67,6 +81,24 @@ function Dashboard() {
 
   return (
     <div>
+      {autoImportStatus && autoImportStatus.running && (
+        <div style={{
+          background: '#e8f5e9',
+          borderBottom: '2px solid #4CAF50',
+          padding: '12px 0',
+          textAlign: 'center',
+          fontSize: '12px',
+          color: '#2e7d32',
+          fontWeight: '500'
+        }}>
+          🔄 Auto-import active ({autoImportStatus.sync_count} syncs completed)
+          {autoImportStatus.next_run && (
+            <span style={{ marginLeft: '10px', opacity: 0.7 }}>
+              Next sync: {new Date(autoImportStatus.next_run).toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+      )}
       <div className="header">
         <div className="container">
           <h1>Design & Bug Tracker</h1>

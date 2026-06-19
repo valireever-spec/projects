@@ -28,5 +28,6 @@ export const getPortfolioByProject = () => API.get('/portfolio/by-project')
 export const getPortfolioAtRisk = (limit = 20) => API.get('/portfolio/at-risk', { params: { limit } })
 export const getPortfolioCategoryBreakdown = () => API.get('/portfolio/category-breakdown')
 export const getPortfolioTypeBreakdown = () => API.get('/portfolio/type-breakdown')
+export const getAutoImportStatus = () => API.get('/auto-import-status')
 
 export default API
