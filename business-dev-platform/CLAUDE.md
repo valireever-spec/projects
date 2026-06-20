@@ -1,29 +1,52 @@
 # CLAUDE.md
 
-## Tracker Integration: V-Model & Requirements
+## Tracker Integration: V-Model & Requirements ✅
 
-This project participates in a portfolio-wide **requirements tracking system**.
-All requirements are synced bidirectionally with a central tracker.
+This project is **fully integrated with the central tracker** for bidirectional requirements and bug tracking.
 
-**Your Project Files:**
-- `./V_MODEL_BOARD.md` — Auto-generated board showing phase progress
-  (coverage %, requirements status, linked bugs)
-- `./FUNCTIONAL_REQUIREMENTS.md` — Feature specs you maintain
-- `./NONFUNCTIONAL_REQUIREMENTS.md` — Performance/reliability specs you maintain
+### Dashboard & Visibility (NEW)
+- **UI Dashboard:** http://localhost:8000/api/vmodel/board (or embedded in frontend)
+- Shows: Requirements status, linked bugs, coverage %, last sync time
+- Real-time sync every 30 seconds
+- Filterable by type (FR/NFR), status, severity
 
-**Workflow:**
-1. Edit FUNCTIONAL/NONFUNCTIONAL_REQUIREMENTS.md
-2. Tracker auto-imports every 5 minutes
-3. Update status in tracker UI as you implement (Proposed → Validated)
-4. View your phase progress in V_MODEL_BOARD.md
-5. Link bugs to requirements when issues found
+### Your Responsibility
+**As the team maintaining this project, you are responsible for:**
+1. Keeping `FUNCTIONAL_REQUIREMENTS.md` and `NONFUNCTIONAL_REQUIREMENTS.md` current
+2. Updating requirement status in tracker UI as features ship (Proposed → Validated)
+3. Marking bugs/gaps as discovered, and updating status as they're fixed
+4. Verifying V_MODEL_BOARD.md matches reality (syncs every 5 minutes)
 
-**Tracker Dashboard:** http://localhost:5173
+### How It Works
+- **Every 5 minutes:** Tracker reads your requirements files → imports to DB
+- **Every 5 minutes:** Tracker exports V_MODEL_BOARD.md with updated health metrics
+- **Every 30 seconds:** Dashboard auto-refreshes to show live status
+- **On error:** Auto-report to tracker via tracker_integration middleware
 
-**Auto-Sync (every 5 minutes):**
-- Requirements imported from your files → Tracker DB
-- V_MODEL_BOARD.md exported to your project
-- Requirement status updates flow back to your board
+### Key Files
+- `./V_MODEL_BOARD.md` — Auto-generated; **READ-ONLY** (synced from tracker)
+- `./FUNCTIONAL_REQUIREMENTS.md` — **YOU MAINTAIN THIS**
+- `./NONFUNCTIONAL_REQUIREMENTS.md` — **YOU MAINTAIN THIS**
+- `./backend/core/tracker_integration.py` — Bidirectional sync client
+
+### Quick Commands
+```bash
+# View requirements and bugs in UI
+open http://localhost:8000
+
+# Push requirements to tracker (or edit files, waits 5 min for auto-sync)
+curl http://127.0.0.1:5173/sync/business-dev-platform
+
+# Check current V-Model coverage
+curl http://localhost:8000/api/vmodel/coverage
+```
+
+### When Requirements Change
+1. Edit `FUNCTIONAL_REQUIREMENTS.md` or `NONFUNCTIONAL_REQUIREMENTS.md`
+2. Commit the change
+3. **Wait 5 minutes** for tracker to sync (or manually trigger via curl above)
+4. Check `V_MODEL_BOARD.md` to verify import was successful
+5. Update requirement status in tracker UI: http://localhost:5173
 
 See V_MODEL_BOARD.md in your project root for current phase progress.
 

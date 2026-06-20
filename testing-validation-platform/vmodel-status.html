@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V-Model Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f1117;
+      color: #e0e0e0;
+      padding: 20px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { margin-bottom: 12px; font-size: 1.4rem; color: #fff; }
+    .subtitle { font-size: .9rem; color: #888; margin-bottom: 24px; }
+
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .timestamp { font-size: 0.85rem; color: #666; }
+    .refresh-btn { padding: 8px 16px; background: #6366f1; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: .8rem; }
+    .refresh-btn:hover { background: #4f46e5; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card-label { font-size: 0.75rem; color: #666; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+    .card-value { font-size: 1.6rem; font-weight: 700; color: #fff; }
+    .card-detail { font-size: 0.8rem; color: #666; margin-top: 8px; }
+
+    .section { margin-bottom: 24px; }
+    .section h2 { font-size: 1.1rem; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .section-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+
+    .req-item {
+      background: #13151f;
+      border: 1px solid #2a2d3a;
+      border-radius: 6px;
+      padding: 12px;
+      font-size: .85rem;
+    }
+    .req-id { font-weight: 600; color: #6366f1; margin-bottom: 4px; }
+    .req-title { color: #e0e0e0; margin-bottom: 6px; }
+    .req-status { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: .7rem; font-weight: 600; }
+    .req-status.validated { background: #4ade8033; color: #4ade80; }
+    .req-status.implemented { background: #38bdf833; color: #38bdf8; }
+    .req-status.accepted { background: #8b5cf633; color: #8b5cf6; }
+    .req-status.proposed { background: #66666633; color: #999; }
+
+    .bug-item {
+      background: #13151f;
+      border-left: 3px solid #2a2d3a;
+      border: 1px solid #2a2d3a;
+      border-radius: 6px;
+      padding: 12px;
+      font-size: .85rem;
+    }
+    .bug-critical { border-left-color: #f87171; }
+    .bug-high { border-left-color: #facc15; }
+    .bug-medium { border-left-color: #8b5cf6; }
+    .bug-low { border-left-color: #38bdf8; }
+    .bug-title { font-weight: 600; color: #e0e0e0; margin-bottom: 4px; }
+    .bug-severity { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: .7rem; font-weight: 600; }
+    .bug-critical-badge { background: #f8717133; color: #f87171; }
+    .bug-high-badge { background: #facc1533; color: #facc15; }
+    .bug-medium-badge { background: #8b5cf633; color: #8b5cf6; }
+    .bug-low-badge { background: #38bdf833; color: #38bdf8; }
+
+    .loading { text-align: center; padding: 40px; color: #666; }
+    .error { background: #1a1d27; border: 1px solid #f8717155; color: #f87171; padding: 16px; border-radius: 8px; }
+
+    .tab-buttons { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab-btn { padding: 6px 12px; background: transparent; border: 1px solid #2a2d3a; color: #888; border-radius: 6px; cursor: pointer; font-size: .8rem; }
+    .tab-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>📊 V-Model & Requirements Dashboard</h1>
+      <div class="subtitle">Project requirements, bugs, and validation metrics</div>
+    </div>
+    <div style="text-align: right;">
+      <div class="timestamp" id="timestamp">Loading…</div>
+      <button class="refresh-btn" onclick="loadVModelData()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div id="content" class="loading">Loading V-Model board…</div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+
+async function loadVModelData() {
+  try {
+    const response = await fetch(`${API_BASE}/api/vmodel/board`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    renderVModelDashboard(data);
+  } catch (err) {
+    document.getElementById('content').innerHTML = `<div class="error">Error loading V-Model: ${err.message}</div>`;
+  }
+}
+
+function renderVModelDashboard(data) {
+  const ts = new Date(data.last_updated);
+  document.getElementById('timestamp').textContent = ts.toLocaleString();
+
+  const summary = data.summary || {};
+  const health = data.health || {};
+  const coverage = data.coverage || '0%';
+
+  let html = `
+    <div class="grid">
+      <div class="card">
+        <div class="card-label">Coverage</div>
+        <div class="card-value">${coverage}</div>
+        <div class="card-detail">${summary.total_bugs || 0} bugs tracked</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Total Requirements</div>
+        <div class="card-value">${summary.total_requirements || 0}</div>
+        <div class="card-detail">Functional + Non-Functional</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Open Bugs</div>
+        <div class="card-value">${summary.total_bugs || 0}</div>
+        <div class="card-detail">${data.bugs ? data.bugs.filter(b => b.severity === 'Critical').length : 0} critical</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Last Sync</div>
+        <div class="card-value" style="font-size:1rem">${ts.toLocaleTimeString()}</div>
+        <div class="card-detail">${data.source || 'From tracker'}</div>
+      </div>
+    </div>
+  `;
+
+  // Health status breakdown
+  html += `<div class="section"><h2>📋 Requirement Status</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">`;
+  Object.entries(health).forEach(([status, count]) => {
+    const icon = status.includes('✅') ? '✅' : status.includes('✔️') ? '✔️' : status.includes('📋') ? '📋' : '📝';
+    html += `
+      <div class="card">
+        <div class="card-label">${icon} ${status.replace(/✅|✔️|📋|📝/g, '').trim()}</div>
+        <div class="card-value">${count}</div>
+      </div>
+    `;
+  });
+  html += `</div></div>`;
+
+  // Requirements list
+  if (data.requirements && data.requirements.length > 0) {
+    html += `<div class="section"><h2>📌 Requirements</h2><div class="section-content">`;
+    data.requirements.forEach(req => {
+      const statusClass = req.status.includes('✅') ? 'validated' : req.status.includes('✔️') ? 'implemented' : req.status.includes('📋') ? 'accepted' : 'proposed';
+      html += `
+        <div class="req-item">
+          <div class="req-id">${req.id}</div>
+          <div class="req-title">${req.title}</div>
+          <span class="req-status ${statusClass}">${req.status}</span>
+          ${req.linked_gaps > 0 ? `<div style="margin-top:6px;font-size:.7rem;color:#f87171">⚠️ ${req.linked_gaps} gap(s)</div>` : ''}
+        </div>
+      `;
+    });
+    html += `</div></div>`;
+  }
+
+  // Bugs list
+  if (data.bugs && data.bugs.length > 0) {
+    html += `<div class="section"><h2>🐛 Open Bugs & Gaps</h2><div class="section-content">`;
+    data.bugs.forEach(bug => {
+      const bugClass = `bug-${bug.severity.toLowerCase()}`;
+      const badgeClass = `bug-${bug.severity.toLowerCase()}-badge`;
+      html += `
+        <div class="bug-item ${bugClass}">
+          <div class="bug-title">${bug.title}</div>
+          <span class="bug-severity ${badgeClass}">${bug.severity}</span>
+          <div style="margin-top:6px;font-size:.7rem;color:#666">${bug.status}</div>
+        </div>
+      `;
+    });
+    html += `</div></div>`;
+  }
+
+  document.getElementById('content').innerHTML = html;
+}
+
+// Load on page load and auto-refresh every 30 seconds
+window.addEventListener('load', loadVModelData);
+setInterval(loadVModelData, 30000);
+</script>
+</body>
+</html>

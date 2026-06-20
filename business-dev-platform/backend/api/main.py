@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
-from backend.api.routers import domains, sessions, market, financials, risk, export
+from backend.api.routers import domains, sessions, market, financials, risk, export, vmodel_dashboard
 from backend.core.config import BASE_DIR
 
 # Create FastAPI app
@@ -29,6 +29,7 @@ app.include_router(market.router)
 app.include_router(financials.router)
 app.include_router(risk.router)
 app.include_router(export.router)
+app.include_router(vmodel_dashboard.router)
 
 
 @app.get("/health")
