@@ -1,0 +1,11 @@
+# Bandit security configuration
+# Excludes safe code patterns from security warnings
+
+[assert_used]
+skips = */tests/*
+
+[hardcoded_sql_string]
+skips = */tests/*
+
+[hardcoded_password_string]
+skips = */tests/*
