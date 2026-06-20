@@ -1,0 +1,568 @@
+## 099_Switches_Logic
+# 12.12.2021 S-a adaugat regula "Logic when Sonoffmini3 turns on"
+# 24.04.2022 s-au adaugat Items ScriptParrot_Sonoff1_up, ScriptParrot_Sonoff2_up, ScriptParrot_Sonoff3_up la reguli
+# 2026-03-07 FIX4: priza1forceon now skips if Priza1_BatteryFull == ON, preventing
+#            a rapid ON/OFF power cycle when the socket is turned on while the
+#            battery is already full.
+# 2026-05-02: UnDefType / OnOffType from org.eclipse.smarthome.core.* (ESH; OH 2.5.12).
+
+from core.rules import rule
+from core.triggers import when
+from core.actions import ScriptExecution
+from org.joda.time import DateTime
+import core
+from core.jsr223.scope import events, items
+from org.eclipse.smarthome.core.types import UnDefType
+from core.actions import LogAction
+from org.eclipse.smarthome.model.script.actions.Exec import executeCommandLine
+from org.eclipse.smarthome.core.library.types import OnOffType
+
+ON = OnOffType.ON
+OFF = OnOffType.OFF
+NULL = UnDefType.NULL
+#UNDEF = UnDefType.UNDEF
+createTimer = ScriptExecution.createTimer
+
+FireplaceTimerOff = None
+Fireplace_startTimer = None
+Fireplace_restartTimer = None
+Priza1ForceOnTimer = None
+Priza2ForceOnTimer = None
+Priza3ForceOnTimer = None
+FireplaceTimerOn = None
+FireplaceTimerOff = None
+KeepOnTime = 20
+
+MinCLevel = u"0.055 A"
+Current_Low = u"0.0 A"
+
+MinCLevel_P1 = u"0.150 A"
+
+@rule("Sonoffmini1 a activat Sonoffmini1_Alive", description="Sonoffmini1_Reachable este activ", tags=["forced", "Sonoffmini1"])
+@when("Item Sonoffmini1_Reachable changed to ON")
+@when("Item Sonoff1_Online changed to ON")
+@when("Item ScriptParrot_Sonoff1_up changed to ON")
+def sonoffmini1_alive_on(event):
+	LogAction.logInfo("{}", "{} este activ", event.itemName)
+	events.sendCommand("Sonoffmini1_Alive", "ON")
+	LogAction.logInfo("{}", "{} a activat Sonoffmini1_Alive", event.itemName)
+
+@rule("Sonoffmini1 a dezactivat Sonoffmini1_Alive", description="Sonoffmini1_Reachable este inactiv", tags=["forced", "Sonoffmini1"])
+@when("Item Sonoffmini1_Reachable changed to OFF")
+@when("Item Sonoff1_Online changed to OFF")
+@when("Item ScriptParrot_Sonoff1_up changed to OFF")
+def sonoffmini1_alive_off(event):
+	LogAction.logInfo("{}", "{} este inactiv", event.itemName)
+	events.sendCommand("Sonoffmini1_Alive", "OFF")
+	LogAction.logInfo("{}", "{} a dezactivat Sonoffmini1_Alive", event.itemName)
+
+####Test 02.04.2022###
+@rule("Sonoff1_Latency a activat Sonoffmini1_Alive", description="Sonoffmini1_Alive changed", tags=["Sonoffmini1_Alive", "Sonoffmini1"])
+@when("Item Sonoff1_Latency changed")
+def sonoffmini1_ping_latency(event):
+	if event.itemState > QuantityType(u"0.0 ms"):
+		#LogAction.logInfo("Sonoff1_Latency", "Sonoffmini1 este activ")
+		if items["Sonoffmini1_Alive"] == OFF:
+			events.sendCommand("Sonoffmini1_Alive", "ON")
+			LogAction.logInfo("Sonoff1_Latency", "Sonoff1_Latency a activat Sonoffmini1_Alive")
+#	if event.itemState == UNDEF:
+#		#LogAction.logInfo("Sonoff1_Latency", "Sonoffmini1 este inactiv")
+#		if items["Sonoffmini1_Alive"] == ON:
+#			events.sendCommand("Sonoffmini1_Alive", "OFF")
+#			LogAction.logInfo("Sonoff1_Latency", "Sonoff1_Latency a dezactivat Sonoffmini1_Alive")
+#######################
+@rule("Sonoffmini1 a activat Sonoffmini1_Active", description="Sonoffmini1_Power este activ", tags=["active", "Sonoffmini1"])
+@when("Item Sonoffmini1_Power changed")
+def sonoffmini1_active(event):
+	if event.itemState == ON:
+		events.sendCommand("Sonoffmini1_Active", "ON")
+		LogAction.logInfo("{}", "{} a activat Sonoffmini1_Active", event.itemName)
+	if event.itemState == OFF:
+		events.sendCommand("Sonoffmini1_Active", "OFF")
+		LogAction.logInfo("{}", "{} a dezactivat Sonoffmini1_Active", event.itemName)
+
+@rule("Sonoffmini2 a activat Sonoffmini2_Alive", description="Sonoffmini2_Reachable este activ", tags=["forced", "Sonoffmini2"])
+@when("Item Sonoffmini2_Reachable changed to ON")
+@when("Item Sonoff2_Online changed to ON")
+@when("Item ScriptParrot_Sonoff2_up changed to ON")
+def sonoffmini2_alive_on(event):
+	LogAction.logInfo("{}", "{} este activ", event.itemName)
+	events.sendCommand("Sonoffmini2_Alive", "ON")
+	LogAction.logInfo("{}", "{} a activat Sonoffmini2_Alive", event.itemName)
+
+@rule("Sonoffmini2 a dezactivat Sonoffmini2_Alive", description="Sonoffmini2_Reachable este inactiv", tags=["forced", "Sonoffmini2"])
+@when("Item Sonoffmini2_Reachable changed to OFF")
+@when("Item Sonoff2_Online changed to OFF")
+@when("Item ScriptParrot_Sonoff2_up changed to OFF")
+def sonoffmini2_alive_off(event):
+	LogAction.logInfo("{}", "{} este inactiv", event.itemName)
+	events.sendCommand("Sonoffmini2_Alive", "OFF")
+	LogAction.logInfo("{}", "{} a dezactivat Sonoffmini2_Alive", event.itemName)
+
+####Test 02.04.2022###
+@rule("Sonoff2_Latency a activat Sonoffmini2_Alive", description="Sonoffmini2_Alive changed", tags=["Sonoffmini2_Alive", "Sonoffmini2"])
+@when("Item Sonoff2_Latency changed")
+def sonoffmini2_ping_latency(event):
+	if event.itemState > QuantityType(u"0.0 ms"):
+		#LogAction.logInfo("Sonoff2_Latency", "Sonoffmini2 este activ")
+		if items["Sonoffmini2_Alive"] == OFF:
+			events.sendCommand("Sonoffmini2_Alive", "ON")
+			LogAction.logInfo("Sonoff2_Latency", "Sonoff2_Latency a activat Sonoffmini2_Alive")
+#	if event.itemState == UNDEF:
+#		#LogAction.logInfo("Sonoff2_Latency", "Sonoffmini2 este inactiv")
+#		if items["Sonoffmini2_Alive"] == ON:
+#			events.sendCommand("Sonoffmini2_Alive", "OFF")
+#			LogAction.logInfo("Sonoff2_Latency", "Sonoff2_Latency a dezactivat Sonoffmini2_Alive")
+#####################
+@rule("Sonoffmini2 a activat Sonoffmini2_Active", description="Sonoffmini2_Power este activ", tags=["active", "Sonoffmini2"])
+@when("Item Sonoffmini2_Power changed")
+def sonoffmini2_active(event):
+	if event.itemState == ON:
+		events.sendCommand("Sonoffmini2_Active", "ON")
+		LogAction.logInfo("{}", "{} a activat Sonoffmini2_Active", event.itemName)
+	if event.itemState == OFF:
+		events.sendCommand("Sonoffmini2_Active", "OFF")
+		LogAction.logInfo("{}", "{} a dezactivat Sonoffmini2_Active", event.itemName)
+
+@rule("Sonoffmini3 a activat Sonoffmini3_Alive", description="Sonoffmini3_Reachable este activ", tags=["forced", "Sonoffmini3"])
+@when("Item Sonoffmini3_Reachable changed to ON")
+@when("Item Sonoff3_Online changed to ON")
+@when("Item ScriptParrot_Sonoff3_up changed to ON")
+def sonoffmini3_alive_on(event):
+	LogAction.logInfo("{}", "{} este activ", event.itemName)
+	events.sendCommand("Sonoffmini3_Alive", "ON")
+	LogAction.logInfo("{}", "{} a activat Sonoffmini3_Alive", event.itemName)
+
+@rule("Sonoffmini3 a dezactivat Sonoffmini3_Alive", description="Sonoffmini3_Reachable este inactiv", tags=["forced", "Sonoffmini3"])
+@when("Item Sonoffmini3_Reachable changed to OFF")
+@when("Item Sonoff3_Online changed to OFF")
+@when("Item ScriptParrot_Sonoff3_up changed to OFF")
+def sonoffmini3_alive_off(event):
+	LogAction.logInfo("{}", "{} este inactiv", event.itemName)
+	events.sendCommand("Sonoffmini3_Alive", "OFF")
+	LogAction.logInfo("{}", "{} a dezactivat Sonoffmini3_Alive", event.itemName)
+
+####Test 02.04.2022###
+@rule("Sonoff3_Latency a activat Sonoffmini3_Alive", description="Sonoffmini3_Alive changed", tags=["Sonoffmini3_Alive", "Sonoffmini3"])
+@when("Item Sonoff3_Latency changed")
+def sonoffmini3_ping_latency(event):
+	if event.itemState > QuantityType(u"0.0 ms"):
+		#LogAction.logInfo("Sonoff3_Latency", "Sonoffmini3 este activ")
+		if items["Sonoffmini3_Alive"] != ON:
+			events.sendCommand("Sonoffmini3_Alive", "ON")
+			LogAction.logInfo("Sonoff3_Latency", "Sonoff3_Latency a activat Sonoffmini3_Alive")
+#	if event.itemState == UNDEF:
+		#LogAction.logInfo("Sonoff3_Latency", "Sonoffmini3 este inactiv")
+#		if items["Sonoffmini3_Alive"] != OFF:
+#			events.sendCommand("Sonoffmini3_Alive", "OFF")
+#			LogAction.logInfo("Sonoff3_Latency", "Sonoff3_Latency a dezactivat Sonoffmini3_Alive")
+######################
+
+@rule("Sonoffmini3 a activat Sonoffmini3_Active", description="Sonoffmini3_Power este activ", tags=["active", "Sonoffmini3"])
+@when("Item Sonoffmini3_Power changed")
+def sonoffmini3_active(event):
+	if event.itemState == ON:
+		events.sendCommand("Sonoffmini3_Active", "ON")
+		LogAction.logInfo("{}", "{} a activat Sonoffmini3_Active", event.itemName)
+	if event.itemState == OFF:
+		events.sendCommand("Sonoffmini3_Active", "OFF")
+		LogAction.logInfo("{}", "{} a dezactivat Sonoffmini3_Active", event.itemName)
+
+@rule("Schulfrei pentru copii", description="Schulfrei", tags=["Schule", "frei"])
+@when("Item Vacanta changed")
+def schulfrei_on(event):
+	if event.itemState == ON:
+		events.sendCommand("Schulfrei_Adina", "ON")
+		events.sendCommand("Schulfrei_Alex", "ON")
+	if event.itemState == OFF:
+		events.sendCommand("Schulfrei_Adina", "OFF")
+		events.sendCommand("Schulfrei_Alex", "OFF")
+
+#@rule("Logic when Sonoffmini3 turns on", description="Logic when Sonoffmini3 turns on", tags=["light", "Sonoffmini3"])
+#@when("Item Sonoffmini3_Alive changed to ON")
+#def logic_lightstrip_sufragerie_on2(event):
+#	day = "DAY"
+#	evening = "EVENING"
+#	bed = "BED"
+#	morning = "MORNING"
+#	afternoon = "AFTERNOON"
+#	if items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+#		events.sendCommand("gBec_LampaSufra", "OFF")
+
+
+@rule("Telefunken online state", description="Telefunken", tags=["Telefunken", "online"])
+@when("Item ScriptParrot_Telefunkentv_online changed")
+def telefunkentv_online(event):
+	if event.itemState == ON:
+		events.postUpdate("SmartTVTelefunken_Online", "ON")
+		events.postUpdate("Telefunken_Sw", "ON")
+		events.postUpdate("Telefunken_state_num", "1")
+	if event.itemState == OFF:
+		events.postUpdate("SmartTVTelefunken_Online", "OFF")
+		events.postUpdate("Telefunken_Sw", "OFF")
+		events.postUpdate("Telefunken_state_num", "0")
+
+
+@rule("Openhab2_service state", description="Openhab2_service", tags=["Openhab2_service", "state"])
+@when("Item ScriptParrot_Openhab2_uptime changed")
+def openhab2_uptime(event):
+	if event.itemState == ON:
+		events.postUpdate("Openhab2_uptime_num", "1")
+	if event.itemState == OFF:
+		events.postUpdate("Openhab2_uptime_num", "0")
+
+### Reguli switch curent Prize
+@rule("Rule when Priza1_current greater than defined level", description="Priza1_current_state", tags=["Current", "state"])
+@when("Item Priza1_Current changed")
+def Priza1current(event):
+	state = items["Priza1_Current"]
+	if isinstance(state, UnDefType):
+		LogAction.logInfo("Priza1current", "Priza1_Current is UNDEF or NULL - skipping check.")
+		return
+
+	if state >= QuantityType(MinCLevel_P1):
+		events.sendCommand("Priza1_Consum", "ON")
+	else:
+		events.sendCommand("Priza1_Consum", "OFF")
+
+@rule("Rule when Priza2_current greater than defined level", description="Priza2_current_state", tags=["Current", "state"])
+@when("Item Priza2_Current changed")
+def Priza2current(event):
+	state = items["Priza2_Current"]
+	if isinstance(state, UnDefType):
+		LogAction.logInfo("Priza2current", "Priza2_Current is UNDEF or NULL - skipping check.")
+		return
+
+	if state >= QuantityType(MinCLevel):
+		events.sendCommand("Priza2_Consum", "ON")
+	else:
+		events.sendCommand("Priza2_Consum", "OFF")
+
+@rule("Rule when Priza3_current greater than defined level", description="Priza3_current_state", tags=["Current", "state"])
+@when("Item Priza3_Current changed")
+def Priza3current(event):
+	state = items["Priza3_Current"]
+	if isinstance(state, UnDefType):
+		LogAction.logInfo("Priza3current", "Priza3_Current is UNDEF or NULL - skipping check.")
+		return
+
+	if state >= QuantityType(MinCLevel):
+		events.sendCommand("Priza3_Consum", "ON")
+	else:
+		events.sendCommand("Priza3_Consum", "OFF")
+
+#@rule("Alex Zuhause", description="Alex Presence", tags=["Presence", "Echo"])
+#@when("Item ScriptParrot_Galaxy_a12_up changed")
+#def Alex_presence(event):
+#	day = "DAY"
+#	evening = "EVENING"
+#	bed = "BED"
+#	morning = "MORNING"
+#	afternoon = "AFTERNOON"
+#	if event.itemState == ON:
+#		if items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+#			events.sendCommand("Echo_Bedroom_Kids_TTS", "Willkommen zurueck Alex! Was kann ich fuer dich tun?")
+#	if event.itemState == OFF:
+#		if items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+#			events.sendCommand("Echo_Bedroom_Kids_TTS", "Alex ist nicht mehr Zuhause")
+
+@rule("House shutdown", description="House received update OFF", tags=["House", "Shutdown"])
+@when("Item HouseShutdown received update OFF")
+def house_off(event):
+	house_off = executeCommandLine("/etc/openhab2/scripts/house_shutdown.sh", 10000)
+	if items["Logging"] == ON:
+		house_off.log.info("House switch off")
+
+@rule("Rule when Pi_Fireplace is on", description="mqtt_state", tags=["mqtt", "state"])
+@when("Item ScriptParrot_Pi_fireplace changed")
+def fireplacemqtt(event):
+	if str(event.itemState) == ON:
+		#fireplacemqtt = executeCommandLine("/etc/openhab2/scripts/fireplace.sh", 10000)
+		events.sendCommand("Pi_fireplace", "ON")
+		events.postUpdate("Fireplace", "ON")
+		events.postUpdate("Fireplace_restart", "OFF")
+
+@rule("Rule Pi_fireplace", description="Pi_fireplace_state", tags=["onoff", "state"])
+@when("Item Pi_fireplace changed")
+def pifireplace(event):
+	#global shutdownpifireplace
+	#global startpifireplace
+	if str(event.itemState) == OFF:
+		shutdownpifireplace = executeCommandLine("/etc/openhab2/scripts/shutdownfireplace.sh", 10000)
+		events.postUpdate("Pi_fireplace_restart", "OFF")
+		events.postUpdate("Fireplace", "OFF")
+	if str(event.itemState) == ON:
+		startpifireplace = executeCommandLine("/etc/openhab2/scripts/fireplace.sh", 10000)
+
+@rule("Rule Pi_fireplace_restart", description="Pi_fireplace_restart", tags=["restart", "state"])
+@when("Item Pi_fireplace_restart changed")
+def pifireplacerestart(event):
+	#global restartpifireplace
+	if str(event.itemState) == ON:
+		restartpifireplace = executeCommandLine("/etc/openhab2/scripts/restartfireplace.sh", 10000)
+
+def timer1_fireplace():
+	global FireplaceTimerOn
+	if items["Pi_fireplace"] == OFF:
+		events.sendCommand("Pi_fireplace", "ON")
+	FireplaceTimerOn.cancel()
+
+def timer2_fireplace():
+	global FireplaceTimerOff
+	events.sendCommand("Priza8_Power", "OFF")
+	FireplaceTimerOff.cancel()
+
+@rule("Rule when Fireplace changes", description="onoff", tags=["onoff", "state"])
+@when("Item Fireplace changed")
+def fireplace(event):
+	global FireplaceTimerOff
+	global FireplaceTimerOn
+	
+	if event.itemState == ON:
+		events.sendCommand("Priza8_Power", "ON")
+		FireplaceTimerOn = ScriptExecution.createTimer(DateTime.now().plusMinutes(2), timer1_fireplace)
+
+	elif event.itemState == OFF:
+		events.sendCommand("Pi_fireplace", "OFF")
+		if FireplaceTimerOff is None or FireplaceTimerOff.hasTerminated():
+			FireplaceTimerOff = ScriptExecution.createTimer(DateTime.now().plusMinutes(2), timer2_fireplace)
+
+def timer4_fireplace():
+	events.sendCommand("Priza8_Power", "ON")
+	events.postUpdate("Fireplace_restart", "OFF")
+	Fireplace_startTimer.cancel()
+	
+def timer3_fireplace():
+	global Fireplace_startTimer
+	events.sendCommand("Priza8_Power", "OFF")
+	Fireplace_restartTimer.cancel()
+	if Fireplace_startTimer is None or Fireplace_startTimer.hasTerminated():
+		Fireplace_startTimer = ScriptExecution.createTimer(DateTime.now().plusSeconds(10), timer4_fireplace)
+
+@rule("Rule when Fireplace_restart changes", description="onoff", tags=["onoff", "state"])
+@when("Item Fireplace_restart changed")
+def fireplace_restart(event):
+	global Fireplace_restartTimer
+	if event.itemState == ON:
+		events.sendCommand("Pi_fireplace", "OFF")
+		if Fireplace_restartTimer is None or Fireplace_restartTimer.hasTerminated():
+			Fireplace_restartTimer = ScriptExecution.createTimer(DateTime.now().plusMinutes(1), timer3_fireplace)
+
+@rule("Priza1_Current rose from zero", description="Priza1_Current changed from 0.0 - logger", tags=["Current", "Priza1"])
+@when("Item Priza1_Current changed from 0.0")
+def priza1test0(event):
+	priza1test0.log.info("Priza1 current a crescut de la 0")
+
+def safe_float(state):
+	if state in [UnDefType.NULL, UnDefType.UNDEF, None]:
+		return 0.0
+	try:
+		if isinstance(state, QuantityType):
+			return float(state.floatValue())
+		else:
+			return float(str(state))
+	except:
+		return 0.0
+
+@rule("Priza1_Current", description="Priza1_Current changes Priza1RdytoForce", tags=["Current", "Priza1"])
+@when("Item Priza1_Current changed")
+def priza1preforce1(event):
+	#lstValcurrPriza1 = event.oldItemState.floatValue()
+	#aktValcurrPriza1 = event.itemState.floatValue()
+	lstValcurrPriza1 = safe_float(event.oldItemState)
+	aktValcurrPriza1 = safe_float(event.itemState)
+
+	if items["Priza1_Power"] == ON and items["Priza1_Current"] == QuantityType((Current_Low)):  ###Telefonul s-a scos de la incarcat
+		if items["Priza1RdytoForce"] != ON:
+			events.sendCommand("Priza1RdytoForce", "ON")
+	if items["Priza1_Power"] == ON and lstValcurrPriza1 == QuantityType((Current_Low)):   ###Telefonul s-a bagat la incarcat
+		if items["Priza1RdytoForce"] != ON:
+			events.sendCommand("Priza1RdytoForce", "ON")
+		if items["Priza1RdytoForce"] == ON and items["Priza1ForceOn"] == ON:
+			if Priza1ForceOnTimer is None or Priza1ForceOnTimer.hasTerminated():
+				Priza1ForceOnTimer = ScriptExecution.createTimer(DateTime.now().plusMinutes(KeepOnTime), timer_priza1forceon)
+	if items["Priza1_Power"] == OFF and items["Priza1_Current"] == QuantityType((Current_Low)):
+		if items["Priza1RdytoForce"] != OFF:
+			events.sendCommand("Priza1RdytoForce", "OFF")
+###Added on 02.06.2023###Rule when Priza1ForceOn and the phone is pulled from charger
+	if items["Priza1_Current"] == QuantityType((Current_Low)) and lstValcurrPriza1 >= QuantityType((Current_Low)):
+		if items["Priza1ForceOn"] == ON:
+			events.sendCommand("Priza1ForceOn", "OFF")
+			Priza1ForceOnTimer.cancel()
+###Added on 02.06.2023###Rule when Priza1ForceOn and the phone is pulled from charger
+
+@rule("Priza1_Power", description="Priza1_Power changes Priza1RdytoForce", tags=["Power", "Priza1"])
+@when("Item Priza1_Power changed")
+def priza1preforce2(event):
+	if items["Priza1_Power"] == OFF and items["Priza1_Current"] > QuantityType((Current_Low)): ###Telefonul a ajuns nivelul de incarcare
+		if items["Priza1RdytoForce"] != OFF:
+			events.sendCommand("Priza1RdytoForce", "OFF")
+	#if items["Priza1_Power"] == ON and items["Priza1_Current"] == QuantityType((Current_Low)):
+		#if items["Priza1RdytoForce"] != OFF:
+			#events.sendCommand("Priza1RdytoForce", "OFF")
+
+def timer_priza1forceon():
+	#if items["Priza1ForceOn"] != OFF:
+	events.sendCommand("Priza1ForceOn", "OFF")
+	events.sendCommand("Priza1RdytoForce", "OFF")
+	Priza1ForceOnTimer.cancel()
+
+@rule("Rule Priza1 forced to stay on for a period", description="on", tags=["on", "state"])
+@when("Item Priza1_Current changed")
+def priza1forceon(event):
+	global Priza1ForceOnTimer
+	# FIX4: skip ForceOn if battery is already full — prevents a rapid ON/OFF
+	# power cycle (ForceOn turns socket ON, current=0 triggers full-charge
+	# detection in 017, which immediately turns the socket OFF again).
+	if items["Priza1_BatteryFull"] == ON:
+		LogAction.logInfo("Priza1ForceOn", "Skipped — Priza1_BatteryFull is ON")
+		return
+	if items["Priza1RdytoForce"] == ON and items["Priza1ForceOn"] != ON:
+		events.sendCommand("Priza1ForceOn", "ON")
+		if Priza1ForceOnTimer is None or Priza1ForceOnTimer.hasTerminated():
+			Priza1ForceOnTimer = ScriptExecution.createTimer(DateTime.now().plusMinutes(KeepOnTime), timer_priza1forceon)
+		#elif Priza1ForceOnTimer is not None and not Priza1ForceOnTimer.hasTerminated():
+			#Priza1ForceOnTimer.reschedule(DateTime.now().plusMinutes(KeepOnTime))
+
+@rule("Priza2_Current", description="Priza2_Current changes Priza2RdytoForce", tags=["Current", "Priza2"])
+@when("Item Priza2_Current changed")
+def priza2preforce1(event):
+	lstValcurrPriza2 = event.oldItemState.floatValue()
+	aktValcurrPriza2 = event.itemState.floatValue()
+
+	if items["Priza2_Power"] == ON and items["Priza2_Current"] == QuantityType((Current_Low)):  ###Telefonul s-a scos de la incarcat
+		if items["Priza2RdytoForce"] != ON:
+			events.sendCommand("Priza2RdytoForce", "ON")
+	if items["Priza2_Power"] == ON and lstValcurrPriza2 == QuantityType((Current_Low)):   ###Telefonul s-a bagat la incarcat
+		if items["Priza2RdytoForce"] != ON:
+			events.sendCommand("Priza2RdytoForce", "ON")
+		if items["Priza2RdytoForce"] == ON and items["Priza2ForceOn"] == ON:
+			if Priza2ForceOnTimer is None or Priza2ForceOnTimer.hasTerminated():
+				Priza2ForceOnTimer = ScriptExecution.createTimer(DateTime.now().plusMinutes(KeepOnTime), timer_priza2forceon)
+	if items["Priza2_Power"] == OFF and items["Priza2_Current"] == QuantityType((Current_Low)):
+		if items["Priza2RdytoForce"] != OFF:
+			events.sendCommand("Priza2RdytoForce", "OFF")
+###Added on 02.06.2023###Rule when Priza2ForceOn and the phone is pulled from charger
+	if items["Priza2_Current"] == QuantityType((Current_Low)) and lstValcurrPriza2 >= QuantityType((Current_Low)):
+		if items["Priza2ForceOn"] == ON:
+			events.sendCommand("Priza2ForceOn", "OFF")
+			Priza2ForceOnTimer.cancel()
+###Added on 02.06.2023###Rule when Priza2ForceOn and the phone is pulled from charger
+
+@rule("Priza2_Power", description="Priza2_Power changes Priza2RdytoForce", tags=["Power", "Priza2"])
+@when("Item Priza2_Power changed")
+def priza2preforce2(event):
+	if items["Priza2_Power"] == OFF and items["Priza2_Current"] > QuantityType((Current_Low)):
+		if items["Priza2RdytoForce"] != OFF:
+			events.sendCommand("Priza2RdytoForce", "OFF")
+	#if items["Priza2_Power"] == ON and items["Priza2_Current"] == QuantityType((Current_Low)):
+		#if items["Priza2RdytoForce"] != OFF:
+			#events.sendCommand("Priza2RdytoForce", "OFF")
+
+def timer_priza2forceon():
+	#if items["Priza2ForceOn"] != OFF:
+	events.sendCommand("Priza2ForceOn", "OFF")
+	events.sendCommand("Priza2RdytoForce", "OFF")
+	Priza2ForceOnTimer.cancel()
+
+@rule("Rule Priza2 forced to stay on for a period", description="on", tags=["on", "state"])
+@when("Item Priza2_Current changed")
+def priza2forceon(event):
+	global Priza2ForceOnTimer
+	if items["Priza2RdytoForce"] == ON and items["Priza2ForceOn"] != ON:
+		events.sendCommand("Priza2ForceOn", "ON")
+		if Priza2ForceOnTimer is None or Priza2ForceOnTimer.hasTerminated():
+			Priza2ForceOnTimer = ScriptExecution.createTimer(DateTime.now().plusMinutes(KeepOnTime), timer_priza2forceon)
+		#elif Priza2ForceOnTimer is not None and not Priza2ForceOnTimer.hasTerminated():
+			#Priza2ForceOnTimer.reschedule(DateTime.now().plusMinutes(KeepOnTime))
+
+@rule("Priza3_Current", description="Priza3_Current changes Priza3RdytoForce", tags=["Current", "Priza3"])
+@when("Item Priza3_Current changed")
+def priza3preforce1(event):
+	lstValcurrPriza3 = event.oldItemState.floatValue()
+	aktValcurrPriza3 = event.itemState.floatValue()
+
+	if items["Priza3_Power"] == ON and items["Priza3_Current"] == QuantityType((Current_Low)):  ###Telefonul s-a scos de la incarcat
+		if items["Priza3RdytoForce"] != ON:
+			events.sendCommand("Priza3RdytoForce", "ON")
+	if items["Priza3_Power"] == ON and lstValcurrPriza3 == QuantityType((Current_Low)):   ###Telefonul s-a bagat la incarcat
+		if items["Priza3RdytoForce"] != ON:
+			events.sendCommand("Priza3RdytoForce", "ON")
+		if items["Priza3RdytoForce"] == ON and items["Priza3ForceOn"] == ON:
+			if Priza3ForceOnTimer is None or Priza3ForceOnTimer.hasTerminated():
+				Priza3ForceOnTimer = ScriptExecution.createTimer(DateTime.now().plusMinutes(KeepOnTime), timer_priza3forceon)
+	if items["Priza3_Power"] == OFF and items["Priza3_Current"] == QuantityType((Current_Low)):
+		if items["Priza3RdytoForce"] != OFF:
+			events.sendCommand("Priza3RdytoForce", "OFF")
+###Added on 02.06.2023###Rule when Priza3ForceOn and the phone is pulled from charger
+	if items["Priza3_Current"] == QuantityType((Current_Low)) and lstValcurrPriza3 >= QuantityType((Current_Low)):
+		if items["Priza3ForceOn"] == ON:
+			events.sendCommand("Priza3ForceOn", "OFF")
+			Priza3ForceOnTimer.cancel()
+###Added on 02.06.2023###Rule when Priza3ForceOn and the phone is pulled from charger
+
+@rule("Priza3_Power", description="Priza3_Power changes Priza3RdytoForce", tags=["Power", "Priza3"])
+@when("Item Priza3_Power changed")
+def priza3preforce2(event):
+	if items["Priza3_Power"] == OFF and items["Priza3_Current"] > QuantityType((Current_Low)):
+		if items["Priza3RdytoForce"] != OFF:
+			events.sendCommand("Priza3RdytoForce", "OFF")
+	#if items["Priza3_Power"] == ON and items["Priza3_Current"] == QuantityType((Current_Low)):
+		#if items["Priza3RdytoForce"] != OFF:
+			#events.sendCommand("Priza3RdytoForce", "OFF")
+
+def timer_priza3forceon():
+	#if items["Priza3ForceOn"] != OFF:
+	events.sendCommand("Priza3ForceOn", "OFF")
+	events.sendCommand("Priza3RdytoForce", "OFF")
+	Priza3ForceOnTimer.cancel()
+
+@rule("Rule Priza3 forced to stay on for a period", description="on", tags=["on", "state"])
+@when("Item Priza3_Current changed")
+def priza3forceon(event):
+	global Priza3ForceOnTimer
+	if items["Priza3RdytoForce"] == ON and items["Priza3ForceOn"] != ON:
+		events.sendCommand("Priza3ForceOn", "ON")
+		if Priza3ForceOnTimer is None or Priza3ForceOnTimer.hasTerminated():
+			Priza3ForceOnTimer = ScriptExecution.createTimer(DateTime.now().plusMinutes(KeepOnTime), timer_priza3forceon)
+		#elif Priza3ForceOnTimer is not None and not Priza3ForceOnTimer.hasTerminated():
+			#Priza3ForceOnTimer.reschedule(DateTime.now().plusMinutes(KeepOnTime))
+
+@rule("Rule TelefunkenTV Online transform", description="onoffto1or0", tags=["onff", "state"])
+@when("Item ScriptParrot_Smarttv_telefunken_up changed")
+def telefunkenswitch(event):
+	if items["ScriptParrot_Smarttv_telefunken_up"] == ON:
+		events.sendCommand("ScriptParrot_Telefunkentv_state", "1")
+	if items["ScriptParrot_Smarttv_telefunken_up"] == OFF:
+		events.sendCommand("ScriptParrot_Telefunkentv_state", "0")
+
+#@rule("Priza7_Power", description="Item Priza7_Power changed", tags=["Power", "Priza7"])  #new on 27.01.2024
+#@when("Item Priza7_Power received update")
+#def priza7_offflag(event):
+#	if event.itemState == ON and items["OffFlag7"] == ON:
+#		events.sendCommand("Priza7_Power", "OFF")	
+
+@rule("Rule HMS2mqtt", description="HMS2mqtt", tags=["onoff", "state"])
+@when("Item HMS2mqtt changed")
+def hms2mqtt(event):
+	if event.itemState == OFF:
+		stophms2mqtt = executeCommandLine("/etc/openhab2/scripts/docker_hms2mqtt.sh stop", 10000)
+		#events.postUpdate("HMS2mqtt", "OFF")
+	elif event.itemState == ON:
+		starthms2mqtt = executeCommandLine("/etc/openhab2/scripts/docker_hms2mqtt.sh start", 10000)
+		#events.postUpdate("HMS2mqtt", "ON")
+
+#@rule("Alex Zuhause", description="Alex Presence", tags=["Presence", "Echo"])
+#@when("Item ScriptParrot_Galaxy_a12_up changed")
+#def Alex_presence(event):
+#	day = "DAY"
+#	evening = "EVENING"
+#	bed = "BED"
+#	morning = "MORNING"
+#	afternoon = "AFTERNOON"
+#	if event.itemState == ON:
+#		if items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+#			events.sendCommand("Echo_Bedroom_Kids_TTS", "Willkommen zurueck Alex! Was kann ich fuer dich tun?")
+#	if event.itemState == OFF:
+#		if items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+#			events.sendCommand("Echo_Bedroom_Kids_TTS", "Alex ist nicht mehr Zuhause")

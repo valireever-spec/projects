@@ -1,0 +1,137 @@
+##priza2_runtime.py
+# 2026-05-02: UnDefType already org.eclipse.smarthome.core.types (ESH; OH 2.5.12).
+
+from core.rules import rule
+from core.triggers import when
+from core.log import logging
+from core.jsr223.scope import events, items, ir
+from org.joda.time import DateTime  # FIX: was java.time.ZonedDateTime — inconsistent with project; use Joda like all other rules
+from org.eclipse.smarthome.core.types import UnDefType
+
+log = logging.getLogger("priza2.runtime")
+
+# --------------------------------------------------
+# Configuration
+# --------------------------------------------------
+
+POWER_ITEM_NAME    = "Priza2_Power_Cons"
+RUNTIME_ITEM_NAME  = "Priza2_Runtime_Minutes"
+ENERGY_ITEM_NAME   = "Priza2_Daily_Energy_Wh"
+COST_ITEM_NAME     = "Priza2_DailyCost"
+SWITCH_ITEM_NAME   = "TimeLimitPC"
+# FIX 2026-03-07: removed module-level ir.getItem() calls. If any of these items
+#   does not exist at script load time (e.g. during startup before persistence
+#   restores them), the entire file would fail to load and all rules become
+#   permanently dead until the next OH restart. Item names are now constants;
+#   state reads and commands use items[] and string-based sendCommand/postUpdate.
+
+THRESHOLD = 100.0
+LIMIT_MINUTES = 120.0  # 2 hours
+PRICE_KWH = 0.35
+
+# --------------------------------------------------
+# Internal state
+# --------------------------------------------------
+
+last_time  = None
+last_power = 0.0
+
+# --------------------------------------------------
+# Helpers
+# --------------------------------------------------
+
+def safe_float(val):
+    if val is None or isinstance(val, UnDefType):
+        return 0.0
+    try:
+        return float(str(val).split(" ")[0])
+    except:
+        return 0.0
+
+# --------------------------------------------------
+# Main Rule – Runtime + Energy + Cost + Switch
+# --------------------------------------------------
+
+@rule("Priza2 Runtime + Energy + Cost + Switch")
+@when("Item {} received update".format(POWER_ITEM_NAME))
+def accumulate(event):
+
+    global last_time, last_power
+
+    now = DateTime.now()
+    current_power = safe_float(items[POWER_ITEM_NAME])
+
+    if last_time is None:
+        last_time = now
+        last_power = current_power
+        return
+
+    delta_seconds = (
+        now.getMillis() -
+        last_time.getMillis()
+    ) / 1000.0
+
+    if delta_seconds <= 0:
+        return
+
+    # ENERGY
+    avg_power = (last_power + current_power) / 2.0
+    energy_wh = avg_power * delta_seconds / 3600.0
+
+    current_energy = safe_float(items[ENERGY_ITEM_NAME])
+    new_energy = current_energy + energy_wh
+    events.postUpdate(ENERGY_ITEM_NAME, str(round(new_energy, 3)))
+
+    # COST
+    cost = (new_energy / 1000.0) * PRICE_KWH
+    events.postUpdate(COST_ITEM_NAME, str(round(cost, 4)))
+
+    # RUNTIME
+    mid_power = (last_power + current_power) / 2.0
+
+    if mid_power >= THRESHOLD:
+        current_minutes = safe_float(items[RUNTIME_ITEM_NAME])
+        new_minutes = current_minutes + (delta_seconds / 60.0)
+        events.postUpdate(RUNTIME_ITEM_NAME, str(round(new_minutes, 3)))
+
+        if new_minutes >= LIMIT_MINUTES and items[SWITCH_ITEM_NAME] != ON:
+            events.sendCommand(SWITCH_ITEM_NAME, "ON")
+            log.info("TimeLimitPC turned ON at {} minutes".format(round(new_minutes,3)))
+
+    # ALWAYS update last values
+    last_time  = now
+    last_power = current_power
+
+
+# --------------------------------------------------
+# Midnight Reset
+# --------------------------------------------------
+
+@rule("Priza2 Midnight Reset")
+@when("Time cron 0 0 0 * * ?")
+def midnight_reset(event):
+    events.postUpdate(RUNTIME_ITEM_NAME, "0")
+    events.postUpdate(ENERGY_ITEM_NAME, "0")
+    events.postUpdate(COST_ITEM_NAME, "0")
+    events.sendCommand(SWITCH_ITEM_NAME, "OFF")
+    global last_time, last_power
+    last_time  = DateTime.now()
+    last_power = safe_float(items[POWER_ITEM_NAME])
+    log.info("Priza2 runtime, energy, cost reset at midnight. Switch turned OFF.")
+
+@rule("Priza2 Current TelePeriod Safe")
+@when("Item Priza2_Current changed")
+def priza2_current_teleperiod_safe(event):
+
+    current_value = safe_float(items["Priza2_Current"])
+    teleperiod_value = 300 if current_value <= 0.5 else 10
+
+    if safe_float(items["Priza2_TelePeriod"]) != teleperiod_value:
+        events.postUpdate("Priza2_TelePeriod", str(teleperiod_value))
+        events.sendCommand("Priza2_TelePeriod", str(teleperiod_value))
+
+@rule("Gaming 2 H", description="Gaming Limit", tags=["Presence", "Echo"])
+@when("Item TimeLimitPC changed")
+def Gaming_limit(event):
+	if event.itemState == ON:
+		events.sendCommand("Echo_Bedroom_Kids_TTS", "Alex, du hast dein Gaming Limit erreicht!")

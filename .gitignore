@@ -2,3 +2,4 @@
 .archive/
 .mypy_cache/
 *.log
+.claude/worktrees/

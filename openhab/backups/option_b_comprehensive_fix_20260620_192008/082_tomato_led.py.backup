@@ -1,0 +1,428 @@
+##082_tomato_led.py
+#
+# FIXES 2026-05-23 v1:
+#   FIX-A: Added missing 'from core.jsr223.scope import events, items' —
+#          switch_led() and get_solar_power() / cloud_cover_allows_light() used
+#          both names without importing them, causing NameError on every rule fire.
+#   FIX-B: Replaced 'from java.time import ZonedDateTime' with
+#          'from org.joda.time import DateTime' — java.time may not be accessible
+#          from Jython on OH 2.5.12, causing ImportError at module load. All other
+#          rules in this project use the Joda-Time API. Also changed now.getHour()
+#          to now.getHourOfDay() (Joda method name).
+#   FIX-C: Removed '.state' from items[SOLAR_ITEM].state and items[CLOUD_ITEM].state
+#          — in OH 2.5 JSR223, items["Name"] already returns the State object directly;
+#          calling .state on it raises AttributeError.
+#
+# IMPROVEMENTS 2026-05-23 v2:
+#   - Cloud cover active: USE_CLOUD_COVER flag removed — cloud cover is always
+#     read and used to compute the daily LED target.
+#   - DLI-based daily target: target LED minutes scales linearly with cloud cover
+#     (0% cloud = MIN_LED_MINUTES; 100% cloud = MAX_LED_MINUTES). This approximates
+#     supplementing natural light up to a fixed daily dose for the tomatoes.
+#   - Cloud immediate bypass: when cloud cover >= CLOUD_IMMEDIATE_THRESHOLD (80%),
+#     skip the low_solar hysteresis counter and enable LEDs immediately. Heavy
+#     overcast means very low PAR regardless of instantaneous solar W reading.
+#   - Astro-adaptive time windows: morning and evening windows are anchored to
+#     actual sunrise/sunset from the astro binding instead of fixed clock hours.
+#     Falls back to fixed defaults if astro items are unavailable.
+#   - Persistent counter: led_minutes_today stored in OH Number item
+#     Priza11_LED_MinutesToday so it survives script reloads and OH restarts.
+#     REQUIRED: create the item — Number Priza11_LED_MinutesToday (persist group).
+#   - switch_led guards against redundant commands: no-op if already in target state.
+#   - Unified log line per tick (solar W, cloud %, LED minutes) for easier tuning.
+#
+# IMPROVEMENTS 2026-05-23 v3:
+#   - CLOUD_ITEM changed from placeholder Weather_CloudCover to WeatherHome_CloudCoverage
+#     — live Met.no cloud coverage bridged from Home Assistant via MQTT
+#     (broker mosquitto_local, topic stat/weather_home/cloud_coverage).
+#   - TEMP_ITEM added: WeatherHome_Temperature bridged from HA (same broker/Thing).
+#     LEDs are inhibited when outdoor temperature >= TEMP_INHIBIT_C (default 32°C)
+#     — above that threshold tomatoes are heat-stressed and extra light is harmful.
+#     REQUIRED OH items (add to same .items file as WeatherHome_Temperature):
+#       Number WeatherHome_CloudCoverage "Weather Cloud Coverage [%.1f %%]" <rain>
+#             { channel="mqtt:topic:mosquitto_local:weather_home:cloud_coverage" }
+#     REQUIRED HA automation addition (stat/weather_home/cloud_coverage topic):
+#       see weather_publish_to_mqtt automation — add cloud_coverage publish action.
+
+from core.rules import rule
+from core.triggers import when
+from core.log import logging
+from core.jsr223.scope import events, items, ON, OFF
+from org.joda.time import DateTime
+
+log = logging.getLogger("tomato_led")
+
+# ============================================================
+# ITEM NAMES
+# ============================================================
+
+LED_SWITCH       = "Priza11_Power"
+SOLAR_ITEM       = "HMS_TotalPower"
+CLOUD_ITEM       = "WeatherHome_CloudCoverage"  # Met.no via HA MQTT bridge
+TEMP_ITEM        = "WeatherHome_Temperature"    # Met.no via HA MQTT bridge
+CONDITION_ITEM   = "WeatherHome_Condition"      # Met.no via HA MQTT bridge
+ASTRO_RISE_ITEM  = "vSunrise_Time"              # DateTimeType — astro:sun:home:rise#start
+ASTRO_SET_ITEM   = "vSunset_Time"               # DateTimeType — astro:sun:home:set#start
+LED_MINUTES_ITEM = "Priza11_LED_MinutesToday"   # Number — persisted daily counter
+
+# ============================================================
+# SOLAR THRESHOLDS  (W)
+# ============================================================
+
+SUN_OFF_THRESHOLD = 350   # strong sun — LEDs not needed
+SUN_LOW_THRESHOLD = 150   # cloudy — LEDs beneficial
+
+# ============================================================
+# FORECAST CONDITION
+# ============================================================
+
+# Met.no conditions that mean full natural light all day — no LED supplement needed.
+# On these days the rule exits immediately after the time-window check so the LED
+# does not turn on in early morning before solar production ramps up.
+SUNNY_CONDITIONS = {"sunny", "clearsky_day", "clearsky_night", "clearsky_polartwilight"}
+
+# ============================================================
+# TEMPERATURE INHIBIT  (°C)
+# ============================================================
+
+# Above this temperature LEDs are suppressed — tomatoes under heat stress
+# do not benefit from extra light and the LED adds further heat load.
+TEMP_INHIBIT_C = 32
+
+# ============================================================
+# DLI TARGET  (minutes/day)
+# ============================================================
+
+# On a clear day tomatoes receive enough natural light — minimal supplement.
+# On a fully overcast day supplement up to the maximum.
+MIN_LED_MINUTES = 20
+MAX_LED_MINUTES = 120
+
+# ============================================================
+# TIME WINDOWS  (hours relative to sunrise / sunset)
+# ============================================================
+
+# Fallback fixed hours used when astro items are unavailable
+MORNING_START_DEFAULT = 7
+EVENING_END_DEFAULT   = 20
+
+# Morning window: sunrise+MORNING_OFFSET_HOURS → sunrise+MORNING_OFFSET_HOURS+MORNING_WINDOW_HOURS
+# Offset skips the low-angle dead zone where panels produce <150 W even on a clear day.
+# Log analysis (2026-05-24, clear day): panels below 150 W until ~08:00 (sunrise ~07:00).
+MORNING_OFFSET_HOURS = 1
+MORNING_WINDOW_HOURS = 2
+EVENING_WINDOW_HOURS = 3
+
+# ============================================================
+# HYSTERESIS
+# ============================================================
+
+CHECK_INTERVAL_MINUTES     = 10
+
+# Confirmed low solar for N cycles (N×10 min) before enabling LEDs
+LOW_SOLAR_REQUIRED_CYCLES  = 3   # 30 min
+
+# Confirmed strong sun for N cycles before disabling LEDs
+HIGH_SOLAR_REQUIRED_CYCLES = 2   # 20 min
+
+# Cloud cover % above which solar hysteresis is bypassed (enable immediately)
+CLOUD_IMMEDIATE_THRESHOLD  = 80
+
+# Cloud cover % below which sky is effectively clear — no supplement needed.
+# Handles cases where Met.no condition string is not in SUNNY_CONDITIONS but
+# the sky is actually clear (e.g. "fair_day", NULL item, first-of-day fetch).
+CLOUD_CLEAR_THRESHOLD      = 20
+
+# ============================================================
+# MODULE STATE  (hysteresis counters + daily reset tracker)
+# ============================================================
+
+low_solar_counter  = 0
+high_solar_counter = 0
+last_reset_day     = -1
+sunny_day_confirmed = False  # set when panels confirm strong sun; cleared at midnight
+
+# ============================================================
+# HELPERS
+# ============================================================
+
+def switch_led(state):
+    """Send command only if the outlet is not already in the desired state."""
+    current = items[LED_SWITCH]
+    if state == "ON" and current != ON:
+        events.sendCommand(LED_SWITCH, "ON")
+    elif state == "OFF" and current != OFF:
+        events.sendCommand(LED_SWITCH, "OFF")
+
+
+def get_solar_power():
+    try:
+        val = str(items[SOLAR_ITEM]).split(" ")[0]
+        if val.lower() in ("null", "undef"):
+            return 200.0  # unknown — use mid-range so rule holds position
+        return float(val)
+    except:
+        return 200.0  # mid-range fallback: not low enough to enable, not high enough to disable
+
+
+def get_cloud_cover():
+    """Return cloud cover 0–100. Defaults to 50 (partly cloudy) on error."""
+    try:
+        return max(0.0, min(100.0, float(str(items[CLOUD_ITEM]))))
+    except:
+        return 50.0
+
+
+def get_temperature():
+    """Return outdoor temperature in °C. Defaults to 20 (safe) on error."""
+    try:
+        return float(str(items[TEMP_ITEM]).split(" ")[0])
+    except:
+        return 20.0
+
+
+def get_condition():
+    """Return Met.no condition string (e.g. 'sunny', 'cloudy'). Empty string on error."""
+    try:
+        val = str(items[CONDITION_ITEM]).strip().lower()
+        return val if val not in ("null", "undef", "") else ""
+    except:
+        return ""
+
+
+def get_daily_cloud_forecast():
+    """Return today's average daylight cloud cover %. Defaults to 50 on error."""
+    try:
+        return max(0.0, min(100.0, float(str(items["WeatherHome_DailyCloudForecast"]))))
+    except:
+        return 50.0
+
+
+def get_led_minutes_today():
+    try:
+        val = float(str(items[LED_MINUTES_ITEM]))
+        return int(val) if val >= 0 else 0
+    except:
+        return 0
+
+
+def set_led_minutes_today(minutes):
+    events.postUpdate(LED_MINUTES_ITEM, str(minutes))
+
+
+def get_astro_hour(item_name, default_hour):
+    """Extract local hour-of-day from a DateTimeType astro item; return default_hour on failure.
+    Converts via Joda DateTime so the timezone matches DateTime.now().getHourOfDay() —
+    Calendar.HOUR_OF_DAY on the raw Calendar may return UTC if the astro binding stores UTC."""
+    try:
+        from org.eclipse.smarthome.core.library.types import DateTimeType
+        state = items[item_name]
+        if isinstance(state, DateTimeType):
+            millis = state.getCalendar().getTimeInMillis()
+            return DateTime(millis).getHourOfDay()
+    except:
+        pass
+    return default_hour
+
+
+def compute_led_target_minutes(cloud):
+    """Linear interpolation: 0% cloud → MIN_LED_MINUTES, 100% → MAX_LED_MINUTES."""
+    fraction = cloud / 100.0
+    return int(MIN_LED_MINUTES + fraction * (MAX_LED_MINUTES - MIN_LED_MINUTES))
+
+
+def is_in_time_window(now_hour):
+    sunrise_hour = get_astro_hour(ASTRO_RISE_ITEM, MORNING_START_DEFAULT)
+    morning_start = sunrise_hour + MORNING_OFFSET_HOURS
+    morning_ok    = morning_start <= now_hour < morning_start + MORNING_WINDOW_HOURS
+    return morning_ok
+
+
+def is_in_morning_window(now_hour):
+    """Return True if current hour is in the morning window for LED operation."""
+    sunrise_hour = get_astro_hour(ASTRO_RISE_ITEM, MORNING_START_DEFAULT)
+    morning_start = sunrise_hour + MORNING_OFFSET_HOURS
+    morning_ok = morning_start <= now_hour < morning_start + MORNING_WINDOW_HOURS
+    return morning_ok
+
+# ============================================================
+# MAIN RULE
+# ============================================================
+
+@rule("Tomato Balcony LED Automation")
+@when("Time cron 0 */10 * * * ?")
+def tomato_led_rule(event):
+
+    global low_solar_counter, high_solar_counter, last_reset_day, sunny_day_confirmed
+
+    now = DateTime.now()
+
+    # --------------------------------------------------------
+    # DAILY RESET
+    # --------------------------------------------------------
+
+    current_day = now.getDayOfYear()
+
+    if current_day != last_reset_day:
+        set_led_minutes_today(0)
+        low_solar_counter   = 0
+        high_solar_counter  = 0
+        sunny_day_confirmed = False
+        last_reset_day      = current_day
+        switch_led("OFF")
+        log.info("Tomato LED daily reset (day {})".format(current_day))
+
+    # --------------------------------------------------------
+    # ENABLED CHECK — tomatoes not on balcony → do nothing
+    # --------------------------------------------------------
+
+    if items["Tomatoes_OnBalcony"] != ON:
+        switch_led("OFF")
+        return
+
+    # --------------------------------------------------------
+    # SUNNY DAY — confirmed by panels, no supplement needed today
+    # --------------------------------------------------------
+
+    if sunny_day_confirmed:
+        switch_led("OFF")
+        return
+
+    # --------------------------------------------------------
+    # TOD CHECK — no LED during night / bed hours
+    # --------------------------------------------------------
+
+    tod = str(items["vTimeOfDay"]).strip()
+    if tod in ("NIGHT", "BED"):
+        switch_led("OFF")
+        return
+
+    # --------------------------------------------------------
+    # TIME WINDOW CHECK  (astro-adaptive)
+    # --------------------------------------------------------
+
+    now_hour = now.getHourOfDay()
+
+    if not is_in_time_window(now_hour):
+        switch_led("OFF")
+        return
+
+    # --------------------------------------------------------
+    # FORECAST CONDITION — sunny day needs no supplement
+    # --------------------------------------------------------
+
+    condition = get_condition()
+    if condition in SUNNY_CONDITIONS:
+        switch_led("OFF")
+        log.info("Forecast '{}' — full natural light, LEDs OFF".format(condition))
+        return
+
+    # --------------------------------------------------------
+    # READ CURRENT STATE
+    # --------------------------------------------------------
+
+    cloud             = get_cloud_cover()
+
+    if cloud < CLOUD_CLEAR_THRESHOLD:
+        switch_led("OFF")
+        log.info("Clear sky (cloud {}% < {}%) — LEDs OFF".format(int(cloud), CLOUD_CLEAR_THRESHOLD))
+        return
+    solar_power       = get_solar_power()
+    temperature       = get_temperature()
+    led_minutes_today = get_led_minutes_today()
+    target_minutes    = compute_led_target_minutes(cloud)
+
+    log.info("Solar {} W  Cloud {}%  Temp {}°C  Cond '{}'  LED {}/{} min".format(
+        int(solar_power), int(cloud), temperature, condition, led_minutes_today, target_minutes))
+
+    # --------------------------------------------------------
+    # DAILY TARGET REACHED
+    # --------------------------------------------------------
+
+    if led_minutes_today >= target_minutes:
+        switch_led("OFF")
+        log.info("Daily target reached ({} min) — LEDs OFF".format(target_minutes))
+        return
+
+    # --------------------------------------------------------
+    # TEMPERATURE INHIBIT
+    # --------------------------------------------------------
+
+    if temperature >= TEMP_INHIBIT_C:
+        switch_led("OFF")
+        log.info("Heat inhibit {}°C >= {}°C — LEDs OFF".format(temperature, TEMP_INHIBIT_C))
+        return
+
+    # --------------------------------------------------------
+    # MORNING FORECAST CHECK — use daily forecast instead of real-time cloud
+    # --------------------------------------------------------
+
+    now = DateTime.now()
+    now_hour = now.getHourOfDay()
+
+    if is_in_morning_window(now_hour):
+        daily_forecast = get_daily_cloud_forecast()
+        if daily_forecast >= CLOUD_IMMEDIATE_THRESHOLD:
+            # Morning forecast predicts >80% cloud cover for the day — start LEDs early
+            switch_led("ON")
+            set_led_minutes_today(led_minutes_today + CHECK_INTERVAL_MINUTES)
+            low_solar_counter  = 0
+            high_solar_counter = 0
+            log.info("Morning: Daily forecast {}% >= {}% — LEDs ON ({}/{} min)".format(
+                int(daily_forecast), int(CLOUD_IMMEDIATE_THRESHOLD), led_minutes_today + CHECK_INTERVAL_MINUTES, target_minutes))
+            return
+
+    # --------------------------------------------------------
+    # HEAVY CLOUD — bypass solar hysteresis, enable immediately
+    # --------------------------------------------------------
+
+    if cloud >= CLOUD_IMMEDIATE_THRESHOLD:
+        if solar_power >= SUN_OFF_THRESHOLD:
+            # Panels contradict the forecast — sun is clearly shining.
+            # Bad cloud data: trust HMS_TotalPower, fall through to solar hysteresis.
+            log.info("Cloud {}% but solar {} W — forecast wrong, ignoring cloud bypass".format(
+                int(cloud), int(solar_power)))
+        else:
+            switch_led("ON")
+            set_led_minutes_today(led_minutes_today + CHECK_INTERVAL_MINUTES)
+            low_solar_counter  = 0
+            high_solar_counter = 0
+            log.info("Heavy cloud ({}%) — LEDs ON immediately ({}/{} min)".format(
+                int(cloud), led_minutes_today + CHECK_INTERVAL_MINUTES, target_minutes))
+            return
+
+    # --------------------------------------------------------
+    # SOLAR HYSTERESIS
+    # --------------------------------------------------------
+
+    if solar_power >= SUN_OFF_THRESHOLD:
+        high_solar_counter += 1
+        low_solar_counter   = 0
+        if high_solar_counter >= HIGH_SOLAR_REQUIRED_CYCLES:
+            switch_led("OFF")
+            if not sunny_day_confirmed:
+                sunny_day_confirmed = True
+                log.info("Strong sun {} W x{} confirmed — day marked clear, LEDs suppressed until midnight".format(
+                    int(solar_power), high_solar_counter))
+            else:
+                log.info("Strong sun {} W x{} — LEDs OFF".format(
+                    int(solar_power), high_solar_counter))
+        return
+
+    elif solar_power <= SUN_LOW_THRESHOLD:
+        low_solar_counter  += 1
+        high_solar_counter  = 0
+        if low_solar_counter >= LOW_SOLAR_REQUIRED_CYCLES:
+            switch_led("ON")
+            set_led_minutes_today(led_minutes_today + CHECK_INTERVAL_MINUTES)
+            log.info("Low solar {} W x{} — LEDs ON ({}/{} min)".format(
+                int(solar_power), low_solar_counter,
+                led_minutes_today + CHECK_INTERVAL_MINUTES, target_minutes))
+        return
+
+    else:
+        # Mid-range solar — hold position, reset counters
+        low_solar_counter  = 0
+        high_solar_counter = 0
+        switch_led("OFF")
+        log.info("Moderate solar {} W — LEDs OFF".format(int(solar_power)))

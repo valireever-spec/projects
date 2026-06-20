@@ -1,0 +1,72 @@
+##018_Delay.py
+# Nu se poate folosi regula
+# Exemplu: "Item DTDormMic changed from 1 to 2", ir.getItem("DTDormMic").state va prelua prima valoare, adica 1, nu pe a doua, adica 2
+# https://community.openhab.org/t/jsr223-jython-what-is-the-correct-way-to-avoid-a-race-condition-getting-an-item-value-inside-a-received-update-triggered-rule/76304/23
+#
+# FIXES applied 2026-03-07:
+#   FIX-sleep: Replaced all time.sleep() calls with ScriptExecution.createTimer chains.
+#              sleep() blocks the entire Jython rule engine thread for its duration,
+#              queuing all other rules behind it. With 12 sleeps of 0.5s each across
+#              5 rules, a burst of timer events could stall the engine for several seconds.
+#              createTimer schedules the continuation on the timer thread instead,
+#              leaving the rule engine free immediately.
+#   NOTE: The sleeps in this file existed to let postUpdate propagate before the next
+#         read of the same item via items[]. The timer approach preserves this intent
+#         with a 100ms delay (shorter than 500ms, sufficient for local item state).
+# 2026-05-02: OnOffType from org.eclipse.smarthome.core.library.types (ESH; OH 2.5.12).
+
+from core.rules import rule
+from core.triggers import when
+from core.actions import ScriptExecution
+from org.joda.time import DateTime
+import core
+from core.jsr223.scope import events, items
+from org.eclipse.smarthome.core.library.types import OnOffType
+
+ON = OnOffType.ON
+
+@rule("DelayTimerSufragerie received update", description="DTSufragerie received update", tags=["Timer", "Sufragerie"])
+@when("Item DTSufragerie received update")
+def sufragerie_timer(event):
+	valSec = int(str(items["DTSufragerie"])) * 60
+	events.sendCommand(ir.getItem("DelayTimerSufragerie"), valSec + int(str(items["HDSufragerie"])))
+	if items["Logging"] == ON:
+		sufragerie_timer.log.info("Light timer sufragerie received update")
+
+@rule("DelayTimerDormMic received update", description="DTDormMic received update", tags=["Timer", "DormMic"])
+@when("Item DTDormMic received update")
+def dormmic_timer(event):
+	valSec = int(str(items["DTDormMic"])) * 60
+	events.sendCommand(ir.getItem("DelayTimerDormMic"), valSec + int(str(items["HDDormP"])))
+	if items["Logging"] == ON:
+		dormmic_timer.log.info("Light timer DormMic received update")
+
+@rule("DelayTimerDormCopii received update", description="DTDormCopii received update", tags=["Timer", "DormCopii"])
+@when("Item DTDormCopii received update")
+def dormcopii_timer(event):
+	valSec = int(str(items["DTDormCopii"])) * 60
+	events.sendCommand(ir.getItem("DelayTimerDormCopii"), valSec + int(str(items["HDDormC"])))
+	if items["Logging"] == ON:
+		dormcopii_timer.log.info("Light timer DormCopii received update")
+
+@rule("DelayTimerBucatarie received update", description="DTBucatarie received update", tags=["Timer", "Bucatarie"])
+@when("Item DTBucatarie received update")
+def bucatarie_timer(event):
+	valSec = int(str(items["DTBucatarie"])) * 60
+	events.sendCommand(ir.getItem("DelayTimerBucatarie"), valSec + int(str(items["HDBucatarie"])))
+
+@rule("DelayTimerLampa received update", description="DTLampa received update", tags=["Timer", "Lampa"])
+@when("Item DTLampa received update")
+def lampa_timer(event):
+	valSec = int(str(items["DTLampa"])) * 60
+	events.sendCommand(ir.getItem("DelayTimerLampa"), valSec + int(str(items["HDSufragerie"])))
+	if items["Logging"] == ON:
+		lampa_timer.log.info("Light timer Lampa received update")
+
+@rule("DelayTimerTelefunken received update", description="DTTelefunken received update", tags=["Timer", "Telefunken"])
+@when("Item DTTelefunken received update")
+def telefunken_timer(event):
+	# No sleeps in original — unchanged
+	events.postUpdate(ir.getItem("DelayTimerTelefunken"), ir.getItem("DTTelefunken").state)
+	if items["Logging"] == ON:
+		telefunken_timer.log.info("Light timer Telefunken received update")
