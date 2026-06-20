@@ -95,6 +95,7 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
 
     scorecard = db.query(ScorecardEntry).filter(ScorecardEntry.project_id == project_id).all()
     gaps = db.query(Gap).filter(Gap.project_id == project_id).all()
+    requirements = db.query(Requirement).filter(Requirement.project_id == project_id).all()
     reviews = db.query(Review).filter(Review.project_id == project_id).all()
 
     pillar_status = {}
@@ -111,6 +112,7 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
         "path": project.path,
         "maturity_score": maturity,
         "scorecard": pillar_status,
+        "requirements": [{"id": r.id, "req_id": r.req_id, "description": r.description, "status": r.status, "req_type": r.req_type, "category": r.category, "gap_count": len([g for g in gaps if g.requirement_id == r.id])} for r in requirements],
         "gaps": [{"id": g.id, "pillar": g.pillar, "title": g.title, "status": g.status, "severity": g.severity, "effort": g.effort, "requirement_id": g.requirement_id, "description": g.description} for g in gaps],
         "review_count": len(reviews),
     }
@@ -479,6 +481,69 @@ def get_requirements(project_id: int, db: Session = Depends(get_db)):
         })
     return result
 
+@app.get("/api/projects/{project_id}/requirements/{requirement_id}", response_model=dict)
+def get_requirement(project_id: int, requirement_id: int, db: Session = Depends(get_db)):
+    """Get a single requirement by ID"""
+    requirement = db.query(Requirement).filter(
+        Requirement.id == requirement_id,
+        Requirement.project_id == project_id
+    ).first()
+    if not requirement:
+        raise HTTPException(status_code=404, detail="Requirement not found")
+
+    gap_count = db.query(Gap).filter(Gap.requirement_id == requirement.id).count()
+
+    acceptance_criteria = requirement.acceptance_criteria
+    if acceptance_criteria and isinstance(acceptance_criteria, str):
+        try:
+            acceptance_criteria = json.loads(acceptance_criteria)
+        except:
+            acceptance_criteria = [{"description": acceptance_criteria}]
+
+    test_case = requirement.test_case
+    if test_case and isinstance(test_case, str):
+        try:
+            test_case = json.loads(test_case)
+        except:
+            test_case = [test_case]
+
+    return {
+        "id": requirement.id,
+        "req_id": requirement.req_id,
+        "title": requirement.title,
+        "description": requirement.description,
+        "req_type": requirement.req_type,
+        "category": requirement.category,
+        "status": requirement.status,
+        "acceptance_criteria": acceptance_criteria,
+        "measurement_method": requirement.measurement_method,
+        "target": requirement.target,
+        "test_case": test_case,
+        "gap_count": gap_count
+    }
+
+@app.get("/api/projects/{project_id}/gaps/{gap_id}", response_model=dict)
+def get_gap(project_id: int, gap_id: int, db: Session = Depends(get_db)):
+    """Get a single gap by ID"""
+    gap = db.query(Gap).filter(
+        Gap.id == gap_id,
+        Gap.project_id == project_id
+    ).first()
+    if not gap:
+        raise HTTPException(status_code=404, detail="Gap not found")
+
+    return {
+        "id": gap.id,
+        "project_id": gap.project_id,
+        "pillar": gap.pillar,
+        "title": gap.title,
+        "description": gap.description,
+        "severity": gap.severity,
+        "status": gap.status,
+        "effort": gap.effort,
+        "requirement_id": gap.requirement_id,
+    }
+
 @app.post("/api/projects/{project_id}/import-requirements", response_model=dict)
 def import_requirements_from_project(project_id: int, project_path: str = None, db: Session = Depends(get_db)):
     """Import requirements from project files into tracker database"""
@@ -590,6 +655,8 @@ def update_requirement(project_id: int, requirement_id: int, req_data: dict, db:
         requirement.title = req_data['title']
     if 'description' in req_data:
         requirement.description = req_data['description']
+    if 'req_type' in req_data:
+        requirement.req_type = req_data['req_type']
     if 'category' in req_data:
         requirement.category = req_data['category']
     if 'status' in req_data:
@@ -613,6 +680,24 @@ def update_requirement(project_id: int, requirement_id: int, req_data: dict, db:
         "req_id": requirement.req_id,
         "status": "updated"
     }
+
+@app.delete("/api/projects/{project_id}/requirements/{requirement_id}", response_model=dict)
+def delete_requirement(project_id: int, requirement_id: int, db: Session = Depends(get_db)):
+    """Delete a requirement"""
+    requirement = db.query(Requirement).filter(
+        Requirement.id == requirement_id,
+        Requirement.project_id == project_id
+    ).first()
+    if not requirement:
+        raise HTTPException(status_code=404, detail="Requirement not found")
+
+    # Also delete any gaps linked to this requirement
+    db.query(Gap).filter(Gap.requirement_id == requirement_id).delete()
+
+    db.delete(requirement)
+    db.commit()
+
+    return {"status": "deleted", "requirement_id": requirement_id}
 
 @app.post("/api/projects/{project_id}/sync-requirements", response_model=dict)
 def sync_requirements_to_project_files(project_id: int, db: Session = Depends(get_db)):
@@ -926,11 +1011,11 @@ def calculate_maturity(scorecard):
     return int((met / len(scorecard)) * 100) if scorecard else 0
 
 def load_framework_rules():
-    from framework_loader import load_rules
+    from .framework_loader import load_rules
     return load_rules()
 
 def load_framework_playbooks():
-    from framework_loader import load_playbooks
+    from .framework_loader import load_playbooks
     return load_playbooks()
 
 if __name__ == "__main__":

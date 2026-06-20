@@ -211,8 +211,9 @@ class ProjectBoardSyncer:
         for req in sorted(requirements, key=lambda r: r.req_id):
             linked_gaps = db.query(Gap).filter(Gap.requirement_id == req.id).all()
             test_cases = "✅" if req.test_case else "❌"
+            req_type_abbr = req.req_type[0] if req.req_type else "?"
             lines.append(
-                f"| {req.req_id} | {req.req_type[0]} | {req.status} | "
+                f"| {req.req_id} | {req_type_abbr} | {req.status} | "
                 f"{len(linked_gaps)} | {test_cases} |"
             )
 
