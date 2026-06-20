@@ -1,0 +1,9 @@
+
+# Dependencies
+node_modules/
+dist/
+build/
+
+# Cache
+.cache/
+.next/
