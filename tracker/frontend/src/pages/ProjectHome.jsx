@@ -6,6 +6,7 @@ import GapsBoard from '../components/GapsBoard'
 import Rules from '../components/Rules'
 import Requirements from '../components/Requirements'
 import RequirementHealth from '../components/RequirementHealth'
+import VModelBoard from '../components/VModelBoard'
 
 function ProjectHome() {
   const { id } = useParams()
@@ -131,6 +132,12 @@ function ProjectHome() {
           >
             Rules & Playbooks
           </button>
+          <button
+            className={activeTab === 'vmodel' ? 'active' : ''}
+            onClick={() => setActiveTab('vmodel')}
+          >
+            📊 V-Model Board
+          </button>
         </div>
 
         <div style={{ marginTop: '30px' }}>
@@ -149,6 +156,7 @@ function ProjectHome() {
           {activeTab === 'requirements' && <Requirements project={project} />}
           {activeTab === 'health' && <RequirementHealth project={project} />}
           {activeTab === 'rules' && <Rules project={project} />}
+          {activeTab === 'vmodel' && <VModelBoard project={project} />}
         </div>
       </div>
     </div>
