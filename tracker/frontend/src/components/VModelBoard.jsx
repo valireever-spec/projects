@@ -20,11 +20,18 @@ function VModelBoard({ project }) {
     }
   }
 
-  if (loading) return <p>Loading V-Model...</p>
-  if (!vmodel) return <p>No V-Model data available</p>
+  if (loading) return <div style={{ padding: '20px' }}><p>Loading V-Model...</p></div>
 
-  const requirements = vmodel.requirements || []
-  const gaps = vmodel.gaps || []
+  const requirements = vmodel?.requirements || []
+  const gaps = vmodel?.gaps || []
+
+  // Show board even if empty (project hasn't pushed data yet)
+  if (!vmodel && !loading) {
+    return <div style={{ padding: '20px', color: '#999' }}>
+      <p>📊 V-Model Board (awaiting data sync from project)</p>
+      <p style={{ fontSize: '12px', marginTop: '10px' }}>Project hasn't pushed V-Model data to tracker yet</p>
+    </div>
+  }
   const validatedCount = requirements.filter(r => r.status === 'Validated').length
   const coverage = requirements.length > 0 ? ((validatedCount / requirements.length) * 100).toFixed(1) : 0
 
@@ -79,49 +86,62 @@ function VModelBoard({ project }) {
 
       {/* Requirements Section */}
       <div style={{ marginBottom: '30px' }}>
-        <h3 style={{ marginBottom: '15px', color: '#333' }}>📋 Requirements</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '12px' }}>
-          {requirements.map(req => (
-            <div key={req.id} style={{ background: '#fff', padding: '12px', borderRadius: '6px', border: '1px solid #ddd' }}>
-              <div style={{ fontWeight: '600', marginBottom: '5px', color: '#333' }}>
-                {getStatusEmoji(req.status)} {req.req_id || req.id}
+        <h3 style={{ marginBottom: '15px', color: '#333' }}>📋 Requirements ({requirements.length})</h3>
+        {requirements.length === 0 ? (
+          <div style={{ background: '#fff', padding: '20px', borderRadius: '6px', border: '1px dashed #ddd', textAlign: 'center', color: '#999' }}>
+            <p>No requirements data yet</p>
+            <p style={{ fontSize: '12px', marginTop: '10px' }}>Project needs to push FUNCTIONAL/NONFUNCTIONAL_REQUIREMENTS.md to tracker</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '12px' }}>
+            {requirements.map(req => (
+              <div key={req.id} style={{ background: '#fff', padding: '12px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                <div style={{ fontWeight: '600', marginBottom: '5px', color: '#333' }}>
+                  {getStatusEmoji(req.status)} {req.req_id || req.id}
+                </div>
+                <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>{req.description}</div>
+                <div style={{ fontSize: '11px', color: '#999' }}>Status: {req.status}</div>
               </div>
-              <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>{req.description}</div>
-              <div style={{ fontSize: '11px', color: '#999' }}>Status: {req.status}</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Bugs/Gaps Section */}
       <div>
-        <h3 style={{ marginBottom: '15px', color: '#333' }}>🐛 Bugs & Gaps</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '12px' }}>
-          {gaps.map(gap => (
-            <div
-              key={gap.id}
-              style={{
-                background: '#fff',
-                padding: '12px',
-                borderRadius: '6px',
-                border: `2px solid ${getSeverityColor(gap.severity)}`,
-                borderLeft: `4px solid ${getSeverityColor(gap.severity)}`
-              }}
-            >
-              <div style={{ fontWeight: '600', marginBottom: '5px', color: '#333' }}>
-                {gap.title}
+        <h3 style={{ marginBottom: '15px', color: '#333' }}>🐛 Bugs & Gaps ({gaps.length})</h3>
+        {gaps.length === 0 ? (
+          <div style={{ background: '#fff', padding: '20px', borderRadius: '6px', border: '1px dashed #ddd', textAlign: 'center', color: '#999' }}>
+            <p>No bugs/gaps tracked yet</p>
+            <p style={{ fontSize: '12px', marginTop: '10px' }}>Bugs will appear when project encounters errors or identifies issues</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '12px' }}>
+            {gaps.map(gap => (
+              <div
+                key={gap.id}
+                style={{
+                  background: '#fff',
+                  padding: '12px',
+                  borderRadius: '6px',
+                  border: `2px solid ${getSeverityColor(gap.severity)}`,
+                  borderLeft: `4px solid ${getSeverityColor(gap.severity)}`
+                }}
+              >
+                <div style={{ fontWeight: '600', marginBottom: '5px', color: '#333' }}>
+                  {gap.title}
+                </div>
+                <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>{gap.description}</div>
+                <div style={{ display: 'flex', gap: '10px', fontSize: '11px', color: '#999' }}>
+                  <span style={{ color: getSeverityColor(gap.severity), fontWeight: '600' }}>
+                    {gap.severity}
+                  </span>
+                  <span>{gap.status}</span>
+                </div>
               </div>
-              <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>{gap.description}</div>
-              <div style={{ display: 'flex', gap: '10px', fontSize: '11px', color: '#999' }}>
-                <span style={{ color: getSeverityColor(gap.severity), fontWeight: '600' }}>
-                  {gap.severity}
-                </span>
-                <span>{gap.status}</span>
-              </div>
-            </div>
-          ))}
-          {gaps.length === 0 && <p style={{ color: '#999' }}>No open gaps</p>}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
