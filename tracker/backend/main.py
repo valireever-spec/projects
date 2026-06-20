@@ -111,7 +111,7 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
         "path": project.path,
         "maturity_score": maturity,
         "scorecard": pillar_status,
-        "gaps": [{"id": g.id, "pillar": g.pillar, "title": g.title, "status": g.status, "severity": g.severity, "effort": g.effort} for g in gaps],
+        "gaps": [{"id": g.id, "pillar": g.pillar, "title": g.title, "status": g.status, "severity": g.severity, "effort": g.effort, "requirement_id": g.requirement_id, "description": g.description} for g in gaps],
         "review_count": len(reviews),
     }
 
@@ -153,6 +153,21 @@ def update_gap(project_id: int, gap_id: int, gap: GapCreate, db: Session = Depen
 
     db.commit()
     return {"status": "updated"}
+
+@app.patch("/api/projects/{project_id}/gaps/{gap_id}", response_model=dict)
+def patch_gap(project_id: int, gap_id: int, gap_update: dict, db: Session = Depends(get_db)):
+    """Partially update a gap (used by tracker_client for status/solution updates)."""
+    db_gap = db.query(Gap).filter(Gap.id == gap_id, Gap.project_id == project_id).first()
+    if not db_gap:
+        raise HTTPException(status_code=404, detail="Gap not found")
+
+    for key, value in gap_update.items():
+        if hasattr(db_gap, key) and value is not None:
+            setattr(db_gap, key, value)
+
+    db.commit()
+    db.refresh(db_gap)
+    return {"status": "updated", "gap_id": gap_id}
 
 @app.delete("/api/projects/{project_id}/gaps/{gap_id}", response_model=dict)
 def delete_gap(project_id: int, gap_id: int, db: Session = Depends(get_db)):
@@ -536,6 +551,25 @@ def import_requirements_from_project(project_id: int, project_path: str = None, 
         "nonfunctional_count": len(parsed.get("nonfunctional", [])),
         "errors": parsed.get("errors", [])
     }
+
+@app.patch("/api/projects/{project_id}/requirements/{requirement_id}", response_model=dict)
+def patch_requirement(project_id: int, requirement_id: int, req_data: dict, db: Session = Depends(get_db)):
+    """Partially update a requirement (used by tracker_client for status updates)."""
+    requirement = db.query(Requirement).filter(
+        Requirement.id == requirement_id,
+        Requirement.project_id == project_id
+    ).first()
+    if not requirement:
+        raise HTTPException(status_code=404, detail="Requirement not found")
+
+    if 'status' in req_data:
+        requirement.status = req_data['status']
+    if 'description' in req_data:
+        requirement.description = req_data['description']
+
+    db.commit()
+    db.refresh(requirement)
+    return {"status": "updated", "requirement_id": requirement_id}
 
 @app.put("/api/projects/{project_id}/requirements/{requirement_id}", response_model=dict)
 def update_requirement(project_id: int, requirement_id: int, req_data: dict, db: Session = Depends(get_db)):
