@@ -305,7 +305,6 @@ def main():
         ("business-dev-platform", PROJECTS_ROOT / "business-dev-platform"),
         ("network-automation", PROJECTS_ROOT / "network-automation"),
         ("skill-creator", PROJECTS_ROOT / "skill-creator"),
-        ("testing-validation-platform", PROJECTS_ROOT / "testing-validation-platform"),
     ]
 
     successful = 0
