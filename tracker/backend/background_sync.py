@@ -8,10 +8,10 @@ from pathlib import Path
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from sqlalchemy.orm import Session
-from models import Project, Requirement
-from database import SessionLocal
-from requirement_parser import load_and_parse_project_requirements
-from project_board_sync import ProjectBoardSyncer
+from .models import Project, Requirement
+from .database import SessionLocal
+from .requirement_parser import load_and_parse_project_requirements
+from .project_board_sync import ProjectBoardSyncer
 import json
 
 logger = logging.getLogger(__name__)

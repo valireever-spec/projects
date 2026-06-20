@@ -8,12 +8,12 @@ from typing import List
 import os
 from dotenv import load_dotenv
 from .project_scanner import scan_for_projects
-from requirement_parser import load_and_parse_project_requirements
-from requirement_sync import sync_requirements_to_files, RequirementSyncManager
-from requirement_linking import RequirementLinker
-from portfolio_analytics import PortfolioAnalytics
-from background_sync import importer
-from project_board_sync import ProjectBoardSyncer
+from .requirement_parser import load_and_parse_project_requirements
+from .requirement_sync import sync_requirements_to_files, RequirementSyncManager
+from .requirement_linking import RequirementLinker
+from .portfolio_analytics import PortfolioAnalytics
+from .background_sync import importer
+from .project_board_sync import ProjectBoardSyncer
 import json
 import logging
 

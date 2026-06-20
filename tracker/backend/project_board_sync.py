@@ -7,8 +7,8 @@ import json
 from pathlib import Path
 from datetime import datetime
 from sqlalchemy.orm import Session
-from models import Project, Requirement, Gap
-from requirement_linking import RequirementLinker
+from .models import Project, Requirement, Gap
+from .requirement_linking import RequirementLinker
 
 
 class ProjectBoardSyncer:
