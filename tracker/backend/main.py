@@ -1,13 +1,13 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from models import Base, Project, ScorecardEntry, Gap, Review, Requirement
-from database import engine, get_db
-from schemas import ProjectCreate, Project as ProjectSchema, ScorecardEntryCreate, GapCreate, Gap as GapSchema
+from .models import Base, Project, ScorecardEntry, Gap, Review, Requirement
+from .database import engine, get_db
+from .schemas import ProjectCreate, Project as ProjectSchema, ScorecardEntryCreate, GapCreate, Gap as GapSchema
 from typing import List
 import os
 from dotenv import load_dotenv
-from project_scanner import scan_for_projects
+from .project_scanner import scan_for_projects
 from requirement_parser import load_and_parse_project_requirements
 from requirement_sync import sync_requirements_to_files, RequirementSyncManager
 from requirement_linking import RequirementLinker
