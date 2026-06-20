@@ -6,48 +6,157 @@ Enables bidirectional sync: report bugs, update requirements, push solutions.
 
 import requests
 import json
+import logging
+import time
 from pathlib import Path
 from typing import Optional, Dict, Any
 from datetime import datetime
 
+logger = logging.getLogger(__name__)
+
+# Import validators for API response validation
+try:
+    from backend.validators import validate_response
+    from backend.models import ProjectModel, GapModel
+    from backend.logging_config import LogContext
+except ImportError:
+    # Fallback if imports unavailable
+    validate_response = None
+    ProjectModel = None
+    GapModel = None
+    LogContext = None
+
+
 class TrackerClient:
     """Report bugs and status updates to the central tracker."""
 
-    def __init__(self, tracker_url: str = "http://127.0.0.1:8001", project_name: str = "investing-platform"):
+    def __init__(
+        self,
+        tracker_url: Optional[str] = None,
+        project_name: Optional[str] = None,
+        max_retries: int = 3,
+    ):
+        # Use settings if not provided
+        if tracker_url is None or project_name is None:
+            try:
+                from backend.config import settings
+                tracker_url = tracker_url or settings.tracker_url
+                project_name = project_name or settings.project_name
+            except ImportError:
+                tracker_url = tracker_url or "http://127.0.0.1:8001"
+                project_name = project_name or "investing-platform"
+
         self.tracker_url = tracker_url
         self.project_name = project_name
         self.project_id = None
+        self.max_retries = max_retries
         self._get_project_id()
 
-    def _get_project_id(self):
-        """Get project ID from tracker, or create project if it doesn't exist."""
-        try:
-            # Try to find existing project
-            resp = requests.get(f"{self.tracker_url}/api/projects")
-            projects = resp.json()
-            for p in projects:
-                if p["name"] == self.project_name:
-                    self.project_id = p["id"]
-                    print(f"✅ Project '{self.project_name}' found in tracker (ID: {self.project_id})")
-                    return
+    def _get_project_id(self) -> None:
+        """Get project ID from tracker, or create project if it doesn't exist.
 
-            # Project not found, create it
-            print(f"📝 Project '{self.project_name}' not found, creating...")
-            create_resp = requests.post(
-                f"{self.tracker_url}/api/projects",
-                json={
-                    "name": self.project_name,
-                    "description": f"V-Model tracking for {self.project_name}",
-                    "tech_stack": "Python/FastAPI"
+        With retry logic: if tracker is temporarily unavailable, retries with
+        exponential backoff before giving up. If all retries fail, logs warning
+        but allows system to continue (non-blocking).
+        """
+        from backend.utils import call_with_retry
+
+        def _fetch_or_create_project() -> Optional[int]:
+            """Fetch existing project or create new one."""
+            start_time: float = time.time()
+            try:
+                # Try to find existing project
+                resp = requests.get(
+                    f"{self.tracker_url}/api/projects",
+                    timeout=10
+                )
+                duration_ms: float = (time.time() - start_time) * 1000
+
+                if resp.status_code != 200:
+                    logger.warning(
+                        f"Tracker list_projects failed",
+                        extra={
+                            "status_code": resp.status_code,
+                            "duration_ms": duration_ms,
+                            "error_message": resp.text[:100],
+                        }
+                    )
+                    raise ConnectionError(f"Tracker API returned {resp.status_code}")
+
+                projects = resp.json()
+                for p in projects:
+                    if p.get("name") == self.project_name:
+                        logger.info(
+                            f"Project found in tracker",
+                            extra={
+                                "project_name": self.project_name,
+                                "project_id": p["id"],
+                                "duration_ms": duration_ms,
+                            }
+                        )
+                        return p["id"]
+
+                # Project not found, create it
+                logger.info(
+                    f"Creating project in tracker",
+                    extra={"project_name": self.project_name}
+                )
+                create_resp = requests.post(
+                    f"{self.tracker_url}/api/projects",
+                    json={
+                        "name": self.project_name,
+                        "description": f"V-Model tracking for {self.project_name}",
+                        "tech_stack": "Python/FastAPI",
+                    },
+                    timeout=10,
+                )
+                create_duration_ms: float = (time.time() - start_time) * 1000
+
+                if create_resp.status_code in [200, 201]:
+                    project_data: Dict[str, Any] = create_resp.json()
+                    project_id: int = int(project_data.get("id", 0))
+                    logger.info(
+                        f"Project created in tracker",
+                        extra={
+                            "project_id": project_id,
+                            "project_name": self.project_name,
+                            "duration_ms": create_duration_ms,
+                        }
+                    )
+                    return project_id
+                else:
+                    logger.error(
+                        f"Failed to create project",
+                        extra={
+                            "status_code": create_resp.status_code,
+                            "duration_ms": create_duration_ms,
+                        }
+                    )
+                    raise ConnectionError(f"Failed to create project: {create_resp.status_code}")
+
+            except requests.RequestException as e:
+                logger.warning(
+                    f"Network error contacting tracker",
+                    extra={"error": str(e)}
+                )
+                raise ConnectionError(f"Cannot reach tracker at {self.tracker_url}") from e
+
+        try:
+            # Try with retry logic
+            self.project_id = call_with_retry(
+                _fetch_or_create_project,
+                max_attempts=self.max_retries,
+                initial_delay=2,
+            )
+        except ConnectionError as e:
+            logger.warning(
+                f"Failed to connect to tracker, gap reporting disabled",
+                extra={
+                    "max_retries": self.max_retries,
+                    "tracker_url": self.tracker_url,
+                    "error": str(e),
                 }
             )
-            if create_resp.status_code in [200, 201]:
-                self.project_id = create_resp.json().get("id")
-                print(f"✅ Project created in tracker (ID: {self.project_id})")
-            else:
-                print(f"❌ Failed to create project: {create_resp.status_code}")
-        except Exception as e:
-            print(f"❌ Failed to connect to tracker: {e}")
 
     def report_bug(
         self,
@@ -56,10 +165,9 @@ class TrackerClient:
         pillar: str,
         severity: str = "High",
         requirement_id: Optional[int] = None,
-        effort: Optional[str] = None
+        effort: Optional[str] = None,
     ) -> bool:
-        """
-        Report a bug/gap to the tracker.
+        """Report a bug/gap to the tracker with retry logic.
 
         Args:
             title: Bug title (e.g., "API returns 500 on invalid symbol")
@@ -70,47 +178,85 @@ class TrackerClient:
             effort: Estimated fix effort (1d, 2d, 1w, etc.)
 
         Returns:
-            True if bug reported successfully
+            True if bug reported successfully, False if tracker unavailable (non-blocking)
         """
         if not self.project_id:
-            print("❌ No project_id; tracker not connected")
+            logger.warning(
+                "Tracker not connected, gap reporting disabled",
+                extra={"project_name": self.project_name}
+            )
             return False
 
-        payload = {
-            "project_id": self.project_id,
-            "title": title,
-            "description": description,
-            "pillar": pillar,
-            "severity": severity,
-            "status": "Discovered",
-            "requirement_id": requirement_id,
-            "effort": effort
-        }
+        def _post_gap() -> bool:
+            """Post gap to tracker."""
+            start_time: float = time.time()
+            payload: Dict[str, Any] = {
+                "project_id": self.project_id,
+                "title": title,
+                "description": description,
+                "pillar": pillar,
+                "severity": severity,
+                "status": "Discovered",
+                "requirement_id": requirement_id,
+                "effort": effort,
+            }
 
-        try:
             resp = requests.post(
                 f"{self.tracker_url}/api/projects/{self.project_id}/gaps",
-                json=payload
+                json=payload,
+                timeout=10,
             )
+            duration_ms: float = (time.time() - start_time) * 1000
+
             if resp.status_code in [200, 201]:
-                gap_id = resp.json().get("id")
-                print(f"✅ Bug reported (Gap #{gap_id}): {title}")
+                gap_data: Dict[str, Any] = resp.json()
+                gap_id: int = gap_data.get("id", 0)
+                logger.info(
+                    "Bug reported to tracker",
+                    extra={
+                        "gap_id": gap_id,
+                        "title": title,
+                        "severity": severity,
+                        "pillar": pillar,
+                        "duration_ms": duration_ms,
+                    }
+                )
                 return True
             else:
-                print(f"❌ Failed to report bug: {resp.status_code} {resp.text}")
-                return False
-        except Exception as e:
-            print(f"❌ Error reporting bug: {e}")
+                logger.error(
+                    "Failed to report bug",
+                    extra={
+                        "status_code": resp.status_code,
+                        "error_message": resp.text[:100],
+                        "duration_ms": duration_ms,
+                    }
+                )
+                raise ConnectionError(f"Tracker returned {resp.status_code}")
+
+        try:
+            from backend.utils import call_with_retry
+            return call_with_retry(
+                _post_gap,
+                max_attempts=self.max_retries,
+                initial_delay=2,
+            )
+        except (ConnectionError, requests.RequestException) as e:
+            logger.warning(
+                "Failed to report bug after retries",
+                extra={
+                    "error": str(e),
+                    "max_retries": self.max_retries,
+                }
+            )
             return False
 
     def update_bug_status(
         self,
         gap_id: int,
         status: str,
-        notes: Optional[str] = None
+        notes: Optional[str] = None,
     ) -> bool:
-        """
-        Update bug status (Discovered → In Remediation → Done).
+        """Update bug status with retry logic.
 
         Args:
             gap_id: Bug ID from tracker
@@ -118,29 +264,40 @@ class TrackerClient:
             notes: Optional update notes
 
         Returns:
-            True if update successful
+            True if update successful, False if tracker unavailable (non-blocking)
         """
         if not self.project_id:
+            logger.warning("⚠️ No project_id; tracker not connected.")
             return False
 
-        payload = {
-            "status": status,
-            "description": notes if notes else ""
-        }
+        def _patch_gap() -> bool:
+            """Patch gap status in tracker."""
+            payload = {
+                "status": status,
+                "description": notes if notes else "",
+            }
 
-        try:
             resp = requests.patch(
                 f"{self.tracker_url}/api/projects/{self.project_id}/gaps/{gap_id}",
-                json=payload
+                json=payload,
+                timeout=10,
             )
             if resp.status_code == 200:
-                print(f"✅ Bug #{gap_id} status updated to: {status}")
+                logger.info(f"✅ Bug #{gap_id} status updated to: {status}")
                 return True
             else:
-                print(f"❌ Failed to update bug: {resp.status_code}")
-                return False
-        except Exception as e:
-            print(f"❌ Error updating bug: {e}")
+                logger.error(f"❌ Failed to update bug: {resp.status_code}")
+                raise ConnectionError(f"Tracker returned {resp.status_code}")
+
+        try:
+            from backend.utils import call_with_retry
+            return call_with_retry(
+                _patch_gap,
+                max_attempts=self.max_retries,
+                initial_delay=2,
+            )
+        except (ConnectionError, requests.RequestException) as e:
+            logger.warning(f"⚠️ Failed to update bug status after retries: {e}. Continuing anyway.")
             return False
 
     def mark_bug_fixed(
@@ -257,7 +414,7 @@ class TrackerClient:
             print(f"❌ Error fetching project status: {e}")
             return None
 
-    def get_open_bugs(self) -> list:
+    def get_open_bugs(self) -> list[dict[str, Any]]:
         """Fetch all open bugs for this project."""
         if not self.project_id:
             return []

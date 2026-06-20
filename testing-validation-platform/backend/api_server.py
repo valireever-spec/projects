@@ -1,4 +1,4 @@
-"""Lightweight V-Model API server for testing-validation-platform."""
+"""Lightweight V-Model API server for investing-platform."""
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
@@ -7,7 +7,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-app = FastAPI(title="Testing & Validation Platform - V-Model Dashboard", version="1.0.0")
+app = FastAPI(title="Investing Platform - V-Model Dashboard", version="1.0.0")
 
 try:
     from backend.api.routers.vmodel_dashboard import router as vmodel_router
@@ -20,7 +20,7 @@ except ImportError:
 @app.get("/")
 async def root():
     """Serve V-Model status dashboard."""
-    status_path = Path(__file__).parent.parent.parent / "testing-validation-platform" / "vmodel-status.html"
+    status_path = Path(__file__).parent.parent / "vmodel-status.html"
     if status_path.exists():
         return FileResponse(status_path)
     return {"error": "vmodel-status.html not found"}
@@ -28,7 +28,7 @@ async def root():
 @app.get("/health")
 async def health():
     """Health check."""
-    return {"status": "ok", "service": "testing-validation-platform"}
+    return {"status": "ok", "service": "investing-platform-vmodel-tracker"}
 
 if __name__ == "__main__":
     import uvicorn

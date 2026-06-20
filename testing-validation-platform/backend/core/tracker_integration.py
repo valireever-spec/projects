@@ -17,7 +17,11 @@ _tracker_client: Optional[TrackerClient] = None
 
 
 def get_tracker_client() -> Optional[TrackerClient]:
-    """Get or initialize the tracker client."""
+    """Get or initialize the tracker client singleton.
+
+    Returns:
+        TrackerClient instance, or None if initialization failed
+    """
     global _tracker_client
     try:
         if _tracker_client is None:

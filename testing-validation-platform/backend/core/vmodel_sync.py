@@ -14,24 +14,28 @@ from typing import List, Dict, Any, Optional
 logger = logging.getLogger(__name__)
 
 TRACKER_URL = "http://127.0.0.1:8001"
-PROJECT_NAME = "testing-validation-platform"
+PROJECT_NAME = "investing-platform"
 PROJECT_ID = 1  # Will be set by tracker_client
 
 
 def get_project_id() -> Optional[int]:
-    """Get or create project in tracker."""
+    """Get or create project in tracker.
+
+    Returns:
+        Project ID if found or created, None on error.
+    """
     try:
         # Try to find project
-        resp = requests.get(f"{TRACKER_URL}/api/projects")
-        projects = resp.json()
+        resp: requests.Response = requests.get(f"{TRACKER_URL}/api/projects")
+        projects: list[dict[str, Any]] = resp.json()
         for p in projects:
-            if p["name"] == PROJECT_NAME:
+            if p.get("name") == PROJECT_NAME:
                 logger.info(f"✅ Found project '{PROJECT_NAME}' in tracker (ID: {p['id']})")
-                return p["id"]
+                return int(p["id"])
 
         # Create if not found
         logger.info(f"📝 Creating project '{PROJECT_NAME}' in tracker...")
-        create_resp = requests.post(
+        create_resp: requests.Response = requests.post(
             f"{TRACKER_URL}/api/projects",
             json={
                 "name": PROJECT_NAME,
@@ -40,7 +44,8 @@ def get_project_id() -> Optional[int]:
             }
         )
         if create_resp.status_code in [200, 201]:
-            project_id = create_resp.json().get("id")
+            project_data: dict[str, Any] = create_resp.json()
+            project_id: int = int(project_data.get("id", 0))
             logger.info(f"✅ Project created (ID: {project_id})")
             return project_id
     except Exception as e:
@@ -49,24 +54,31 @@ def get_project_id() -> Optional[int]:
 
 
 def parse_markdown_requirements(file_path: Path) -> List[Dict[str, Any]]:
-    """Parse requirements from markdown file."""
+    """Parse requirements from markdown file.
+
+    Args:
+        file_path: Path to markdown file (FUNCTIONAL_REQUIREMENTS.md or NONFUNCTIONAL_REQUIREMENTS.md)
+
+    Returns:
+        List of requirement dicts with keys: req_id, description, status, type
+    """
     if not file_path.exists():
         logger.warning(f"⚠️ File not found: {file_path}")
         return []
 
-    requirements = []
-    content = file_path.read_text()
+    requirements: List[Dict[str, Any]] = []
+    content: str = file_path.read_text()
 
     # Match lines like: - **FR-001** — Description (Status)
     # or: - **NFR-001** — Description
-    pattern = r'^- \*\*([A-Z]+\-\d+)\*\*\s+[-–]\s+(.+?)(?:\s*\(([^)]+)\))?$'
+    pattern: str = r'^- \*\*([A-Z]+\-\d+)\*\*\s+[-–]\s+(.+?)(?:\s*\(([^)]+)\))?$'
 
     for line in content.split('\n'):
         match = re.match(pattern, line)
         if match:
-            req_id = match.group(1)
-            description = match.group(2).strip()
-            status = match.group(3) or "Proposed"
+            req_id: str = match.group(1)
+            description: str = match.group(2).strip()
+            status: str = match.group(3) or "Proposed"
 
             requirements.append({
                 "req_id": req_id,
@@ -80,39 +92,46 @@ def parse_markdown_requirements(file_path: Path) -> List[Dict[str, Any]]:
 
 
 def parse_vmodel_board_bugs(file_path: Path) -> List[Dict[str, Any]]:
-    """Parse bugs/gaps from V_MODEL_BOARD.md."""
+    """Parse bugs/gaps from V_MODEL_BOARD.md.
+
+    Args:
+        file_path: Path to V_MODEL_BOARD.md file
+
+    Returns:
+        List of bug dicts with keys: title, description, severity, status
+    """
     if not file_path.exists():
         logger.warning(f"⚠️ File not found: {file_path}")
         return []
 
-    bugs = []
-    content = file_path.read_text()
+    bugs: List[Dict[str, Any]] = []
+    content: str = file_path.read_text()
 
     # Look for section: "### Open Gaps/Bugs"
     if "### Open Gaps/Bugs" not in content:
         return bugs
 
     # Extract section
-    start = content.find("### Open Gaps/Bugs")
-    end = content.find("###", start + 1)
-    section = content[start:end] if end > 0 else content[start:]
+    start: int = content.find("### Open Gaps/Bugs")
+    end: int = content.find("###", start + 1)
+    section: str = content[start:end] if end > 0 else content[start:]
 
     # Match bug lines: - **Title** 🔍
-    # Extract title and severity from description
-    bug_pattern = r'^- \*\*(.+?)\*\*\s*🔍'
+    bug_pattern: str = r'^- \*\*(.+?)\*\*\s*🔍'
 
     for line in section.split('\n'):
         match = re.match(bug_pattern, line)
         if match:
-            title = match.group(1).strip()
+            title: str = match.group(1).strip()
 
-            # Default severity
-            severity = "Medium"
-            if "Critical" in section[section.find(title):section.find(title) + 200]:
+            # Determine severity from context
+            severity: str = "Medium"
+            title_section: str = section[max(0, section.find(title) - 50):min(len(section), section.find(title) + 250)]
+            if "Critical" in title_section:
                 severity = "Critical"
-            elif "High" in section[section.find(title):section.find(title) + 200]:
+            elif "High" in title_section:
                 severity = "High"
-            elif "Low" in section[section.find(title):section.find(title) + 200]:
+            elif "Low" in title_section:
                 severity = "Low"
 
             bugs.append({
@@ -127,12 +146,20 @@ def parse_vmodel_board_bugs(file_path: Path) -> List[Dict[str, Any]]:
 
 
 def push_requirements_to_tracker(project_id: int, requirements: List[Dict[str, Any]]) -> int:
-    """Push requirements to tracker."""
-    created_count = 0
+    """Push requirements to tracker.
+
+    Args:
+        project_id: Tracker project ID
+        requirements: List of requirement dicts from parse_markdown_requirements
+
+    Returns:
+        Number of requirements successfully created
+    """
+    created_count: int = 0
 
     for req in requirements:
         try:
-            resp = requests.post(
+            resp: requests.Response = requests.post(
                 f"{TRACKER_URL}/api/projects/{project_id}/requirements",
                 json={
                     "req_id": req["req_id"],
@@ -154,12 +181,20 @@ def push_requirements_to_tracker(project_id: int, requirements: List[Dict[str, A
 
 
 def push_bugs_to_tracker(project_id: int, bugs: List[Dict[str, Any]]) -> int:
-    """Push bugs/gaps to tracker."""
-    created_count = 0
+    """Push bugs/gaps to tracker.
+
+    Args:
+        project_id: Tracker project ID
+        bugs: List of bug dicts from parse_vmodel_board_bugs
+
+    Returns:
+        Number of bugs successfully created
+    """
+    created_count: int = 0
 
     for bug in bugs:
         try:
-            resp = requests.post(
+            resp: requests.Response = requests.post(
                 f"{TRACKER_URL}/api/projects/{project_id}/gaps",
                 json={
                     "title": bug["title"],
@@ -181,38 +216,42 @@ def push_bugs_to_tracker(project_id: int, bugs: List[Dict[str, Any]]) -> int:
     return created_count
 
 
-def sync_vmodel_to_tracker():
-    """Main sync function - reads local files and pushes to tracker."""
+def sync_vmodel_to_tracker() -> bool:
+    """Main sync function - reads local files and pushes to tracker.
+
+    Returns:
+        True if sync completed successfully, False if project initialization failed
+    """
     logger.info("=" * 60)
     logger.info(f"🔄 Starting V-Model sync for {PROJECT_NAME}")
     logger.info("=" * 60)
 
     # Get project ID
-    project_id = get_project_id()
+    project_id: Optional[int] = get_project_id()
     if not project_id:
         logger.error("❌ Could not get/create project in tracker")
         return False
 
     # Find project root
-    project_root = Path(__file__).parent.parent.parent
+    project_root: Path = Path(__file__).parent.parent.parent
 
     # Parse requirements
-    fr_path = project_root / "FUNCTIONAL_REQUIREMENTS.md"
-    nfr_path = project_root / "NONFUNCTIONAL_REQUIREMENTS.md"
-    vmodel_path = project_root / "V_MODEL_BOARD.md"
+    fr_path: Path = project_root / "FUNCTIONAL_REQUIREMENTS.md"
+    nfr_path: Path = project_root / "NONFUNCTIONAL_REQUIREMENTS.md"
+    vmodel_path: Path = project_root / "V_MODEL_BOARD.md"
 
     logger.info(f"📂 Project root: {project_root}")
 
-    all_requirements = []
+    all_requirements: List[Dict[str, Any]] = []
     all_requirements.extend(parse_markdown_requirements(fr_path))
     all_requirements.extend(parse_markdown_requirements(nfr_path))
 
-    bugs = parse_vmodel_board_bugs(vmodel_path)
+    bugs: List[Dict[str, Any]] = parse_vmodel_board_bugs(vmodel_path)
 
     # Push to tracker
     logger.info("\n📤 Pushing to tracker...")
-    req_count = push_requirements_to_tracker(project_id, all_requirements)
-    bug_count = push_bugs_to_tracker(project_id, bugs)
+    req_count: int = push_requirements_to_tracker(project_id, all_requirements)
+    bug_count: int = push_bugs_to_tracker(project_id, bugs)
 
     logger.info("\n" + "=" * 60)
     logger.info(f"✅ Sync complete: {req_count} requirements, {bug_count} bugs")
