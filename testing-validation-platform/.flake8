@@ -1,0 +1,25 @@
+[flake8]
+# Flake8 configuration for testing-validation-platform
+# Used alongside Ruff for compatibility with older tools
+
+max-line-length = 100
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .eggs,
+    *.egg-info,
+    build,
+    dist,
+    .archive
+ignore =
+    E501,  # Line too long (handled by Black)
+    W503,  # Line break before binary operator (Black preference)
+    E203,  # Whitespace before ':' (Black preference)
+per-file-ignores =
+    tests/__init__.py:F401
+    __init__.py:F401
+
+# Maximum complexity (McCabe)
+max-complexity = 10

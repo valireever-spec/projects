@@ -17,7 +17,7 @@ def retry_with_backoff(
     initial_delay: int = 2,
     backoff_multiplier: float = 2.0,
     max_delay: int = 60,
-):
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator for retry with exponential backoff.
 
@@ -26,6 +26,9 @@ def retry_with_backoff(
         initial_delay: Initial delay between retries in seconds (default: 2)
         backoff_multiplier: Multiplier for exponential backoff (default: 2.0)
         max_delay: Maximum delay between retries in seconds (default: 60)
+
+    Returns:
+        Decorator function
 
     Example:
         @retry_with_backoff(max_attempts=3, initial_delay=2)

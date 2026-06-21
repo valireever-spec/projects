@@ -45,7 +45,13 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         record: logging.LogRecord,
         message_dict: Dict[str, Any]
     ) -> None:
-        """Add custom fields to JSON log."""
+        """Add custom fields to JSON log.
+
+        Args:
+            log_record: Log record dict to add fields to
+            record: Original logging record
+            message_dict: Message dict from logger
+        """
         super().add_fields(log_record, record, message_dict)
 
         # Add standard fields

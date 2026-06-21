@@ -46,7 +46,14 @@ settings = Settings()
 
 
 def validate_settings() -> bool:
-    """Validate that all required settings are present and valid."""
+    """Validate that all required settings are present and valid.
+
+    Returns:
+        True if all settings are valid
+
+    Raises:
+        ValueError: If required settings are missing
+    """
     if not settings.tracker_url:
         raise ValueError("TRACKER_URL is required")
     if not settings.project_name:

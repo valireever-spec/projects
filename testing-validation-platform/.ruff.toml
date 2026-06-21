@@ -1,0 +1,44 @@
+# Ruff linting configuration for testing-validation-platform
+# See https://docs.astral.sh/ruff/configuration/
+
+[lint]
+# Enable rules
+extend-select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort (import sorting)
+    "C90",    # mccabe (complexity)
+    "N",      # pep8-naming
+    "D",      # pydocstyle
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "T10",    # flake8-debugger
+    "EM",     # flake8-errmsg
+    "ISC",    # flake8-implicit-str-concat
+    "RUF",    # Ruff-specific rules
+]
+
+# Disable rules
+ignore = [
+    "D100",   # Missing module docstring
+    "D104",   # Missing package docstring
+    "E501",   # Line too long (handled by Black)
+    "ISC001", # Conflicts with Black
+]
+
+# Line length (match Black)
+line-length = 100
+
+# Python version
+target-version = "py310"
+
+[lint.per-file-ignores]
+# Tests can be more lenient
+"tests/**" = ["D", "N"]
+
+[lint.isort]
+# Match Black's isort config
+profile = "black"
+line-length = 100
