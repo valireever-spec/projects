@@ -102,7 +102,6 @@ REQUIREMENTS (Left)          VALIDATION (Right)
 - Planning: Use roadmap to identify quick wins for next level
 - Priorities: Focus on pillar gaps that block progression
 
-
 This file provides guidance to Claude Code (claude.ai/code) when working 
 with code in this repository.
 
@@ -134,4 +133,3 @@ All requirements are synced bidirectionally with a central tracker.
 See V_MODEL_BOARD.md in your project root for current phase progress.
 
 ---
-
