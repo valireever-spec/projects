@@ -1,0 +1,1175 @@
+##017_Prize_rev20260307.py
+
+##Rule 017_Prize_rev20260307.py
+###08.05.2022### A fost transformata Priza4 pentru laptop
+###Windows cmd pentru verificare nivel baterie: WMIC PATH Win32_Battery Get EstimatedChargeRemaining
+#
+# Changes vs 017_Prize_rev20260208:
+#
+#   BUGS FIXED:
+#   - ctrl_dev defined twice. First definition used self.SEND_COMMAND (NameError).
+#     Second (correct) definition silently overwrote the first. All code between
+#     the two definitions called the broken version. Fixed: single correct
+#     ctrl_dev at module level, used throughout.
+#   - led_adina_intens = ir.getItem(...) at module load time caused NameError if
+#     item registry not ready. Removed — it was unused after the lightstrip
+#     functions were refactored to call ctrl_dev directly.
+#   - priza1_Current TelePeriod block read Priza2_Current to set Priza1_TelePeriod
+#     (copy-paste bug). Fixed: now reads Priza1_Current as intended.
+#   - taperStartTime used time.time() which resets on script reload mid-charge.
+#     Fixed: replaced with DateTime.now() stored as Joda DateTime object,
+#     survives the same session (script reload still resets it, but that is
+#     unavoidable without persistent item storage; at least the type is correct).
+#   - Two rules both named "Logic Lightstrip when Sonoffmini1 turns off" /
+#     "Logic Lightstrip when Sonoffmini2 turns off" — second silently overwrote
+#     first in rule registry. Fixed: renamed to unique names.
+#   - time.sleep(10) in logic_lightstrip_dormp_off and time.sleep(2) in
+#     logic_lightstrip_sufragerie_on, logic_lightstrip_dormc_on block the rule
+#     engine thread. Replaced with ScriptExecution.createTimer(..., 10s / 2s).
+#
+#   NEW:
+#   - Priza1_BatteryFull set to ON when full-charge (trickle) detected.
+#     This flag is read by 080_Power to skip Priza1 in the ECO ON-sequence.
+#     Flag is reset by 019_Charge_curve when Priza1_Power turns ON, and at
+#     midnight by 020_Scheduled (end of day).
+#   - Priza4_BatteryFull: same pattern — reset when Priza4_Power turns ON (019_Charge_curve);
+#     DelayTimer4 cancelled here so timer4_charge_off cannot fire after a manual/ECO power-on.
+#     Leaving the trickle band debounces clearing Priza4_BatteryFull (see PRIZA4_LEAVE_DEBOUNCE_SEC).
+#   - Priza1: relay max uses MaxCLevel_P1_Night for night/bed when that value is > MinCLevel_P1_1;
+#     taper window no longer opens relays as “below min”; DelayTimer1 now created (timeoutMinutesP1);
+#     taper/full end cancels that timer.
+#   CONVENTION 2026-05-02: UnDefType already org.eclipse.smarthome.core.types (ESH; OH 2.5.12).
+#     Project rule: prefer ESH over org.openhab.core.* for core types — see 000_utils header.
+#   2026-05-23 FIX-D: Removed unused imports 'from threading import Timer' and
+#     'from core.actions import Exec' — neither was referenced anywhere in the file.
+#   2026-05-23 FIX-E: MaxCLevel_P1_Night (0.095 A) < MinCLevel_P1_1 (0.300 A) so
+#     priza1_relay_max_current() night branch is always False — documented in-place.
+#   2026-05-23 FIX-F: timer1_charge_off now sets _p1_timer_relay_open flag so that the
+#     current→0 reading after relays open skips BatteryFull detection (not a genuine full
+#     charge — just a timeout relay-open). Flag cleared in priza1_Current.
+#   2026-05-23 FIX-G: Removed redundant 'if auto != OFF:' guard inside 'if auto == ON:'
+#     block in priza1_control — it was always True and never needed.
+
+from core.rules import rule
+from core.triggers import when
+from core.actions import ScriptExecution, LogAction
+from org.joda.time import DateTime
+import core
+from core.jsr223.scope import events, items, ir
+from org.eclipse.smarthome.core.types import UnDefType
+from org.eclipse.smarthome.core.library.types import OnOffType
+
+NULL = UnDefType.NULL
+UNDEF = UnDefType.UNDEF
+
+def is_state(item_state, target_state):
+    """Safe state comparison using string conversion. Handles Java State objects reliably."""
+    return str(item_state).strip() == str(target_state).strip()
+
+taperStartTime = None  # For detecting ~80% charge — DateTime object, set on taper entry
+# FIX-F: True while timer1_charge_off has opened relays but the 0A reading hasn't
+# been processed yet. Prevents priza1_Current from falsely setting BatteryFull ON.
+_p1_timer_relay_open = False
+createTimer = ScriptExecution.createTimer
+DelayTimer1 = None
+DelayTimer2 = None
+DelayTimer3 = None
+DelayTimer4 = None
+DelayTimer4on = None
+DelayTimer4off = None
+DelayTimer5 = None
+DelayTimer6 = None
+DelayTimer7 = None
+priza4Timeroff = None
+priza4Timeron = None
+priza4LeaveDebounceTimer = None
+PRIZA4_LEAVE_DEBOUNCE_SEC = 60
+timerLSAdina_on = None
+timerLSAdina_off = None
+timerLSAlex_on = None
+timerLSAlex_off = None
+timeoutMinutes = 15
+timeoutMinutesP1 = 15
+timeoutMinutesP2 = 45
+timeoutMinutesP3 = 15
+timeoutMinutesP4 = 30
+timeoutMinutesP7 = 30
+timeoutMinutesP8 = 30
+timeoutMinutesNight = 120
+timeoutMinutesNightLP = 30
+
+###
+TelePeriod_timeroff = 60
+
+###Timer###Priza1 E-Bike
+TelePeriod1_night = 90
+TelePeriod1_1 = 120  # unused by priza1_compute_teleperiod_sec (kept for reference)
+TelePeriod1_2 = 210  # unused — see TelePeriod1_1
+TelePeriod1_3 = 300
+# While Priza1_Current > MinCLevel_P1_1: match Shelly EM3 report interval (tune to your thing/device, often 1s).
+TELE_PERIOD_P1_FAST_SEC = 1
+
+###Timer###Priza2 Vali
+TelePeriod2_night = 60 #90
+TelePeriod2_1 = 60 #120
+TelePeriod2_2 = 60 #210
+TelePeriod2_3 = 60 #300
+
+###Timer###Priza3 Alex
+TelePeriod3_night = 90
+TelePeriod3_1 = 120
+TelePeriod3_2 = 210
+TelePeriod3_3 = 300
+
+###Timer###Priza4 Laptop
+TelePeriod4_night = 210
+TelePeriod4_1 = 120
+TelePeriod4_2 = 210
+TelePeriod4_3 = 300
+
+###Timer###Priza4 MacBook
+TelePeriod7_night = 210
+TelePeriod7_1 = 120
+TelePeriod7_2 = 210
+TelePeriod7_3 = 300
+
+###Timer###Priza8 Robot
+TelePeriod8_night = 210
+TelePeriod8_1 = 120
+TelePeriod8_2 = 210
+TelePeriod8_3 = 300
+
+###Curent###Priza1 E-Bike
+MinCLevel_P1_1 = u"0.300 A"
+MinCLevel_P1_2 = u"0.350 A"
+MaxCLevel_P1_Day = u"1.000 A"
+MaxCLevel_P1_Night = u"0.095 A" #0.119
+MaxCLevel_P1_L1 = u"1.400 A"
+MaxCLevel_P1_L2 = u"1.500 A"
+MaxCLevel_P1_L3 = u"1.600 A"
+
+MinCLevel_P2_1 = u"0.072 A"    #"0.072 A"
+MinCLevel_P2_2 = u"0.077 A"    #"0.069 A"
+MaxCLevel_P2_Day = u"0.083 A" #0.139
+MaxCLevel_P2_Night = u"0.150 A" #0.147
+MaxCLevel_P2_L1 = u"0.097 A"    #0.140
+MaxCLevel_P2_L2 = u"0.127 A"    #0.150
+MaxCLevel_P2_L3 = u"0.150 A"    #0.160
+
+###Curent###Priza3 Alex
+MinCLevel_P3_1 = u"0.072 A"
+MinCLevel_P3_2 = u"0.069 A"
+MaxCLevel_P3_Day = u"0.097 A"
+MaxCLevel_P3_Night = u"0.110 A" #0.099
+MaxCLevel_P3_L1 = u"0.091 A"
+MaxCLevel_P3_L2 = u"0.100 A"
+MaxCLevel_P3_L3 = u"0.110 A"
+
+MaxCLevel_P3_Day_low = u"0.079 A"   ##Samsung mic
+MaxCLevel_P3_Night_low = u"0.088 A"   ##Samsung mic
+
+###Curent###Priza4 Laptop
+MinCLevel_P4_1 = u"0.055 A"
+MinCLevel_P4_2 = u"0.069 A"
+MaxCLevel_P4_Day = u"0.245 A"
+MaxCLevel_P4_Night = u"0.302 A"
+MaxCLevel_P4_L1 = u"0.250 A"
+MaxCLevel_P4_L2 = u"0.320 A"
+MaxCLevel_P4_L3 = u"0.350 A"
+
+###Curent###Priza7 MacBook
+MinCLevel_P7_1 = u"0.015 A"  #u"0.055 A"
+MinCLevel_P7_2 = u"0.069 A"  #
+MaxCLevel_P7_Day = u"0.182 A"
+MaxCLevel_P7_Night = u"0.192 A"
+MaxCLevel_P7_L1 = u"0.200 A"
+MaxCLevel_P7_L2 = u"0.220 A"
+MaxCLevel_P7_L3 = u"0.240 A"
+
+###Curent###Priza8 Robot
+MinCLevel_P8_1 = u"0.055 A"
+MinCLevel_P8_2 = u"0.069 A"
+MaxCLevel_P8_Day = u"0.080 A"
+MaxCLevel_P8_Night = u"0.100 A"
+MaxCLevel_P8_L1 = u"0.090 A"
+MaxCLevel_P8_L2 = u"0.100 A"
+MaxCLevel_P8_L3 = u"0.110 A"
+
+# Track who turned Priza4 ON
+priza4_owner = "EXTERNAL"
+priza4_auto_timeout = None   # timestamp when AUTO regains OFF authority
+# Track who turned Priza12 ON
+priza12_owner = "EXTERNAL"
+priza12_auto_timeout = None   # timestamp when AUTO regains OFF authority
+
+# Taper detection thresholds
+TAPER_START_CURRENT = u"0.350 A"  # Current below this indicates taper (~80%) before it was u"1.200 A"
+TAPER_STABLE_DURATION = 10 * 60   # seconds
+FULL_CURRENT = u"0.150 A"         # Nearly no draw = fully charged
+
+SPRING = "Spring"
+SUMMER = "Summer"
+AUTUMN = "Autumn"
+WINTER = "Winter"
+morning = "MORNING"
+day = "DAY"
+afternoon = "AFTERNOON"
+evening = "EVENING"
+night = "NIGHT"
+bed = "BED"
+
+from oh_utils import ctrl_dev, safe_float  # shared module at jsr223/python/oh_utils.py
+
+# FIX: led_adina_intens = ir.getItem("Led_Contr_Adina_Color") removed.
+# It was called at module load time before item registry was ready (NameError),
+# and was unused after lightstrip functions were refactored to use ctrl_dev.
+
+def lightstrip_adina_on():
+    ctrl_dev("Led_Contr_Adina_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
+    events.sendCommand("Led_Contr_Adina_Color", "120,2,10")
+    if timerLSAdina_on is not None and not timerLSAdina_on.hasTerminated():
+        timerLSAdina_on.cancel()
+
+def lightstrip_adina_off():
+    ctrl_dev("Led_Contr_Adina_Power", "OFF", items, events, command_type="sendCommand")  ###29.03.2024
+    if timerLSAdina_off is not None and not timerLSAdina_off.hasTerminated():
+        timerLSAdina_off.cancel()
+
+def lightstrip_alex_on():
+    ctrl_dev("Led_Contr_Alex_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
+    events.sendCommand("Led_Contr_Alex_Color", "120,2,10")
+    if timerLSAlex_on is not None and not timerLSAlex_on.hasTerminated():
+        timerLSAlex_on.cancel()
+
+def lightstrip_alex_off():
+    ctrl_dev("Led_Contr_Alex_Power", "OFF", items, events, command_type="sendCommand")  ###29.03.2024
+    if timerLSAlex_off is not None and not timerLSAlex_off.hasTerminated():
+        timerLSAlex_off.cancel()
+
+@rule("Striplight_Adina", description="Striplight_Adina changed", tags=["light", "Striplight_Adina"])
+@when("Item Striplight_Adina changed")
+def striplight_adina(event):
+    global timerLSAdina_on, timerLSAdina_off
+    if event.itemState == OFF:
+        timerLSAdina_off = createTimer(DateTime.now().plusMillis(500), lightstrip_adina_off)
+    if event.itemState == ON:
+        timerLSAdina_on = createTimer(DateTime.now().plusMillis(500), lightstrip_adina_on)
+
+@rule("Striplight_Alex", description="Striplight_Alex changed", tags=["light", "Striplight_Alex"])
+@when("Item Striplight_Alex changed")
+def striplight_alex(event):
+    global timerLSAlex_on, timerLSAlex_off
+    if event.itemState == OFF:
+        timerLSAlex_off = createTimer(DateTime.now().plusMillis(500), lightstrip_alex_off)
+    if event.itemState == ON:
+        timerLSAlex_on = createTimer(DateTime.now().plusMillis(500), lightstrip_alex_on)
+
+def priza1_cancel_charge_end_timer():
+    global DelayTimer1
+    if DelayTimer1 is not None and not DelayTimer1.hasTerminated():
+        DelayTimer1.cancel()
+
+def priza1_relay_max_current():
+    """Upper current bound for Priza1 relay window — night/bed uses MaxCLevel_P1_Night when it is above MinCLevel_P1_1 (otherwise constants would form an empty band)."""
+    is_night = items["vTimeOfDay"] == StringType(night) or items["vTimeOfDay"] == StringType(bed)
+    # FIX-E: MaxCLevel_P1_Night = 0.095 A < MinCLevel_P1_1 = 0.300 A, so this
+    # condition is always False — night branch is dead code. Update constants to
+    # activate it; until then MaxCLevel_P1_Day is always returned.
+    if is_night and safe_float(MaxCLevel_P1_Night) > safe_float(MinCLevel_P1_1):
+        return MaxCLevel_P1_Night
+    return MaxCLevel_P1_Day
+
+def priza1_compute_teleperiod_sec(current):
+    """Priza1_TelePeriod (seconds → device): high current = Shelly-matched fast; low = slow TelePeriod1_3."""
+    if current > QuantityType(MinCLevel_P1_1):
+        return TELE_PERIOD_P1_FAST_SEC
+    return TelePeriod1_3
+
+def timer1_charge_off():
+    global _p1_timer_relay_open
+    # FIX-F: set flag BEFORE opening relays so that the next priza1_Current event
+    # (current→0 after relay open) skips BatteryFull detection — this is a timeout
+    # relay-open, not a genuine full charge.
+    _p1_timer_relay_open = True
+    ctrl_dev("Priza1_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
+    ctrl_dev("Priza1_Relay1", "OFF", items, events, command_type="sendCommand")  ###29.03.2024
+    ctrl_dev("Priza1_Relay2", "OFF", items, events, command_type="sendCommand")  ###29.03.2024
+    if ir.getItem("Priza1_TelePeriod").state != TelePeriod_timeroff:
+        events.postUpdate(ir.getItem("Priza1_TelePeriod"), (TelePeriod_timeroff))
+        events.sendCommand(ir.getItem("Priza1_TelePeriod"), (TelePeriod_timeroff))
+    priza1_cancel_charge_end_timer()
+
+@rule("Priza1_Current", description="Item Priza1_Current changed", tags=["Current", "Priza1"])
+@when("Item Priza1_Current changed")
+def priza1_Current(event):
+    global DelayTimer1, taperStartTime
+
+    current = items["Priza1_Current"]
+    p1_max = priza1_relay_max_current()
+    p1_max_q = QuantityType(p1_max)
+    in_taper_window = current > QuantityType(FULL_CURRENT) and current < QuantityType(TAPER_START_CURRENT)
+    below_min_opens_relays = current <= QuantityType(MinCLevel_P1_1) and not in_taper_window
+
+    # --- Original current-based relay logic ---
+    if current <= p1_max_q and current > QuantityType(MinCLevel_P1_1):
+        if items["Priza1_Relay1"] != ON:
+            ctrl_dev("Priza1_Relay1", "ON", items, events)
+        elif items["Priza1_Relay1"] == ON:
+            if items["Priza1_Relay2"] != ON:
+                ctrl_dev("Priza1_Relay2", "ON", items, events)
+            if items["Priza1_Asc"] == OFF:
+                ctrl_dev("Priza1_Power", "OFF", items, events)
+        if DelayTimer1 is None or DelayTimer1.hasTerminated():
+            DelayTimer1 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutesP1), timer1_charge_off)
+        if DelayTimer1 is not None and not DelayTimer1.hasTerminated():
+            DelayTimer1.reschedule(DateTime.now().plusMinutes(timeoutMinutesP1))
+    if current > p1_max_q or below_min_opens_relays:
+        priza1_cancel_charge_end_timer()
+        if items["Priza1_Relay2"] != OFF:
+            ctrl_dev("Priza1_Relay2", "OFF", items, events)
+        elif items["Priza1_Relay2"] == OFF:
+            if items["Priza1_Relay1"] != OFF:
+                ctrl_dev("Priza1_Relay1", "OFF", items, events)
+
+    # --- TelePeriod → device (see priza1_compute_teleperiod_sec) ---
+    teleperiod_value = priza1_compute_teleperiod_sec(current)
+    tele_item = ir.getItem("Priza1_TelePeriod")
+    if safe_float(tele_item.state) != teleperiod_value:
+        events.postUpdate(tele_item, teleperiod_value)
+        events.sendCommand(tele_item, teleperiod_value)
+
+    # --- Taper detection (~80% charge) ---
+    # FIX: taperStartTime now stores a DateTime object instead of time.time() float.
+    # FIX2: taper block now also turns off Power and sets BatteryFull — consistent
+    # with full-charge block — no standby draw, ECO sequence won't re-trigger.
+    if current < QuantityType(TAPER_START_CURRENT) and current > QuantityType(FULL_CURRENT):
+        if taperStartTime is None:
+            taperStartTime = DateTime.now()
+            LogAction.logInfo("E-Bike", "Tapering started (current {})".format(str(current)))
+        else:
+            elapsed_seconds = (DateTime.now().getMillis() - taperStartTime.getMillis()) / 1000.0
+            if elapsed_seconds > TAPER_STABLE_DURATION:
+                LogAction.logInfo("E-Bike", "Battery likely reached 80%. Stopping charge.")
+                priza1_cancel_charge_end_timer()
+                ctrl_dev("Priza1_Relay1", "OFF", items, events)
+                ctrl_dev("Priza1_Relay2", "OFF", items, events)
+                taperStartTime = None
+                if not is_state(items["Priza1_BatteryFull"], OnOffType.ON):
+                    events.sendCommand("Priza1_BatteryFull", "ON")
+                    LogAction.logInfo("E-Bike", "Priza1_BatteryFull set ON at 80% taper")
+                ctrl_dev("Priza1_Power", "OFF", items, events)
+    else:
+        taperStartTime = None
+
+    # --- Full-charge detection ---
+    # NEW: set Priza1_BatteryFull ON so 080_Power skips Priza1 in ECO ON-sequence.
+    # Flag is reset by 019_Charge_curve when Priza1_Power turns ON (new charge cycle).
+    # FIX1: guard against current=0 re-triggering this block after Power OFF —
+    # when Power is already OFF there is nothing to do, return immediately.
+    # FIX-F: guard against current=0 caused by timer1_charge_off opening relays —
+    # that is a timeout stop, not a genuine full charge; clear flag and return.
+    if current <= QuantityType(FULL_CURRENT):
+        global _p1_timer_relay_open
+        # FIX-F: guard against current=0 caused by timeout relay-open (not a genuine full charge)
+        if _p1_timer_relay_open:
+            _p1_timer_relay_open = False
+            LogAction.logInfo("E-Bike", "current=0 after timeout relay-open — BatteryFull NOT set")
+            return
+        # BUG FIX (2026-06-20): Never return early before setting BatteryFull. Race condition:
+        # if Priza1_Power was already OFF, we would return without activating the flag.
+        # Solution: always detect and flag full charge, regardless of Power state.
+        LogAction.logInfo("E-Bike", "Charging complete (trickle current).")
+        priza1_cancel_charge_end_timer()
+        ctrl_dev("Priza1_Relay1", "OFF", items, events)
+        ctrl_dev("Priza1_Relay2", "OFF", items, events)
+        taperStartTime = None
+        # Always set BatteryFull when full charge is detected, even if Power is already OFF
+        if not is_state(items["Priza1_BatteryFull"], OnOffType.ON):
+            events.sendCommand("Priza1_BatteryFull", "ON")
+            LogAction.logInfo("E-Bike", "Priza1_BatteryFull set ON — ECO sequence will skip Priza1")
+        # Turn socket off immediately — no standby draw, no accidental re-trigger
+        if is_state(items["Priza1_Power"], OnOffType.ON):
+            ctrl_dev("Priza1_Power", "OFF", items, events)
+
+@rule("Priza1 control logic")
+@when("Item Priza1_Power_man changed")
+@when("Item Priza1_Power_auto changed")
+def priza1_control(event):
+    man  = items["Priza1_Power_man"]
+    auto = items["Priza1_Power_auto"]
+    pz1  = items["Priza1_Power"]
+
+    # Manual override ON → clear BatteryFull latch then force ON
+    if is_state(man, OnOffType.ON):
+        if not is_state(items["Priza1_BatteryFull"], OnOffType.OFF):
+            events.sendCommand("Priza1_BatteryFull", "OFF")
+            LogAction.logInfo("Priza1", "Priza1_BatteryFull cleared — manual override")
+        if not is_state(pz1, OnOffType.ON):
+            events.sendCommand("Priza1_Power", "ON")
+        return
+
+    # Manual override OFF → auto decides; BatteryFull blocks auto ON
+    if is_state(auto, OnOffType.ON):
+        if is_state(items["Priza1_BatteryFull"], OnOffType.ON):
+            LogAction.logInfo("Priza1", "Priza1_Power auto ON blocked — BatteryFull is ON")
+            events.postUpdate("Priza1_Power_auto", "OFF")  # FIX-G: removed redundant 'if auto != OFF' (always True here)
+            return
+        if not is_state(pz1, OnOffType.ON):
+            events.sendCommand("Priza1_Power", "ON")
+    else:
+        if not is_state(pz1, OnOffType.OFF):
+            events.sendCommand("Priza1_Power", "OFF")
+
+@rule("Priza1 Power logic")
+@when("Item Priza1_Power changed")
+def priza1_power_event(event):
+    man  = items["Priza1_Power_man"]
+    auto = items["Priza1_Power_auto"]
+    pz1 = items["Priza1_Power"]
+    
+    if pz1 == OFF:
+        if man != OFF:
+            events.postUpdate("Priza1_Power_man", "OFF")
+        if auto != OFF:
+            events.postUpdate("Priza1_Power_auto", "OFF")
+
+def timer2_charge_off():
+    ctrl_dev("Priza2_Power", "ON", items, events, command_type="sendCommand")
+    ctrl_dev("Priza2_Relay1", "OFF", items, events, command_type="sendCommand")
+    ctrl_dev("Priza2_Relay2", "OFF", items, events, command_type="sendCommand")
+    if ir.getItem("Priza2_TelePeriod").state != TelePeriod_timeroff:
+        events.postUpdate(ir.getItem("Priza2_TelePeriod"), (TelePeriod_timeroff))
+        events.sendCommand(ir.getItem("Priza2_TelePeriod"), (TelePeriod_timeroff))
+    DelayTimer2.cancel()
+
+#@rule("Priza2_Current", description="Item Priza2_Current changed", tags=["Current", "Priza2"])
+#@when("Item Priza2_Current changed")
+#def priza2_Current(event):
+#    global DelayTimer2
+
+#    if items["AstroSunData_Season_SeasonName"] == StringType(SPRING) or items["AstroSunData_Season_SeasonName"] == StringType(SUMMER) or items["AstroSunData_Season_SeasonName"] == StringType(AUTUMN):
+#        if items["Eco_Power_Switch"] == ON:
+#            handle_eco_P2()
+#        else:
+#            if items["vTimeOfDay"] == StringType(night) or items["vTimeOfDay"] == StringType(bed):
+#                handle_noneco_P2_night()
+#            else:
+#                handle_noneco_P2_day()
+#    else: #WINTER
+#        if items["vTimeOfDay"] == StringType(night) or items["vTimeOfDay"] == StringType(bed):
+#            handle_noneco_P2_night()
+#        else:
+#            handle_eco_P2()
+#    update_teleperiod_based_on_current_P2()
+
+def handle_eco_P2(): #Day & Summer
+    global DelayTimer2
+    if items["vTimeOfDay"] == StringType(morning) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon) or items["vTimeOfDay"] == StringType(evening):
+        if items["Priza2_Current"] <= QuantityType((MaxCLevel_P2_Day)) and items["Priza2_Current"] > QuantityType((MinCLevel_P2_1)):
+            if items["Priza2_Relay1"] != ON:
+                events.sendCommand("Priza2_Relay1", "ON")
+            elif items["Priza2_Relay1"] == ON:
+                if items["Priza2_Relay2"] != ON:
+                    events.sendCommand("Priza2_Relay2", "ON")
+                if items["Priza2_Asc"] == OFF:
+                    events.sendCommand("Priza2_Power", "OFF")
+
+            events.postUpdate(ir.getItem("Priza2_TelePeriod"), (TelePeriod_timeroff))
+            events.sendCommand(ir.getItem("Priza2_TelePeriod"), (TelePeriod_timeroff))
+            if DelayTimer2 is None or DelayTimer2.hasTerminated():
+                DelayTimer2 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutes), timer2_charge_off)
+            if DelayTimer2 is not None and not DelayTimer2.hasTerminated():
+                DelayTimer2.reschedule(DateTime.now().plusMinutes(timeoutMinutes))
+        if items["Priza2_Current"] > QuantityType((MaxCLevel_P2_Day)) or items["Priza2_Current"] <= QuantityType((MinCLevel_P2_1)):
+            if items["Priza2_Relay2"] == ON:
+                events.sendCommand("Priza2_Relay2", "OFF")
+            elif items["Priza2_Relay2"] == OFF:
+                if items["Priza2_Relay1"] != OFF:
+                    events.sendCommand("Priza2_Relay1", "OFF")
+
+def handle_noneco_P2_day():
+    global DelayTimer2
+    if items["Priza2_Current"] <= QuantityType((MaxCLevel_P2_Day)) and items["Priza2_Current"] > QuantityType((MinCLevel_P2_1)):
+        ctrl_dev("Priza2_Relay1", "ON", items, events, command_type="sendCommand")
+        if items["Priza2_Relay1"] == ON:
+            ctrl_dev("Priza2_Relay2", "ON", items, events, command_type="sendCommand")
+            if items["Priza2_Asc"] == OFF:
+                ctrl_dev("Priza2_Power", "OFF", items, events, command_type="sendCommand")
+
+        events.postUpdate(ir.getItem("Priza2_TelePeriod"), (TelePeriod_timeroff))
+        events.sendCommand(ir.getItem("Priza2_TelePeriod"), (TelePeriod_timeroff))
+        if DelayTimer2 is None or DelayTimer2.hasTerminated():
+            DelayTimer2 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutesP2), timer2_charge_off)
+        if DelayTimer2 is not None and not DelayTimer2.hasTerminated():
+            DelayTimer2.reschedule(DateTime.now().plusMinutes(timeoutMinutesP2))
+    if items["Priza2_Current"] > QuantityType((MaxCLevel_P2_Day)) or items["Priza2_Current"] <= QuantityType((MinCLevel_P2_1)):
+        ctrl_dev("Priza2_Relay2", "OFF", items, events, command_type="sendCommand")
+        if items["Priza2_Relay2"] == OFF:
+            ctrl_dev("Priza2_Relay1", "OFF", items, events, command_type="sendCommand")
+
+def handle_noneco_P2_night():
+    global DelayTimer2
+    if items["Priza2_Current"] <= QuantityType((MaxCLevel_P2_Night)) and items["Priza2_Current"] > QuantityType((MinCLevel_P2_1)):
+        ctrl_dev("Priza2_Relay1", "ON", items, events, command_type="sendCommand")
+        if items["Priza2_Relay1"] == ON:
+            ctrl_dev("Priza2_Relay2", "ON", items, events, command_type="sendCommand")
+            if items["Priza2_Asc"] == OFF:
+                ctrl_dev("Priza2_Power", "OFF", items, events, command_type="sendCommand")
+
+        if ir.getItem("Priza2_TelePeriod").state != TelePeriod2_night:
+            events.postUpdate(ir.getItem("Priza2_TelePeriod"), (TelePeriod2_night))
+            events.sendCommand(ir.getItem("Priza2_TelePeriod"), (TelePeriod2_night))
+        if DelayTimer2 is None or DelayTimer2.hasTerminated():
+            DelayTimer2 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutesNight), timer2_charge_off)
+        if DelayTimer2 is not None and not DelayTimer2.hasTerminated():
+            DelayTimer2.reschedule(DateTime.now().plusMinutes(timeoutMinutesNight))
+    if items["Priza2_Current"] > QuantityType((MaxCLevel_P2_Night)) or items["Priza2_Current"] <= QuantityType((MinCLevel_P2_1)):
+        ctrl_dev("Priza2_Relay2", "OFF", items, events, command_type="sendCommand")
+        if items["Priza2_Relay2"] == OFF:
+            ctrl_dev("Priza2_Relay1", "OFF", items, events, command_type="sendCommand")
+
+def update_teleperiod_based_on_current_P2():
+    if items["Priza2_Current"] <= QuantityType((MaxCLevel_P2_L1)) and items["Priza2_Current"] > QuantityType((MinCLevel_P2_2)):
+        if ir.getItem("Priza2_TelePeriod").state != TelePeriod2_1:
+            events.postUpdate(ir.getItem("Priza2_TelePeriod"), (TelePeriod2_1))
+            events.sendCommand(ir.getItem("Priza2_TelePeriod"), (TelePeriod2_1))
+    if items["Priza2_Current"] <= QuantityType((MaxCLevel_P2_L2)) and items["Priza2_Current"] > QuantityType((MaxCLevel_P2_L1)):
+        if ir.getItem("Priza2_TelePeriod").state != TelePeriod2_2:
+            events.postUpdate(ir.getItem("Priza2_TelePeriod"), (TelePeriod2_2))
+            events.sendCommand(ir.getItem("Priza2_TelePeriod"), (TelePeriod2_2))
+    if items["Priza2_Current"] > QuantityType((MaxCLevel_P2_L2)) or items["Priza2_Current"] <= QuantityType((MinCLevel_P2_2)):
+        if ir.getItem("Priza2_TelePeriod").state != TelePeriod2_3:
+            events.postUpdate(ir.getItem("Priza2_TelePeriod"), (TelePeriod2_3))
+            events.sendCommand(ir.getItem("Priza2_TelePeriod"), (TelePeriod2_3))
+
+def timer3_charge_off():
+    ctrl_dev("Priza3_Power", "ON", items, events, command_type="sendCommand")
+    ctrl_dev("Priza3_Relay1", "OFF", items, events, command_type="sendCommand")
+    ctrl_dev("Priza3_Relay2", "OFF", items, events, command_type="sendCommand")
+    if ir.getItem("Priza3_TelePeriod").state != TelePeriod_timeroff:
+        events.postUpdate(ir.getItem("Priza3_TelePeriod"), (TelePeriod_timeroff))
+        events.sendCommand(ir.getItem("Priza3_TelePeriod"), (TelePeriod_timeroff))
+    DelayTimer3.cancel()
+
+@rule("Priza3_Current", description="Item Priza3_Current changed", tags=["Current", "Priza3"])
+@when("Item Priza3_Current changed")
+def Priza3_Current(event):
+    global DelayTimer3
+
+    if items["AstroSunData_Season_SeasonName"] == StringType(SPRING) or items["AstroSunData_Season_SeasonName"] == StringType(SUMMER) or items["AstroSunData_Season_SeasonName"] == StringType(AUTUMN):
+        if items["Eco_Power_Switch"] == ON:
+            handle_eco_P3()
+        else:
+            if items["vTimeOfDay"] == StringType(night) or items["vTimeOfDay"] == StringType(bed):
+                handle_noneco_P3_night()
+            else:
+                handle_noneco_P3_day()
+    else: #WINTER
+        if items["vTimeOfDay"] == StringType(night) or items["vTimeOfDay"] == StringType(bed):
+            handle_noneco_P3_night()
+        else:
+            handle_eco_P3()
+    update_teleperiod_based_on_current_P3()
+
+def handle_eco_P3(): #Day & Summer
+    global DelayTimer3
+    if items["vTimeOfDay"] == StringType(morning) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon) or items["vTimeOfDay"] == StringType(evening):
+        if items["Priza3_Current"] <= QuantityType((MaxCLevel_P3_Day)) and items["Priza3_Current"] > QuantityType((MinCLevel_P3_1)):
+            if items["Priza3_Relay1"] != ON:
+                events.sendCommand("Priza3_Relay1", "ON")
+            elif items["Priza3_Relay1"] == ON:
+                if items["Priza3_Relay2"] != ON:
+                    events.sendCommand("Priza3_Relay2", "ON")
+                if items["Priza3_Asc"] == OFF:
+                    events.sendCommand("Priza3_Power", "OFF")
+
+            events.postUpdate(ir.getItem("Priza3_TelePeriod"), (TelePeriod_timeroff))
+            events.sendCommand(ir.getItem("Priza3_TelePeriod"), (TelePeriod_timeroff))
+            if DelayTimer3 is None or DelayTimer3.hasTerminated():
+                DelayTimer3 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutes), timer3_charge_off)
+            if DelayTimer3 is not None and not DelayTimer3.hasTerminated():
+                DelayTimer3.reschedule(DateTime.now().plusMinutes(timeoutMinutes))
+        if items["Priza3_Current"] > QuantityType((MaxCLevel_P3_Day)) or items["Priza3_Current"] <= QuantityType((MinCLevel_P3_1)):
+            if items["Priza3_Relay2"] == ON:
+                events.sendCommand("Priza3_Relay2", "OFF")
+            elif items["Priza3_Relay2"] == OFF:
+                if items["Priza3_Relay1"] != OFF:
+                    events.sendCommand("Priza3_Relay1", "OFF")
+
+def handle_noneco_P3_day():
+    global DelayTimer3
+    if items["Priza3_Current"] <= QuantityType((MaxCLevel_P3_Day)) and items["Priza3_Current"] > QuantityType((MinCLevel_P3_1)):
+        ctrl_dev("Priza3_Relay1", "ON", items, events, command_type="sendCommand")
+        if items["Priza3_Relay1"] == ON:
+            ctrl_dev("Priza3_Relay2", "ON", items, events, command_type="sendCommand")
+            if items["Priza3_Asc"] == OFF:
+                ctrl_dev("Priza3_Power", "OFF", items, events, command_type="sendCommand")
+
+        events.postUpdate(ir.getItem("Priza3_TelePeriod"), (TelePeriod_timeroff))
+        events.sendCommand(ir.getItem("Priza3_TelePeriod"), (TelePeriod_timeroff))
+        if DelayTimer3 is None or DelayTimer3.hasTerminated():
+            DelayTimer3 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutesP3), timer3_charge_off)
+        if DelayTimer3 is not None and not DelayTimer3.hasTerminated():
+            DelayTimer3.reschedule(DateTime.now().plusMinutes(timeoutMinutesP3))
+    if items["Priza3_Current"] > QuantityType((MaxCLevel_P3_Day)) or items["Priza3_Current"] <= QuantityType((MinCLevel_P3_1)):
+        ctrl_dev("Priza3_Relay2", "OFF", items, events, command_type="sendCommand")
+        if items["Priza3_Relay2"] == OFF:
+            ctrl_dev("Priza3_Relay1", "OFF", items, events, command_type="sendCommand")
+
+def handle_noneco_P3_night():
+    global DelayTimer3
+    if items["Priza3_Current"] <= QuantityType((MaxCLevel_P3_Night)) and items["Priza3_Current"] > QuantityType((MinCLevel_P3_1)):
+        ctrl_dev("Priza3_Relay1", "ON", items, events, command_type="sendCommand")
+        if items["Priza3_Relay1"] == ON:
+            ctrl_dev("Priza3_Relay2", "ON", items, events, command_type="sendCommand")
+            if items["Priza3_Asc"] == OFF:
+                ctrl_dev("Priza3_Power", "OFF", items, events, command_type="sendCommand")
+
+        if ir.getItem("Priza3_TelePeriod").state != TelePeriod3_night:
+            events.postUpdate(ir.getItem("Priza3_TelePeriod"), (TelePeriod3_night))
+            events.sendCommand(ir.getItem("Priza3_TelePeriod"), (TelePeriod3_night))
+        if DelayTimer3 is None or DelayTimer3.hasTerminated():
+            DelayTimer3 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutesNight), timer3_charge_off)
+        if DelayTimer3 is not None and not DelayTimer3.hasTerminated():
+            DelayTimer3.reschedule(DateTime.now().plusMinutes(timeoutMinutesNight))
+    if items["Priza3_Current"] > QuantityType((MaxCLevel_P3_Night)) or items["Priza3_Current"] <= QuantityType((MinCLevel_P3_1)):
+        ctrl_dev("Priza3_Relay2", "OFF", items, events, command_type="sendCommand")
+        if items["Priza3_Relay2"] == OFF:
+            ctrl_dev("Priza3_Relay1", "OFF", items, events, command_type="sendCommand")
+
+def update_teleperiod_based_on_current_P3():
+    if items["Priza3_Current"] <= QuantityType((MaxCLevel_P3_L1)) and items["Priza3_Current"] > QuantityType((MinCLevel_P3_2)):
+        if ir.getItem("Priza3_TelePeriod").state != TelePeriod3_1:
+            events.postUpdate(ir.getItem("Priza3_TelePeriod"), (TelePeriod3_1))
+            events.sendCommand(ir.getItem("Priza3_TelePeriod"), (TelePeriod3_1))
+    if items["Priza3_Current"] <= QuantityType((MaxCLevel_P3_L2)) and items["Priza3_Current"] > QuantityType((MaxCLevel_P3_L1)):
+        if ir.getItem("Priza3_TelePeriod").state != TelePeriod3_2:
+            events.postUpdate(ir.getItem("Priza3_TelePeriod"), (TelePeriod3_2))
+            events.sendCommand(ir.getItem("Priza3_TelePeriod"), (TelePeriod3_2))
+    if items["Priza3_Current"] > QuantityType((MaxCLevel_P3_L2)) or items["Priza3_Current"] <= QuantityType((MinCLevel_P3_2)):
+        if ir.getItem("Priza3_TelePeriod").state != TelePeriod3_3:
+            events.postUpdate(ir.getItem("Priza3_TelePeriod"), (TelePeriod3_3))
+            events.sendCommand(ir.getItem("Priza3_TelePeriod"), (TelePeriod3_3))
+
+###08.05.2022### A fost transformata Priza4 pentru laptop
+
+def priza4_cancel_charge_end_timer():
+    global DelayTimer4
+    if DelayTimer4 is not None and not DelayTimer4.hasTerminated():
+        DelayTimer4.cancel()
+
+def priza4_cancel_leave_debounce():
+    global priza4LeaveDebounceTimer
+    if priza4LeaveDebounceTimer is not None and not priza4LeaveDebounceTimer.hasTerminated():
+        priza4LeaveDebounceTimer.cancel()
+    priza4LeaveDebounceTimer = None
+
+def priza4_leave_trickle_current_band():
+    """No longer in trickle window — heavy charge, unplug, or relays opened. Drop full latch."""
+    priza4_cancel_leave_debounce()
+    priza4_cancel_charge_end_timer()
+    ctrl_dev("Priza4_BatteryFull", "OFF", items, events, command_type="sendCommand")
+
+def priza4_leave_trickle_debounced_fire():
+    global priza4LeaveDebounceTimer
+    priza4LeaveDebounceTimer = None
+    priza4_leave_trickle_current_band()
+
+def priza4_schedule_leave_trickle():
+    """Avoid clearing Priza4_BatteryFull on noisy current spikes out of the trickle band."""
+    global priza4LeaveDebounceTimer
+    priza4_cancel_leave_debounce()
+    priza4LeaveDebounceTimer = ScriptExecution.createTimer(
+        DateTime.now().plusSeconds(PRIZA4_LEAVE_DEBOUNCE_SEC),
+        priza4_leave_trickle_debounced_fire
+    )
+
+def timer4_charge_off():
+    priza4_cancel_leave_debounce()
+    ctrl_dev("Priza4_Power", "ON", items, events, command_type="sendCommand")
+    ctrl_dev("Priza4_BatteryFull", "OFF", items, events, command_type="sendCommand")
+    ctrl_dev("Priza4_Relay1", "OFF", items, events, command_type="sendCommand")
+    ctrl_dev("Priza4_Relay2", "OFF", items, events, command_type="sendCommand")
+    if ir.getItem("Priza4_TelePeriod").state != TelePeriod_timeroff:
+        events.postUpdate(ir.getItem("Priza4_TelePeriod"), (TelePeriod_timeroff))
+        events.sendCommand(ir.getItem("Priza4_TelePeriod"), (TelePeriod_timeroff))
+    priza4_cancel_charge_end_timer()
+
+@rule("Priza4_Power cancel end timer", description="When Priza4 outlet turns ON, cancel full-charge delay timer", tags=["Priza4", "Power"])
+@when("Item Priza4_Power changed")
+def priza4_power_cancel_end_timer(event):
+    if event.itemState == ON:
+        priza4_cancel_leave_debounce()
+        priza4_cancel_charge_end_timer()
+
+@rule("Priza4_Current", description="Item Priza4_Current changed", tags=["Current", "Priza4"])
+@when("Item Priza4_Current changed")
+def Priza4_Current(event):
+    global DelayTimer4
+
+    if items["AstroSunData_Season_SeasonName"] == StringType(SPRING) or items["AstroSunData_Season_SeasonName"] == StringType(SUMMER) or items["AstroSunData_Season_SeasonName"] == StringType(AUTUMN):
+        if items["Eco_Power_Switch"] == ON:
+            handle_eco_P4()
+        else:
+            if items["vTimeOfDay"] == StringType(night) or items["vTimeOfDay"] == StringType(bed):
+                handle_noneco_P4_night()
+            else:
+                handle_noneco_P4_day()
+    else: #WINTER
+        if items["vTimeOfDay"] == StringType(night) or items["vTimeOfDay"] == StringType(bed):
+            handle_noneco_P4_night()
+        else:
+            handle_eco_P4()
+    update_teleperiod_based_on_current_P4()
+
+def handle_eco_P4(): #Day & Summer
+    global DelayTimer4
+    if items["vTimeOfDay"] == StringType(morning) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon) or items["vTimeOfDay"] == StringType(evening):
+        if items["Priza4_Current"] <= QuantityType((MaxCLevel_P4_Day)) and items["Priza4_Current"] > QuantityType((MinCLevel_P4_1)):
+            priza4_cancel_leave_debounce()
+            if items["Priza4_Relay1"] != ON:
+                events.sendCommand("Priza4_Relay1", "ON")
+            elif items["Priza4_Relay1"] == ON:
+                if items["Priza4_Relay2"] != ON:
+                    events.sendCommand("Priza4_Relay2", "ON")
+                if items["Priza4_Asc"] == OFF:
+                    events.sendCommand("Priza4_Power", "OFF")
+                    ctrl_dev("Priza4_BatteryFull", "ON", items, events, command_type="sendCommand")
+
+            events.postUpdate(ir.getItem("Priza4_TelePeriod"), (TelePeriod_timeroff))
+            events.sendCommand(ir.getItem("Priza4_TelePeriod"), (TelePeriod_timeroff))
+            if DelayTimer4 is None or DelayTimer4.hasTerminated():
+                DelayTimer4 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutes), timer4_charge_off)
+            if DelayTimer4 is not None and not DelayTimer4.hasTerminated():
+                DelayTimer4.reschedule(DateTime.now().plusMinutes(timeoutMinutes))
+        if items["Priza4_Current"] > QuantityType((MaxCLevel_P4_Day)) or items["Priza4_Current"] <= QuantityType((MinCLevel_P4_1)):
+            priza4_schedule_leave_trickle()
+            if items["Priza4_Relay2"] == ON:
+                events.sendCommand("Priza4_Relay2", "OFF")
+            elif items["Priza4_Relay2"] == OFF:
+                if items["Priza4_Relay1"] != OFF:
+                    events.sendCommand("Priza4_Relay1", "OFF")
+
+def handle_noneco_P4_day():
+    global DelayTimer4
+    if items["Priza4_Current"] <= QuantityType((MaxCLevel_P4_Day)) and items["Priza4_Current"] > QuantityType((MinCLevel_P4_1)):
+        priza4_cancel_leave_debounce()
+        ctrl_dev("Priza4_Relay1", "ON", items, events, command_type="sendCommand")
+        if items["Priza4_Relay1"] == ON:
+            ctrl_dev("Priza4_Relay2", "ON", items, events, command_type="sendCommand")
+            if items["Priza4_Asc"] == OFF:
+                ctrl_dev("Priza4_Power", "OFF", items, events, command_type="sendCommand")
+                ctrl_dev("Priza4_BatteryFull", "ON", items, events, command_type="sendCommand")
+
+        events.postUpdate(ir.getItem("Priza4_TelePeriod"), (TelePeriod_timeroff))
+        events.sendCommand(ir.getItem("Priza4_TelePeriod"), (TelePeriod_timeroff))
+        if DelayTimer4 is None or DelayTimer4.hasTerminated():
+            DelayTimer4 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutesP4), timer4_charge_off)
+        if DelayTimer4 is not None and not DelayTimer4.hasTerminated():
+            DelayTimer4.reschedule(DateTime.now().plusMinutes(timeoutMinutesP4))
+    if items["Priza4_Current"] > QuantityType((MaxCLevel_P4_Day)) or items["Priza4_Current"] <= QuantityType((MinCLevel_P4_1)):
+        priza4_schedule_leave_trickle()
+        ctrl_dev("Priza4_Relay2", "OFF", items, events, command_type="sendCommand")
+        if items["Priza4_Relay2"] == OFF:
+            ctrl_dev("Priza4_Relay1", "OFF", items, events, command_type="sendCommand")
+
+def handle_noneco_P4_night():
+    global DelayTimer4
+    if items["Priza4_Current"] <= QuantityType((MaxCLevel_P4_Night)) and items["Priza4_Current"] > QuantityType((MinCLevel_P4_1)):
+        priza4_cancel_leave_debounce()
+        ctrl_dev("Priza4_Relay1", "ON", items, events, command_type="sendCommand")
+        if items["Priza4_Relay1"] == ON:
+            ctrl_dev("Priza4_Relay2", "ON", items, events, command_type="sendCommand")
+            if items["Priza4_Asc"] == OFF:
+                ctrl_dev("Priza4_Power", "OFF", items, events, command_type="sendCommand")
+                ctrl_dev("Priza4_BatteryFull", "ON", items, events, command_type="sendCommand")
+
+        if ir.getItem("Priza4_TelePeriod").state != TelePeriod4_night:
+            events.postUpdate(ir.getItem("Priza4_TelePeriod"), (TelePeriod4_night))
+            events.sendCommand(ir.getItem("Priza4_TelePeriod"), (TelePeriod4_night))
+        if DelayTimer4 is None or DelayTimer4.hasTerminated():
+            DelayTimer4 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutesNight), timer4_charge_off)
+        if DelayTimer4 is not None and not DelayTimer4.hasTerminated():
+            DelayTimer4.reschedule(DateTime.now().plusMinutes(timeoutMinutesNight))
+    if items["Priza4_Current"] > QuantityType((MaxCLevel_P4_Night)) or items["Priza4_Current"] <= QuantityType((MinCLevel_P4_1)):
+        priza4_schedule_leave_trickle()
+        ctrl_dev("Priza4_Relay2", "OFF", items, events, command_type="sendCommand")
+        if items["Priza4_Relay2"] == OFF:
+            ctrl_dev("Priza4_Relay1", "OFF", items, events, command_type="sendCommand")
+
+def update_teleperiod_based_on_current_P4():
+    if items["Priza4_Current"] <= QuantityType((MaxCLevel_P4_L1)) and items["Priza4_Current"] > QuantityType((MinCLevel_P4_2)):
+        if ir.getItem("Priza4_TelePeriod").state != TelePeriod4_1:
+            events.postUpdate(ir.getItem("Priza4_TelePeriod"), (TelePeriod4_1))
+            events.sendCommand(ir.getItem("Priza4_TelePeriod"), (TelePeriod4_1))
+    if items["Priza4_Current"] <= QuantityType((MaxCLevel_P4_L2)) and items["Priza4_Current"] > QuantityType((MaxCLevel_P4_L1)):
+        if ir.getItem("Priza4_TelePeriod").state != TelePeriod4_2:
+            events.postUpdate(ir.getItem("Priza4_TelePeriod"), (TelePeriod4_2))
+            events.sendCommand(ir.getItem("Priza4_TelePeriod"), (TelePeriod4_2))
+    if items["Priza4_Current"] > QuantityType((MaxCLevel_P4_L2)) or items["Priza4_Current"] <= QuantityType((MinCLevel_P4_2)):
+        if ir.getItem("Priza4_TelePeriod").state != TelePeriod4_3:
+            events.postUpdate(ir.getItem("Priza4_TelePeriod"), (TelePeriod4_3))
+            events.sendCommand(ir.getItem("Priza4_TelePeriod"), (TelePeriod4_3))
+
+@rule("Prize StartStop", description="Item Prize_Power ONOFF", tags=["ONOFF", "Prize"])
+@when("Item vTimeOfDay changed")
+def prize_startstop(event):
+    day = "DAY"
+    evening = "EVENING"
+    bed = "BED"
+    morning = "MORNING"
+    night = "NIGHT"
+    afternoon = "AFTERNOON"
+    if items["vTimeOfDay"] == StringType(bed):
+        #events.sendCommand("Priza5_Power", "OFF")
+        ctrl_dev("Priza5_Power", "OFF", items, events, command_type="sendCommand")  ###29.03.2024
+        #events.sendCommand("Priza6_Power", "OFF")
+        ctrl_dev("Priza6_Power", "OFF", items, events, command_type="sendCommand")  ###29.03.2024
+#        events.sendCommand("Priza4_Power", "OFF") ###08.05.2022### A fost transformata Priza4 pentru laptop
+#        if priza4Timeroff is not None: ###08.05.2022### A fost transformata Priza4 pentru laptop
+#            priza4Timeroff.cancel() ###08.05.2022### A fost transformata Priza4 pentru laptop
+        events.sendCommand("Striplight_Adina", "OFF")
+        events.sendCommand("Striplight_Alex", "OFF")
+    elif items["vTimeOfDay"] == StringType(day):
+        if items["Sufragerie_Daytime"] == ON or items["Sufragerie_Illuminance_Switch"] == OFF:  # update 06.06.2022 #este lumina in camera:
+            events.sendCommand("Priza5_Power", "OFF")
+        if items["DormP_Daytime"] == ON or items["DormitorP_Illuminance_Switch"] == OFF: # update 06.06.2022 #este lumina in camera:
+            #events.sendCommand("Priza6_Power", "OFF")
+            events.sendCommand("Striplight_Alex", "OFF")
+        if items["DormC_Daytime"] == ON or items["DormitorC_Illuminance_Switch"] == OFF: # update 06.06.2022 #este lumina in camera:
+            events.sendCommand("Striplight_Adina", "OFF")
+            #events.sendCommand("Striplight_Alex", "OFF")
+    elif items["vTimeOfDay"] == StringType(evening):
+        if items["DarkSufra"] == OFF:
+            if items["HomePresence"] == ON:
+                ctrl_dev("Priza5_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
+        if items["DarkDormP"] == OFF:
+            if items["HomePresence"] == ON:
+                #ctrl_dev("Priza6_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
+                events.sendCommand("Striplight_Alex", "ON")
+    elif items["vTimeOfDay"] == StringType(night):
+        events.sendCommand("Striplight_Alex", "OFF")
+#        if priza4Timeroff is not None:
+#            priza4Timeroff.cancel()
+
+@rule("Illumination Sufragerie and Priza5", description="Item Sufragerie_Daytime received command", tags=["Lumina naturala", "Sufragerie"])
+@when("Item Sufragerie_Daytime received update")
+def sufra_daylight_priza5(event):
+    day = "DAY"
+    evening = "EVENING"
+    bed = "BED"
+    morning = "MORNING"
+    afternoon = "AFTERNOON"
+    if event.itemState == OFF:
+        if items["vTimeOfDay"] == StringType(day):
+            if items["DarkSufra"] == OFF:
+                if items["HomePresence"] == ON:
+                    ctrl_dev("Priza5_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
+    if event.itemState == ON:
+        ctrl_dev("Priza5_Power", "OFF", items, events, command_type="sendCommand")  ###29.03.2024
+
+@rule("Illumination DormitorParinti and Priza6", description="Item DormP_Daytime received command", tags=["Lumina naturala", "DormitorParinti"])
+@when("Item DormP_Daytime received update")
+def dormp_daylight_priza6(event):
+    day = "DAY"
+    evening = "EVENING"
+    bed = "BED"
+    morning = "MORNING"
+    afternoon = "AFTERNOON"
+    if event.itemState == OFF:
+        if items["vTimeOfDay"] == StringType(day): #dezactivat la data de 15.01.2024
+            if items["DarkDormP"] == OFF:
+                if items["HomePresence"] == ON:
+                    #ctrl_dev("Priza6_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
+                    events.sendCommand("Striplight_Alex", "ON")
+    if event.itemState == ON:
+        #ctrl_dev("Priza6_Power", "OFF", items, events, command_type="sendCommand")  ###29.03.2024
+        events.sendCommand("Striplight_Alex", "OFF")
+
+@rule("Illumination DormitorCopii and Led_Contr", description="Item DormC_Daytime received command", tags=["Lumina naturala", "DormitorCopii"])
+@when("Item DormC_Daytime received update")
+def dormc_daylight_led(event):
+    day = "DAY"
+    evening = "EVENING"
+    bed = "BED"
+    morning = "MORNING"
+    afternoon = "AFTERNOON"
+    if event.itemState == OFF: #este intuneric in camera
+        if items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon) or items["vTimeOfDay"] == StringType(evening): ##adaugat afternoon si evening la data de 15.01.2023
+            if items["HomePresence"] == ON:
+                events.sendCommand("Striplight_Adina", "ON")
+
+    if event.itemState == ON: #este lumina in camera
+        if items["vTimeOfDay"] == StringType(morning) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+            events.sendCommand("Striplight_Adina", "OFF")
+
+
+#########Reguli noi 27.10.2021#########
+#Reguli de aprindere a becurilor si LED-Strip-urilor#
+
+@rule("Logic Lightstrip when Sonoffmini2 turns on or off", description="Logic Lightstrip when Sonoffmini2 turns on or off", tags=["light", "Sonoffmini2", "Lightstrip DormP"])
+@when("Item Sonoffmini2_Alive changed")
+def logic_lightstrip_dormp_off(event):
+    day = "DAY"
+    evening = "EVENING"
+    bed = "BED"
+    morning = "MORNING"
+    afternoon = "AFTERNOON"
+    spring = "Spring"
+    summer = "Summer"
+    autumn = "Autumn"
+    winter = "Winter"
+    # FIX: time.sleep(10) blocked the rule engine thread.
+    # Replaced with a timer so the rule returns immediately.
+    def _delayed_dormp(event=event):
+        if event.itemState == OFF:
+            if items["DormP_Daytime"] == OFF or items["DormitorP_Illuminance_Switch"] == ON: # update 06.06.2022 #este intuneric in camera
+                if items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+                    if items["DarkDormP"] == OFF:
+                        if items["HomePresence"] == ON:
+                            events.sendCommand("Striplight_Alex", "ON")
+                elif items["vTimeOfDay"] == StringType(morning):
+                    events.sendCommand("Striplight_Alex", "ON")
+        if event.itemState == ON:
+            if items["Sonoffmini2_Active"] == ON:
+                LogAction.logInfo(str(event.itemName), "este activ")
+                events.sendCommand("Striplight_Alex", "OFF")
+    ScriptExecution.createTimer(DateTime.now().plusSeconds(10), _delayed_dormp)
+
+@rule("Logic Lightstrip when Sonoffmini3 turns on", description="Logic Lightstrip when Sonoffmini3 turns on", tags=["light", "Sonoffmini3", "Lightstrip Sufragerie"])
+@when("Item Sonoffmini3_Active changed to ON")
+def logic_lightstrip_sufragerie_on(event):
+    LogAction.logInfo("Sonoffmini3_Active", "Sonoffmini3_Active este activ")
+    # FIX: time.sleep(2) blocked the rule engine thread. Replaced with timer.
+    def _delayed_sufra_on():
+        if items["Sonoffmini3_Alive"] == ON:
+            LogAction.logInfo("Sonoffmini3_Active", "Sonoffmini3_Active si Sonoffmini3_Reachable sunt active")
+            ctrl_dev("Priza5_Power", "OFF", items, events, command_type="sendCommand")  ###29.03.2024
+    ScriptExecution.createTimer(DateTime.now().plusSeconds(2), _delayed_sufra_on)
+
+@rule("Logic Lightstrip when Sonoffmini3 turns off", description="Logic Lightstrip when Sonoffmini3 turns off", tags=["light", "Sonoffmini3", "Lightstrip Sufragerie"])
+@when("Item Sonoffmini3_Active changed to OFF")
+@when("Item Sonoffmini3_Alive changed to OFF")  ###TEST!###
+def logic_lightstrip_sufragerie_off(event):
+    day = "DAY"
+    evening = "EVENING"
+    bed = "BED"
+    morning = "MORNING"
+    afternoon = "AFTERNOON"
+    if items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+        if items["Sufragerie_Daytime"] == OFF or items["Sufragerie_Illuminance_Switch"] == ON:  # update 06.06.2022 #este intuneric in camera
+            if items["DarkSufra"] == OFF:
+                if items["HomePresence"] == ON:
+                    ctrl_dev("Priza5_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
+
+@rule("Logic Lightstrip when Sonoffmini3 alive turns on", description="Logic Lightstrip when Sonoffmini3 alive turns on", tags=["light", "Sonoffmini3", "Lightstrip Sufragerie"])
+@when("Item Sonoffmini3_Alive changed to ON")
+def logic_lightstrip_sufragerie_on2(event):
+    day = "DAY"
+    evening = "EVENING"
+    bed = "BED"
+    morning = "MORNING"
+    afternoon = "AFTERNOON"
+    if items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+        if items["Sonoffmini3_Active"] == ON:   ###TEST 29.04.2023!###
+            ctrl_dev("Priza5_Power", "OFF", items, events, command_type="sendCommand")  ###29.03.2024
+
+@rule("Logic Lightstrip when Sonoffmini1 turns on", description="Logic Lightstrip when Sonoffmini1 turns on", tags=["light", "Sonoffmini1", "Lightstrip DormC"])
+@when("Item Sonoffmini1_Active changed to ON")
+def logic_lightstrip_dormc_on(event):
+    LogAction.logInfo(str(event.itemName), "este activ")
+    # FIX: time.sleep(2) blocked the rule engine thread. Replaced with timer.
+    def _delayed_dormc_on():
+        if items["Sonoffmini1_Alive"] == ON:
+            LogAction.logInfo(str(event.itemName), "Sonoffmini1_Active si Sonoffmini1_Reachable sunt active")
+            events.sendCommand("Striplight_Adina", "OFF")
+    ScriptExecution.createTimer(DateTime.now().plusSeconds(2), _delayed_dormc_on)
+
+# FIX: original rule was named "Logic Lightstrip when Sonoffmini1 turns off"
+# but triggered on Sonoffmini1_Alive changed. A second rule below was also
+# named "Logic Lightstrip when Sonoffmini1 turns off" but triggered on
+# Sonoffmini2_Alive changed — second silently overwrote first in rule registry.
+# Fixed: unique descriptive names for both.
+@rule("Logic Lightstrip Sonoffmini1 Alive changed", description="Logic Lightstrip when Sonoffmini1 Alive changed", tags=["light", "Sonoffmini1", "Lightstrip DormC"])
+@when("Item Sonoffmini1_Alive changed")
+def logic_lightstrip_dormc_alive(event):
+    day = "DAY"
+    evening = "EVENING"
+    evening_kids = "EVENING_KIDS"
+    bed = "BED"
+    bed_kids = "BED_KIDS"
+    morning = "MORNING"
+    afternoon = "AFTERNOON"
+    spring = "Spring"
+    summer = "Summer"
+    autumn = "Autumn"
+    winter = "Winter"
+    if event.itemState == OFF:
+        if items["DormC_Daytime"] == OFF or items["DormitorC_Illuminance_Switch"] == ON: # update 06.06.2022 #este intuneric in camera
+            if items["altTimeOfDay"] == StringType(evening_kids) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+                if items["AstroSunData_Season_SeasonName"] != StringType(summer) and items["AstroSunData_Season_SeasonName"] != StringType(spring):
+                    if items["HomePresence"] == ON:
+                        events.sendCommand("Striplight_Adina", "ON")
+            elif items["vTimeOfDay"] == StringType(morning):
+                if items["AstroSunData_Season_SeasonName"] != StringType(summer) and items["AstroSunData_Season_SeasonName"] != StringType(spring):
+                    if items["Schulfrei_Adina"] == OFF:
+                        events.sendCommand("Striplight_Adina", "ON")
+            elif items["vTimeOfDay"] == StringType(bed_kids):
+                    events.sendCommand("Striplight_Adina", "OFF")
+
+    if event.itemState == ON:
+        if items["Sonoffmini1_Active"] == ON:   ###TEST 29.04.2023!###
+            LogAction.logInfo(str(event.itemName), "este activ")
+            events.sendCommand("Striplight_Adina", "OFF")
+
+@rule("Logic Lightstrip Sonoffmini2 Alive changed", description="Logic Lightstrip when Sonoffmini2 Alive changed", tags=["light", "Sonoffmini2", "Lightstrip DormP"])
+@when("Item Sonoffmini2_Alive changed")
+def logic_lightstrip_dormp_alive(event):
+    day = "DAY"
+    evening = "EVENING"
+    evening_kids = "EVENING_KIDS"
+    bed = "BED"
+    bed_kids = "BED_KIDS"
+    morning = "MORNING"
+    afternoon = "AFTERNOON"
+    spring = "Spring"
+    summer = "Summer"
+    autumn = "Autumn"
+    winter = "Winter"
+    if event.itemState == OFF:
+        if items["DormP_Daytime"] == OFF or items["DormitorP_Illuminance_Switch"] == ON:
+            if items["altTimeOfDay"] == StringType(evening_kids) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+                if items["AstroSunData_Season_SeasonName"] != StringType(summer) and items["AstroSunData_Season_SeasonName"] != StringType(spring):
+                    if items["HomePresence"] == ON:
+                        events.sendCommand("Striplight_Alex", "ON")
+            elif items["vTimeOfDay"] == StringType(morning):
+                if items["AstroSunData_Season_SeasonName"] != StringType(summer) and items["AstroSunData_Season_SeasonName"] != StringType(spring):
+                    if items["Schulfrei_Alex"] == OFF:
+                        events.sendCommand("Striplight_Alex", "ON")
+            elif items["vTimeOfDay"] == StringType(bed_kids):
+                    events.sendCommand("Striplight_Alex", "OFF")
+
+    if event.itemState == ON:
+        if items["Sonoffmini2_Active"] == ON:
+            LogAction.logInfo(str(event.itemName), "este activ")
+            events.sendCommand("Striplight_Alex", "OFF")
+
+@rule("Priza4 ownership logic")
+@when("Item Priza4_Power changed")
+@when("Item Priza4_Power_auto changed")
+def priza4_logic(event):
+    global priza4_owner, priza4_auto_timeout
+
+    auto = items["Priza4_Power_auto"]
+    pz4  = items["Priza4_Power"]
+    now  = DateTime.now()
+
+    # ---------------------------------------------------------
+    # 1) Detect ON transitions and assign ownership
+    # ---------------------------------------------------------
+    if pz4 == ON:
+        if event.itemName == "Priza4_Power_auto":
+            # Auto turned it ON → auto owns it
+            priza4_owner = "AUTO"
+            priza4_auto_timeout = None
+        else:
+            # External ON → external owns it
+            priza4_owner = "EXTERNAL"
+            priza4_auto_timeout = now.plusHours(1)  # 1 hour timeout
+        return
+
+    # ---------------------------------------------------------
+    # 2) Priza4 is OFF → reset ownership
+    # ---------------------------------------------------------
+    if pz4 == OFF:
+        priza4_owner = "EXTERNAL"
+        priza4_auto_timeout = None
+        return
+
+    # ---------------------------------------------------------
+    # 3) Auto tries to turn OFF
+    # ---------------------------------------------------------
+    if event.itemName == "Priza4_Power_auto" and auto == OFF:
+
+        # Case 2: Auto owns it → allowed
+        if priza4_owner == "AUTO":
+            events.sendCommand("Priza4_Power", "OFF")
+            return
+
+        # Case 1: External owns it → check timeout
+        if priza4_owner == "EXTERNAL":
+            if priza4_auto_timeout is not None and now.isAfter(priza4_auto_timeout):
+                # 1 hour passed → auto regains OFF authority
+                events.sendCommand("Priza4_Power", "OFF")
+                return
+
+            # Auto NOT allowed → revert auto OFF
+            events.postUpdate("Priza4_Power_auto", "ON")
+            return
+
+    # ---------------------------------------------------------
+    # 4) External OFF always allowed
+    # ---------------------------------------------------------
+    if event.itemName == "Priza4_Power" and pz4 == OFF:
+        priza4_owner = "EXTERNAL"
+        priza4_auto_timeout = None
+
+@rule("Priza12 ownership logic")
+@when("Item Priza12_Power changed")
+@when("Item Priza12_Power_auto changed")
+def priza12_logic(event):
+    global priza12_owner, priza12_auto_timeout
+
+    auto = items["Priza12_Power_auto"]
+    pz12 = items["Priza12_Power"]
+    now = DateTime.now()
+
+    # ---------------------------------------------------------
+    # 1) Detect ON transitions and assign ownership
+    # ---------------------------------------------------------
+    if pz12 == ON:
+        if event.itemName == "Priza12_Power_auto":
+            # Auto turned it ON → auto owns it
+            priza12_owner = "AUTO"
+            priza12_auto_timeout = None
+        else:
+            # External ON → external owns it
+            priza12_owner = "EXTERNAL"
+            priza12_auto_timeout = now.plusHours(2)  # 2h timeout
+        return
+
+    # ---------------------------------------------------------
+    # 2) Priza12 is OFF → reset ownership
+    # ---------------------------------------------------------
+    if pz12 == OFF:
+        priza12_owner = "EXTERNAL"
+        priza12_auto_timeout = None
+        return
+
+    # ---------------------------------------------------------
+    # 3) Auto tries to turn OFF
+    # ---------------------------------------------------------
+    if event.itemName == "Priza12_Power_auto" and auto == OFF:
+
+        # Case 2: Auto owns it → allowed
+        if priza12_owner == "AUTO":
+            events.sendCommand("Priza12_Power", "OFF")
+            return
+
+        # Case 1: External owns it → check timeout
+        if priza12_owner == "EXTERNAL":
+            if priza12_auto_timeout is not None and now.isAfter(priza12_auto_timeout):
+                # 2 hours passed → auto regains OFF authority
+                events.sendCommand("Priza12_Power", "OFF")
+                return
+
+            # Auto NOT allowed → revert auto OFF
+            events.postUpdate("Priza12_Power_auto", "ON")
+            return
+
+    # ---------------------------------------------------------
+    # 4) External OFF always allowed
+    # ---------------------------------------------------------
+    if event.itemName == "Priza12_Power" and pz12 == OFF:
+        priza12_owner = "EXTERNAL"
+        priza12_auto_timeout = None

@@ -1,0 +1,1661 @@
+##050_Reguli_2022.py
+
+########################################
+# https://openhab-scripters.github.io/ #
+########################################
+#
+# 26.05.2024 events.sendCommand("Backup_rrd4j", "ON") cand se face restart
+# 01.06.2022 S-a modificat functiile de la 725 si 968
+# 02.04.2022 S-au adaugat liniile if not is_state(items["Sonoffmini3_Alive"], ON):
+# 12.12.2021 S-au adaugat liniile 194
+# 10.12.2021 S-au adaugat liniile if is_state(items["Sonoffmini3_Alive"], OFF):
+# 10.03.2021 Editare functii pentru Bucatarie
+# 06.03.2021 S-au corectat greseli de editare (nume gresite, ordinea de executie) si s-au facut optimizari
+# 01.03.2021 S-au corectat greseli de editare (nume gresite, ordinea de executie) si s-au facut optimizari
+# 19.02.2021 S-a modificat regula pentru bucatarie si ping sufragerie
+# Atunci cand se stinge manual lumina trebuie sa se anuleze si occupancyTimer
+# S-a modificat regula pentru Sufragerie si s-au creat 2 reguli noi pentru dormitoare
+# 17.02.2021
+# S-au integrat urmatoarele reguli
+# default.py
+# Dynamic-delay.py
+# LampaSufra.py
+# Lights_inactive.py
+# MSBucatarie.py
+# MSDormitorCopii.py
+# MSDormitorParinti.py
+# MSSufragerie.py
+# MSTelefunken.py
+# 2026-05-02: UnDefType from org.eclipse.smarthome.core.types (ESH; OH 2.5.12).
+
+from core.rules import rule
+from core.triggers import when
+#from core.actions import Exec
+from core.actions import ScriptExecution
+from org.joda.time import DateTime
+from threading import Timer
+import core
+from org.eclipse.smarthome.core.types import UnDefType
+from org.eclipse.smarthome.model.script.actions.Exec import executeCommandLine
+from core.jsr223.scope import events, items
+from core.actions import LogAction
+from oh_utils import room_presence_handler, room_holddown_handler
+# FIX  2026-03-07: removed 'from core.utils import sendCommandCheckFirst, postUpdateCheckFirst'
+# OPT  2026-03-07: replaced 82 sendCommand(ir.getItem("X"), val) with sendCommand("X", str(val))
+#     and 7 ir.getItem("X").state reads with items["X"] dict lookups.
+#     Module-level d_*/dt_* item-object caches (L88-L103) intentionally kept as
+#     ir.getItem() — they are used for .state.intValue() Java method calls which
+#     require the raw Item object, not the state wrapper.
+#   Cross-file imports don't work in OH2 Jython. postUpdateCheckFirst() call in
+#   telefunken_stop replaced by comment (sendCommand below already sends the IR command).
+# FIX 2026-03-07: renamed duplicate @rule names (would cause silent rule overwrite in OH2):
+#   'Sufra_Presence received ON' x2 -> unique names per trigger type
+#   'DormP_Presence received ON' x2 -> unique names per trigger type
+#   'Item \'...' x4 cancel-timer rules -> OH2 truncates name at single-quote; renamed without quotes
+# FIX 2026-03-07: removed time.sleep(0.5) x2 in dormp_presence DarkDormP branch
+
+NULL = UnDefType.NULL
+ON = OnOffType.ON
+OFF = OnOffType.OFF
+
+def is_state(item_state, target_state):
+    """Safe state comparison using string conversion. Handles Java State objects reliably."""
+    return str(item_state).strip() == str(target_state).strip()
+
+UNDEF = UnDefType.UNDEF
+
+###
+
+# Shortcut for similarity to DSL rules
+createTimer = ScriptExecution.createTimer
+occupancyTimer1 = None
+occupancyTimer2 = None
+occupancyTimer3 = None
+occupancyTimer4 = None
+occupancyTimer5 = None
+occupancyTimer6 = None
+occupancyTimer7 = None
+occupancyTimer10 = None
+occupancyTimer11 = None
+occupancyTimer12 = None
+sourceresetTimer = None
+
+# OPT 2026-05-24 #2: timer_box lists replace individual occupancyTimerN globals.
+# list[1] is mutable in Python 2, allowing closures to update the shared reference.
+_occ_sufra  = [None]   # Sufra_Presence occupancy timer
+_occ_dormp  = [None]   # Dorm1_Presence occupancy timer
+_occ_dormc  = [None]   # Dorm2_Presence occupancy timer
+#valTimerSecSufragerie = None
+hpTimersufra = None
+hpTimerlampa = None
+hpTimerparinti = None
+hpTimercopii = None
+hpTimertelefunken = None
+timeout1Seconds = 10
+timeout2Seconds = 15
+default_value = 600  ###Nou 12.11.2021
+#on_timer1 = ir.getItem("DelayTimerSufragerie").state.intValue()
+#on_timer2 = ir.getItem("DelayTimerLampa").state.intValue()
+#on_timer3 = ir.getItem("DelayTimerDormMic").state.intValue()
+#on_timer4 = ir.getItem("DelayTimerDormCopii").state.intValue()
+#on_timer5 = ir.getItem("DelayTimerTelefunken").state.intValue()
+#on_timer6 = ir.getItem("DelayTimerBucatarie").state.intValue()
+
+d_sufra = ir.getItem("DelayTimerSufragerie")
+d_dormmic = ir.getItem("DelayTimerDormMic")
+d_dormcopii = ir.getItem("DelayTimerDormCopii")
+d_lampa = ir.getItem("DelayTimerLampa")
+d_bucatarie = ir.getItem("DelayTimerBucatarie")
+d_Telefunken = ir.getItem("DelayTimerTelefunken")
+
+dt_DM = ir.getItem("DTDormMic")
+dt_DC = ir.getItem("DTDormCopii")
+dt_S = ir.getItem("DTSufragerie")
+dt_L = ir.getItem("DTLampa")
+
+#on_timer1 = d_sufra.state.intValue()
+#on_timer2 = d_lampa.state.intValue()
+#on_timer3 = d_dormmic.state.intValue()
+#on_timer4 = d_dormcopii.state.intValue()
+#on_timer5 = ir.getItem("DelayTimerTelefunken").state.intValue()
+#on_timer6 = d_bucatarie.state.intValue()
+
+on_timer2 = d_lampa.state.intValue() if d_lampa.state not in [NULL, UNDEF] else default_value
+on_timer5 = d_Telefunken.state.intValue() if d_Telefunken.state not in [NULL, UNDEF] else default_value
+# on_timer1/3/4/6: removed — handlers read DelayTimer live from items dict
+
+resetTimer_dormp = None
+resetTimer_dormc = None
+resetTimer_sufra = None
+
+# OPT 2026-05-24 #2: room config dicts — one entry per field that differs across rooms.
+_SUFRA = {
+    "name": "Sufra", "light": "Becuri_Sufragerie",
+    "dark": "DarkSufra", "perm": "PermSufra",
+    "illum_sw": "Sufragerie_Illuminance_Switch",
+    "hd_sw": "HD3", "hd_val": "HDSufragerie",
+    "dt": "DTSufragerie", "delay_timer": "DelayTimerSufragerie",
+    "daytime": "Sufragerie_Daytime", "dt_default": 420,
+}
+_DORMP = {
+    "name": "DormP", "light": "Sonoffmini2_Power",
+    "dark": "DarkDormP", "perm": "PermDormP",
+    "illum_sw": "DormitorP_Illuminance_Switch",
+    "hd_sw": "HD1", "hd_val": "HDDormP",
+    "dt": "DTDormMic", "delay_timer": "DelayTimerDormMic",
+    "daytime": "DormP_Daytime", "dt_default": 420,
+}
+_DORMC = {
+    "name": "DormC", "light": "Sonoffmini1_Power",
+    "dark": "DarkDormC", "perm": "PermDormC",
+    "illum_sw": "DormitorC_Illuminance_Switch",
+    "hd_sw": "HD2", "hd_val": "HDDormC",
+    "dt": "DTDormCopii", "delay_timer": "DelayTimerDormCopii",
+    "daytime": "DormC_Daytime", "dt_default": 600,
+}
+
+# Holddown state dicts — one per room, modified in place by room_holddown_handler.
+_hd_dormp = {"timer": None, "holddown": None, "incr": 0}
+_hd_dormc = {"timer": None, "holddown": None, "incr": 0}
+
+# Sufragerie holddown still uses individual globals (parallel Lampa circuit).
+HDtimer3 = None
+baseHoldDown3 = (int(str(items["DTSufragerie"])) * 60) / 5
+HoldDown3 = None
+incr3 = 0
+timeFract3 = None
+HoldDown3_3 = None
+DT_HDSufra = None
+DT_HDLampa = None
+
+def timer3_dynamic_delay():
+	# Sufragerie holddown expiry — still uses individual globals (Lampa circuit).
+	events.sendCommand("HD3", "OFF")
+	HDtimer3.cancel()
+	incr3 = 0
+
+@rule("NAS wake up", description="NAS received update ON", tags=["NAS", "OMV"])
+@when("Item NAS received update ON")
+@when("Item NAS received command ON")
+def nas_on(event):
+	on_nas = executeCommandLine("/etc/openhab2/scripts/wakeomv.sh", 10000)
+	if is_state(items["Logging"], ON):
+		nas_on.log.info("NAS switch on")
+	
+@rule("NAS shutdown", description="NAS received update OFF", tags=["NAS", "OMV"])
+@when("Item NAS received update OFF")
+@when("Item NAS received command OFF")
+def nas_off(event):
+	off_nas = executeCommandLine("/etc/openhab2/scripts/shutdownomv.sh", 10000)
+	if is_state(items["Logging"], ON):
+		nas_off.log.info("NAS switch off")
+
+@rule("pfSense wake up", description="pfSense_wake received update ON", tags=["firewall", "pfSense"])
+@when("Item pfSense_wake received update ON")
+def pfsense_on(event):
+	on_pfsense = executeCommandLine("/etc/openhab2/scripts/wakepfSense.sh", 10000)
+	if is_state(items["Logging"], ON):
+		pfsense_on.log.info("pfSense wake up")
+	
+@rule("Update ACEStream List", description="Kodi_Acestream received update ON", tags=["ACEStream", "Kodi"])
+@when("Item Kodi_Acestream received update ON")
+def acestream_on(event):
+	on_acestream = executeCommandLine("/etc/openhab2/scripts/get_ace_info.sh", 10000)
+	if is_state(items["Logging"], ON):
+		acestream_on.log.info("Kodi_Acestream received update")
+		
+		
+@rule("Restart Openhab", description="Restart openhab local", tags=["Restart", "Openhab"])
+@when("Item Restart_Openhab received update ON")
+def openhab_off(event):
+	#events.sendCommand("Backup_rrd4j", "ON")	### 26.05.2024 added 
+	openhab_off = executeCommandLine("/etc/openhab2/scripts/halt-reboot.sh", 10000)
+	if is_state(items["Logging"], ON):
+		openhab_off.log.info("Openhab will be restarted")
+
+@rule("Sufragerie switch on", description="Becuri_Sufragerie changed to ON", tags=["light", "TechPro"])
+@when("Item Becuri_Sufragerie changed to ON")
+def sufragerie_on(event):
+	events.sendCommand("Sonoffmini3_Power", "ON")
+	if is_state(items["Logging"], ON):
+		sufragerie_on.log.info("Lights sufragerie switch on")
+
+@rule("Sufragerie switch off", description="Becuri_Sufragerie changed to OFF", tags=["light", "TechPro"])
+@when("Item Becuri_Sufragerie changed to OFF")
+def sufragerie_off(event):
+	events.sendCommand("Sonoffmini3_Power", "OFF")
+	events.sendCommand("Bec_TechPro2", "OFF")
+	events.sendCommand("Bec_TechPro3", "OFF")
+	if _occ_sufra[0] is not None and not _occ_sufra[0].hasTerminated():
+		_occ_sufra[0].cancel()
+	if is_state(items["Logging"], ON):
+		sufragerie_off.log.info("Lights sufragerie switch off")
+
+@rule("Sufragerie dimmer update", description="Sufragerie dimmed", tags=["light", "TechPro"])
+@when("Item Becuri_Sufragerie_Dimmer received update")
+def sufragerie_dim(event):
+	dim_tpro1 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro1.sh dim " + str(items["Bec_TechPro1_Dimmer"]), 10000)
+	dim_tpro2 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro2.sh dim " + str(items["Bec_TechPro2_Dimmer"]), 10000)
+	dim_tpro3 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro3.sh dim " + str(items["Bec_TechPro3_Dimmer"]), 10000)  # FIX: was Bec_TechPro2_Dimmer (copy-paste bug)
+	if is_state(items["Logging"], ON):
+		sufragerie_dim.log.info("sufragerie dimm " + str(items["Becuri_Sufragerie_Dimmer"]))
+
+#@rule("TechPro1 switch on", description="Bec_TechPro1 changed to ON", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro1 changed to ON")
+#def techpro1_on(event):
+#	on_tpro1 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro1.sh on", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro1_on.log.info("techpro1 switch on")
+
+#@rule("TechPro1 switch off", description="Bec_TechPro1 changed to OFF", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro1 changed to OFF")
+#def techpro1_off(event):
+#	off_tpro1 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro1.sh off", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro1_off.log.info("techpro1 switch off")
+
+@rule("TechPro1 switch onoff", description="Bec_TechPro1", tags=["light", "TechPro"])
+@when("Item Bec_TechPro1 received command")
+def techpro1_onoff(event):
+	if is_state(event.itemCommand, ON):
+		on_tpro1 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro1.sh on", 10000)
+	if is_state(event.itemCommand, OFF):
+		off_tpro1 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro1.sh off", 10000)
+	if is_state(items["Logging"], ON):
+		techpro1_on.log.info("techpro1 was switched " + str(items["Bec_TechPro1"]))
+
+@rule("TechPro1 dimmer update", description="Bec_TechPro1 dimmed", tags=["light", "TechPro"])
+@when("Item Bec_TechPro1_Dimmer received update")
+def techpro1_dim(event):
+	dim_tpro1 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro1.sh dim " + str(items["Bec_TechPro1_Dimmer"]), 10000)
+	if is_state(items["Logging"], ON):
+		techpro1_dim.log.info("techpro1 dimm " + str(items["Bec_TechPro1_Dimmer"]))
+
+#@rule("TechPro2 switch on", description="Bec_TechPro2 changed to ON", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro2 changed to ON")
+#def techpro2_on(event):
+#	on_tpro2 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro2.sh on", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro2_on.log.info("techpro2 switch on")
+
+#@rule("TechPro2 switch off", description="Bec_TechPro2 changed to OFF", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro2 changed to OFF")
+#def techpro2_off(event):
+#	off_tpro2 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro2.sh off", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro2_off.log.info("techpro2 switch off")
+
+@rule("TechPro2 switch onoff", description="Bec_TechPro2", tags=["light", "TechPro"])
+@when("Item Bec_TechPro2 received command")
+def techpro2_onoff(event):
+	if is_state(event.itemCommand, ON):
+		on_tpro2 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro2.sh on", 10000)
+	if is_state(event.itemCommand, OFF):
+		off_tpro2 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro2.sh off", 10000)
+	if is_state(items["Logging"], ON):
+		techpro2_on.log.info("techpro2 was switched " + str(items["Bec_TechPro2"]))
+
+@rule("TechPro2 dimmer update", description="Bec_TechPro2 dimmed", tags=["light", "TechPro"])
+@when("Item Bec_TechPro2_Dimmer received update")
+def techpro2_dim(event):
+	dim_tpro2 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro2.sh dim " + str(items["Bec_TechPro2_Dimmer"]), 10000)
+	if is_state(items["Logging"], ON):
+		techpro2_dim.log.info("techpro2 dimm " + str(items["Bec_TechPro2_Dimmer"]))
+
+#@rule("TechPro3 switch on", description="Bec_TechPro3 changed to ON", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro3 changed to ON")
+#def techpro3_on(event):
+#	on_tpro3 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro3.sh on", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro3_on.log.info("techpro3 switch on")
+
+#@rule("TechPro3 switch off", description="Bec_TechPro3 changed to OFF", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro3 changed to OFF")
+#def techpro3_off(event):
+#	off_tpro3 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro3.sh off", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro3_off.log.info("techpro3 switch off")
+
+@rule("TechPro3 switch onoff", description="Bec_TechPro3", tags=["light", "TechPro"])
+@when("Item Bec_TechPro3 received command")
+def techpro3_onoff(event):
+	if is_state(event.itemCommand, ON):
+		on_tpro3 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro3.sh on", 10000)
+	if is_state(event.itemCommand, OFF):
+		off_tpro3 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro3.sh off", 10000)
+	if is_state(items["Logging"], ON):
+		techpro3_on.log.info("techpro3 was switched " + str(items["Bec_TechPro3"]))
+
+@rule("TechPro3 dimmer update", description="Bec_TechPro3 dimmed", tags=["light", "TechPro"])
+@when("Item Bec_TechPro3_Dimmer received update")
+def techpro3_dim(event):
+	dim_tpro3 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro3.sh dim " + str(items["Bec_TechPro3_Dimmer"]), 10000)  # FIX: was Bec_TechPro2_Dimmer (copy-paste bug)
+	if is_state(items["Logging"], ON):
+		techpro3_dim.log.info("techpro3 dimm " + str(items["Bec_TechPro3_Dimmer"]))
+
+#@rule("TechPro4 switch on", description="Bec_TechPro4 changed to ON", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro4 changed to ON")
+#def techpro4_on(event):
+#	on_tpro4 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro4.sh on", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro4_on.log.info("techpro4 switch on")
+
+#@rule("TechPro4 switch off", description="Bec_TechPro4 changed to OFF", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro4 changed to OFF")
+#def techpro4_off(event):
+#	off_tpro4 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro4.sh off", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro4_off.log.info("techpro4 switch off")
+
+@rule("TechPro4 switch onoff", description="Bec_TechPro4", tags=["light", "TechPro"])
+@when("Item Bec_TechPro4 received command")
+def techpro4_onoff(event):
+	if is_state(event.itemCommand, ON):
+		on_tpro4 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro4.sh on", 10000)
+	if is_state(event.itemCommand, OFF):
+		off_tpro4 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro4.sh off", 10000)
+	if is_state(items["Logging"], ON):
+		techpro4_on.log.info("techpro4 was switched " + str(items["Bec_TechPro4"]))
+
+@rule("TechPro4 dimmer update", description="Bec_TechPro4 dimmed", tags=["light", "TechPro"])
+@when("Item Bec_TechPro4_Dimmer received update")
+def techpro4_dim(event):
+	dim_tpro4 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro4.sh dim " + str(items["Bec_TechPro4_Dimmer"]), 10000)
+	if is_state(items["Logging"], ON):
+		techpro4_dim.log.info("techpro4 dimm " + str(items["Bec_TechPro4_Dimmer"]))
+	
+#@rule("TechPro5 switch on", description="Bec_TechPro5 changed to ON", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro5 changed to ON")
+#def techpro5_on(event):
+#	on_tpro5 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro5.sh on", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro5_on.log.info("techpro5 switch on")
+
+#@rule("TechPro5 switch off", description="Bec_TechPro5 changed to OFF", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro5 changed to OFF")
+#def techpro5_off(event):
+#	off_tpro5 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro5.sh off", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro5_off.log.info("techpro5 switch off")
+
+@rule("TechPro5 switch onoff", description="Bec_TechPro5", tags=["light", "TechPro"])
+@when("Item Bec_TechPro5 received command")
+def techpro5_onoff(event):
+	if is_state(event.itemCommand, ON):
+		on_tpro5 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro5.sh on", 10000)
+	if is_state(event.itemCommand, OFF):
+		off_tpro5 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro5.sh off", 10000)
+	if is_state(items["Logging"], ON):
+		techpro5_on.log.info("techpro5 was switched " + str(items["Bec_TechPro5"]))
+
+@rule("TechPro5 dimmer update", description="Bec_TechPro5 dimmed", tags=["light", "TechPro"])
+@when("Item Bec_TechPro5_Dimmer received update")
+def techpro5_dim(event):
+	dim_tpro5 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro5.sh dim " + str(items["Bec_TechPro5_Dimmer"]), 10000)
+	if is_state(items["Logging"], ON):
+		techpro5_dim.log.info("techpro5 dimm " + str(items["Bec_TechPro5_Dimmer"]))
+	
+#@rule("TechPro6 switch on", description="Bec_TechPro6 changed to ON", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro6 changed to ON")
+#def techpro6_on(event):
+#	on_tpro6 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro6.sh on", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro6_on.log.info("techpro6 switch on")
+
+#@rule("TechPro6 switch off", description="Bec_TechPro6 changed to OFF", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro6 changed to OFF")
+#def techpro6_off(event):
+#	off_tpro6 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro6.sh off", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro6_off.log.info("techpro6 switch off")
+
+@rule("TechPro6 switch onoff", description="Bec_TechPro6", tags=["light", "TechPro"])
+@when("Item Bec_TechPro6 received command")
+def techpro6_onoff(event):
+	if is_state(event.itemCommand, ON):
+		on_tpro6 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro6.sh on", 10000)
+	if is_state(event.itemCommand, OFF):
+		off_tpro6 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro6.sh off", 10000)
+	if is_state(items["Logging"], ON):
+		techpro6_on.log.info("techpro6 was switched " + str(items["Bec_TechPro6"]))
+
+@rule("TechPro6 dimmer update", description="Bec_TechPro6 dimmed", tags=["light", "TechPro"])
+@when("Item Bec_TechPro6_Dimmer received update")
+def techpro6_dim(event):
+	dim_tpro6 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro6.sh dim " + str(items["Bec_TechPro6_Dimmer"]), 10000)
+	if is_state(items["Logging"], ON):
+		techpro6_dim.log.info("techpro6 dimm " + str(items["Bec_TechPro6_Dimmer"]))
+	
+#@rule("TechPro7 switch on", description="Bec_TechPro7 changed to ON", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro7 changed to ON")
+#def techpro7_on(event):
+#	on_tpro7 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro7.sh on", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro7_on.log.info("techpro7 switch on")
+
+#@rule("TechPro7 switch off", description="Bec_TechPro7 changed to OFF", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro7 changed to OFF")
+#def techpro7_off(event):
+#	off_tpro7 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro7.sh off", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro7_off.log.info("techpro7 switch off")
+
+@rule("TechPro7 switch onoff", description="Bec_TechPro7", tags=["light", "TechPro"])
+@when("Item Bec_TechPro7 received command")
+def techpro7_onoff(event):
+	if is_state(event.itemCommand, ON):
+		on_tpro7 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro7.sh on", 10000)
+	if is_state(event.itemCommand, OFF):
+		off_tpro7 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro7.sh off", 10000)
+	if is_state(items["Logging"], ON):
+		techpro7_on.log.info("techpro7 was switched " + str(items["Bec_TechPro7"]))
+
+@rule("TechPro7 dimmer update", description="Bec_TechPro7 dimmed", tags=["light", "TechPro"])
+@when("Item Bec_TechPro7_Dimmer received update")
+def techpro7_dim(event):
+	dim_tpro7 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro7.sh dim " + str(items["Bec_TechPro7_Dimmer"]), 10000)
+	if is_state(items["Logging"], ON):
+		techpro7_dim.log.info("techpro7 dimm " + str(items["Bec_TechPro7_Dimmer"]))
+
+#@rule("TechPro8 switch on", description="Bec_TechPro8 changed to ON", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro8 changed to ON")
+#def techpro8_on(event):
+#	on_tpro8 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro8.sh on", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro8_on.log.info("techpro8 switch on")
+
+#@rule("TechPro8 switch off", description="Bec_TechPro8 changed to OFF", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro8 changed to OFF")
+#def techpro8_off(event):
+#	off_tpro8 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro8.sh off", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro8_off.log.info("techpro8 switch off")
+
+@rule("TechPro8 switch onoff", description="Bec_TechPro8", tags=["light", "TechPro"])
+@when("Item Bec_TechPro8 received command")
+def techpro8_onoff(event):
+	if is_state(event.itemCommand, ON):
+#		on_tpro8 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro8.sh on", 10000)
+		events.sendCommand("Bec_TechPro8_Dimmer", str(80))
+	if is_state(event.itemCommand, OFF):
+#		off_tpro8 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro8.sh off", 10000)
+		events.sendCommand("Bec_TechPro8_Dimmer", str(0))
+	if is_state(items["Logging"], ON):
+		techpro8_on.log.info("techpro8 was switched " + str(items["Bec_TechPro8"]))
+
+@rule("TechPro8 dimmer update", description="Bec_TechPro8 dimmed", tags=["light", "TechPro"])
+@when("Item Bec_TechPro8_Dimmer received update")
+def techpro8_dim(event):
+#	dim_tpro8 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro8.sh dim " + str(items["Bec_TechPro8_Dimmer"]), 10000)
+	events.sendCommand("Phillips1_Brightness", str(items["Bec_TechPro8_Dimmer"]))
+	if is_state(items["Logging"], ON):
+		techpro8_dim.log.info("techpro8 dimm " + str(items["Bec_TechPro8_Dimmer"]))
+	
+#@rule("TechPro9 switch on", description="Bec_TechPro9 changed to ON", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro9 changed to ON")
+#def techpro9_on(event):
+#	on_tpro9 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro9.sh on", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro9_on.log.info("techpro9 switch on")
+
+#@rule("TechPro9 switch off", description="Bec_TechPro9 changed to OFF", tags=["light", "TechPro"])
+#@when("Item Bec_TechPro9 changed to OFF")
+#def techpro9_off(event):
+#	off_tpro9 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro9.sh off", 10000)
+#	if is_state(items["Logging"], ON):
+#		techpro9_off.log.info("techpro9 switch off")
+
+@rule("TechPro9 switch onoff", description="Bec_TechPro9", tags=["light", "TechPro"])
+@when("Item Bec_TechPro9 received command")
+def techpro9_onoff(event):
+	if is_state(event.itemCommand, ON):
+#		on_tpro9 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro9.sh on", 10000)
+		events.sendCommand("Bec_TechPro9_Dimmer", str(80))
+	if is_state(event.itemCommand, OFF):
+#		off_tpro9 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro9.sh off", 10000)
+		events.sendCommand("Bec_TechPro9_Dimmer", str(0))
+	if is_state(items["Logging"], ON):
+		techpro9_on.log.info("techpro9 was switched " + str(items["Bec_TechPro9"]))
+
+@rule("TechPro9 dimmer update", description="Bec_TechPro9 dimmed", tags=["light", "TechPro"])
+@when("Item Bec_TechPro9_Dimmer received update")
+def techpro9_dim(event):
+#	dim_tpro9 = executeCommandLine("/etc/openhab2/misc/lights/bec_techpro9.sh dim " + str(items["Bec_TechPro9_Dimmer"]), 10000)
+	events.sendCommand("Phillips2_Brightness", str(items["Bec_TechPro9_Dimmer"]))
+	if is_state(items["Logging"], ON):
+		techpro9_dim.log.info("techpro9 dimm " + str(items["Bec_TechPro9_Dimmer"]))
+
+@rule("Telefunken switch on", description="Telefunken_Sw changed to OFF", tags=["Stop", "Telefunken"])
+@when("Item Telefunken_Sw changed")
+def telefunken_stop(event):
+	if is_state(event.itemState, OFF):
+		#telefunken_stop = executeCommandLine("/etc/openhab2/scripts/telefunkenoff.sh", 10000)
+		if is_state(items["ScriptParrot_Smarttv_telefunken_up"], ON):
+			# FIX: postUpdateCheckFirst removed (broken import). sendCommand below already sends the IR signal.
+			events.sendCommand("Irbridge_IRSend", "irsend 0,890,910,860,910,1750,910,860,910,860,910,860,1780,1725,935,860,1780,865,910,1725,940,860")
+		if is_state(items["Logging"], ON):
+			telefunken_stop.log.info("Telefunken switch off")
+
+@rule("Kodi restart", description="Item Kodi_restart changed to OFF", tags=["Stop", "Kodi"])
+@when("Item Kodi_restart changed")
+def kodi1_restart(event):
+	if is_state(event.itemState, OFF):
+		kodi1_restart = executeCommandLine("/etc/openhab2/scripts/restartkodi.sh", 10000)
+		if is_state(items["Logging"], ON):
+			kodi1_restart.log.info("Kodi restart")
+		
+@rule("Kodi2 restart", description="Item Kodi2_restart changed to OFF", tags=["Stop", "Kodi2"])
+@when("Item Kodi2_restart changed")
+def kodi2_restart(event):
+	if is_state(event.itemState, OFF):
+		kodi2_restart = executeCommandLine("/etc/openhab2/scripts/restartkodi2.sh", 10000)
+		if is_state(items["Logging"], ON):
+			kodi2_restart.log.info("Kodi2 restart")
+			
+@rule("Gargoyle restart", description="Item Gargoyle restart changed to OFF", tags=["Stop", "Gargoyle"])
+@when("Item Gargoyle_restart changed")
+def gargoyle_restart(event):
+	if is_state(event.itemState, OFF):
+		gargoyle_restart = executeCommandLine("/etc/openhab2/scripts/restartgargoyle.sh", 10000)
+		if is_state(items["Logging"], ON):
+			gargoyle_restart.log.info("Gargoyle restart")
+
+@rule("RTR_OH2 restart", description="Item RTR_OH2 restart changed to OFF", tags=["Stop", "RTR_OH2"])
+@when("Item RTR_OH2_restart changed")
+def rtr_oh2_restart(event):
+	if is_state(event.itemState, OFF):
+		rtr_oh2_restart = executeCommandLine("/etc/openhab2/scripts/restart_rtr_oh2.sh", 10000)
+		if is_state(items["Logging"], ON):
+			rtr_oh2_restart.log.info("RTR_OH2 restart")
+
+@rule("Repeater0 restart", description="Item Repeater0 restart changed to OFF", tags=["Stop", "Repeater0"])
+@when("Item Repeater0_restart changed")
+def repeater0_restart(event):
+	if is_state(event.itemState, OFF):
+		repeater0_restart = executeCommandLine("/etc/openhab2/scripts/restartrepeater.sh repeater0", 10000)
+		if is_state(items["Logging"], ON):
+			repeater0_restart.log.info("Repeater0 restart")
+
+@rule("Repeater1 restart", description="Item Repeater1 restart changed to OFF", tags=["Stop", "Repeater1"])
+@when("Item Repeater1_restart changed")
+def repeater1_restart(event):
+	if is_state(event.itemState, OFF):
+		repeater1_restart = executeCommandLine("/etc/openhab2/scripts/restartrepeater.sh repeater1", 10000)
+		if is_state(items["Logging"], ON):
+			repeater1_restart.log.info("Repeater1 restart")
+
+@rule("Repeater2 restart", description="Item Repeater2 restart changed to OFF", tags=["Stop", "Repeater2"])
+@when("Item Repeater2_restart changed")
+def repeater2_restart(event):
+	if is_state(event.itemState, OFF):
+		repeater2_restart = executeCommandLine("/etc/openhab2/scripts/restartrepeater.sh repeater2", 10000)
+		if is_state(items["Logging"], ON):
+			repeater2_restart.log.info("Repeater2 restart")
+
+
+@rule("Update_VPN_List ", description="Update_VPN_List", tags=["update", "VPN"])
+@when("Item Update_VPN_List changed")
+def vpn_list_update(event):
+	if is_state(event.itemState, ON):
+		vpn_list_update = executeCommandLine("/etc/openhab2/scripts/update_vpn_list.sh", 10000)
+		if is_state(items["Logging"], ON):
+			vpn_list_update.log.info("VPN list updated")
+			
+@rule("Backup Openhab2 to NAS", description="Backup Openhab2 to NAS", tags=["Backup", "Openhab2"])
+@when("Item Backup_Openhab2 changed")
+def backup_openhab(event):
+	if is_state(event.itemState, ON):
+		backup_openhab = executeCommandLine("/etc/openhab2/scripts/backup_openhab2.sh", 10000)
+		if is_state(items["Logging"], ON):
+			backup_openhab.log.info("Openhab2 config was backed up")
+
+@rule("Wakeup pfsense", description="Wakeup pfsense", tags=["Wakeup", "pfsense"])
+@when("Item WOL_pfsense changed")
+def wakeup_pfsense(event):
+	if is_state(event.itemState, ON):
+		wakeup_pfsense = executeCommandLine("/etc/openhab2/scripts/wol_pfsense.sh", 10000)
+		if is_state(items["Logging"], ON):
+			wakeup_pfsense.log.info("pfsense was waked up")
+
+@rule("Backup rrd4j", description="Backup rrd4j", tags=["backup", "rrd4j"])
+@when("Item Backup_rrd4j changed")
+def backup_rrd4j(event):
+	if is_state(event.itemState, ON):
+		backup_rrd4j = executeCommandLine("/etc/openhab2/scripts/backup_rrd4j.sh create", 10000)
+		if is_state(items["Logging"], ON):
+			backup_rrd4j.log.info("rrd4j database was backed up")
+
+@rule("Restore rrd4j", description="Restore rrd4j", tags=["Restore", "rrd4j"])
+@when("Item Restore_rrd4j changed")
+def restore_rrd4j(event):
+	if is_state(event.itemState, ON):
+		restore_rrd4j = executeCommandLine("/etc/openhab2/scripts/backup_rrd4j.sh restore", 10000)
+		if is_state(items["Logging"], ON):
+			restore_rrd4j.log.info("rrd4j database was restored")
+
+
+
+def timer1_sufra():
+	events.sendCommand("Sufra_Pir1", "OFF")
+	occupancyTimer1.cancel()
+
+@rule("SufragerieSenzorMiscare_Occupancy received ON", description="SufragerieSenzorMiscare_Occupancy received update ON", tags=["Occupancy", "Sufra"])
+#@when("Item SufragerieSenzorMiscare_Occupancy received update")
+@when("Item Sufra1_pir_Presence received update")
+def sufra1_occupancy(event):
+	global occupancyTimer1
+	global timeout1Seconds
+	if is_state(event.itemState, ON):
+		if occupancyTimer1 is None or occupancyTimer1.hasTerminated():
+			events.sendCommand("Sufra_Pir1", "ON")
+			occupancyTimer1 = ScriptExecution.createTimer(DateTime.now().plusSeconds(timeout1Seconds), timer1_sufra)
+		elif occupancyTimer1 is not None and not occupancyTimer1.hasTerminated():
+			events.sendCommand("Sufra_Pir1", "ON")
+
+def timer2_sufra():
+	events.sendCommand("Sufra_Pir2", "OFF")
+	occupancyTimer2.cancel()
+
+@rule("Sufragerie2SenzorMiscare_Occupancy received ON", description="Sufragerie2SenzorMiscare_Occupancy received update ON", tags=["Occupancy", "Sufra"])
+#@when("Item Sufragerie2SenzorMiscare_Occupancy received update")
+@when("Item Sufra2_pir_Presence received update")
+def sufra2_occupancy(event):
+	global occupancyTimer2
+	global timeout2Seconds
+	if is_state(event.itemState, ON):
+		if occupancyTimer2 is None or occupancyTimer2.hasTerminated():
+			events.sendCommand("Sufra_Pir2", "ON")
+			occupancyTimer2 = ScriptExecution.createTimer(DateTime.now().plusSeconds(timeout2Seconds), timer2_sufra)
+		elif occupancyTimer2 is not None and not occupancyTimer2.hasTerminated():
+			events.sendCommand("Sufra_Pir2", "ON")
+
+@rule("Decizie cand Sufra Pir1 received command", description="Decizie cand SufraPir1 received command", tags=["Occupancy", "Sufra"])
+@when("Item Sufra_Pir1 received command")
+def sufra_pir1(event):
+	if is_state(event.itemCommand, ON):
+		if is_state(items["Sufra_Presence"], OFF):
+			events.sendCommand("Sufra_Presence", "ON")
+	if is_state(event.itemCommand, OFF):
+		if is_state(items["Sufra_Pir2"], OFF):
+			events.sendCommand("Sufra_Presence", "OFF")
+#
+@rule("Decizie cand Sufra Pir2 received command", description="Decizie cand SufraPir2 received command", tags=["Occupancy", "Sufra"])
+@when("Item Sufra_Pir2 received command")
+def sufra_pir2(event):
+	if is_state(event.itemCommand, ON):
+		if is_state(items["Sufra_Presence"], OFF):
+			events.sendCommand("Sufra_Presence", "ON")
+	if is_state(event.itemCommand, OFF):
+		if is_state(items["Sufra_Pir1"], OFF):
+			events.sendCommand("Sufra_Presence", "OFF")
+
+def timer3_dormp():
+	events.sendCommand("Dorm1_PIR1", "OFF")
+	occupancyTimer3.cancel()
+		
+@rule("DormitorPSenzorMiscare_Occupancy received ON", description="DormitorPSenzorMiscare_Occupancy received update ON", tags=["Occupancy", "DormP"])
+#@when("Item DormitorPSenzorMiscare_Occupancy received update")
+@when("Item DormP1_pir_Presence received update")
+def dormp1_occupancy(event):
+	global occupancyTimer3
+	global timeout1Seconds
+	if is_state(event.itemState, ON):
+		if occupancyTimer3 is None or occupancyTimer3.hasTerminated():
+			events.sendCommand("Dorm1_PIR1", "ON")
+			occupancyTimer3 = ScriptExecution.createTimer(DateTime.now().plusSeconds(timeout1Seconds), timer3_dormp)
+		elif occupancyTimer3 is not None and not occupancyTimer3.hasTerminated():
+			events.sendCommand("Dorm1_PIR1", "ON")
+
+def timer4_dormp():
+	events.sendCommand("Dorm1_PIR2", "OFF")
+	occupancyTimer4.cancel()
+	
+@rule("HolSenzorMiscare_Occupancy received ON", description="HolSenzorMiscare_Occupancy received update ON", tags=["Occupancy", "DormP"])
+#@when("Item HolSenzorMiscare_Occupancy received update")
+@when("Item DormP2_pir_Presence received update")
+def dormp2_occupancy(event):
+	global occupancyTimer4
+	global timeout2Seconds
+	if is_state(event.itemState, ON):
+		if occupancyTimer4 is None or occupancyTimer4.hasTerminated():
+			events.sendCommand("Dorm1_PIR2", "ON")
+			occupancyTimer4 = ScriptExecution.createTimer(DateTime.now().plusSeconds(timeout2Seconds), timer4_dormp)
+		elif occupancyTimer4 is not None and not occupancyTimer4.hasTerminated():
+			events.sendCommand("Dorm1_PIR2", "ON")
+
+@rule("Decizie cand DormP PIR1 received command", description="Decizie cand DormP PIR1 received command", tags=["Occupancy", "DormP"])
+@when("Item Dorm1_PIR1 received command")
+def dormp_pir1(event):
+	if is_state(event.itemCommand, ON):
+		if is_state(items["Dorm1_Presence"], OFF):
+			events.sendCommand("Dorm1_Presence", "ON")
+	if is_state(event.itemCommand, OFF):	
+		if is_state(items["Dorm1_PIR2"], OFF):
+			events.sendCommand("Dorm1_Presence", "OFF")
+
+@rule("Decizie cand DormP PIR2 received command", description="Decizie cand DormP PIR2 received command", tags=["Occupancy", "DormP"])
+@when("Item Dorm1_PIR2 received command")
+def dorm1_pir2(event):
+	if is_state(event.itemCommand, ON):
+		if is_state(items["Dorm1_Presence"], OFF):
+			events.sendCommand("Dorm1_Presence", "ON")
+	if is_state(event.itemCommand, OFF):	
+		if is_state(items["Dorm1_PIR1"], OFF):
+			events.sendCommand("Dorm1_Presence", "OFF")
+
+def timer5_dormc():
+	events.sendCommand("Dorm2_PIR1", "OFF")
+	occupancyTimer5.cancel()
+
+@rule("DormitorCSenzorMiscare_Occupancy received ON", description="DormitorCSenzorMiscare_Occupancy received update ON", tags=["Occupancy", "DormC"])
+#@when("Item DormitorCSenzorMiscare_Occupancy received update")
+@when("Item DormC1_pir_Presence received update")
+def dormc1_occupancy(event):
+	global occupancyTimer5
+	global timeout1Seconds
+	if is_state(event.itemState, ON):
+		if occupancyTimer5 is None or occupancyTimer5.hasTerminated():
+			events.sendCommand("Dorm2_PIR1", "ON")
+			occupancyTimer5 = ScriptExecution.createTimer(DateTime.now().plusSeconds(timeout1Seconds), timer5_dormc)
+		elif occupancyTimer5 is not None and not occupancyTimer5.hasTerminated():
+			events.sendCommand("Dorm2_PIR1", "ON")
+
+def timer6_dormc():
+	events.sendCommand("Dorm2_PIR2", "OFF")
+	occupancyTimer6.cancel()
+
+@rule("BaieSenzorMiscare_Occupancy received ON", description="BaieSenzorMiscare_Occupancy received update ON", tags=["Occupancy", "DormC"])
+#@when("Item BaieSenzorMiscare_Occupancy received update")
+@when("Item DormC2_pir_Presence received update")
+def dormc2_occupancy(event):
+	global occupancyTimer6
+	global timeout2Seconds
+	if is_state(event.itemState, ON):
+		if occupancyTimer6 is None or occupancyTimer6.hasTerminated():
+			events.sendCommand("Dorm2_PIR2", "ON")
+			occupancyTimer6 = ScriptExecution.createTimer(DateTime.now().plusSeconds(timeout2Seconds), timer6_dormc)
+		elif occupancyTimer6 is not None and not occupancyTimer6.hasTerminated():
+			events.sendCommand("Dorm2_PIR2", "ON")
+
+@rule("Decizie cand DormCPIR1 received command", description="Decizie cand DormC PIR1 received command", tags=["Occupancy", "DormC"])
+@when("Item Dorm2_PIR1 received command")
+def dormc_pir1(event):
+	if is_state(event.itemCommand, ON):
+		if is_state(items["Dorm2_Presence"], OFF):
+			events.sendCommand("Dorm2_Presence", "ON")
+	if is_state(event.itemCommand, OFF):	
+		if is_state(items["Dorm2_PIR2"], OFF):
+			events.sendCommand("Dorm2_Presence", "OFF")
+
+@rule("Decizie cand DormC PIR2 received command", description="Decizie cand DormC PIR2 received command", tags=["Occupancy", "DormC"])
+@when("Item Dorm2_PIR2 received command")
+def dormc_pir2(event):
+	if is_state(event.itemCommand, ON):
+		if is_state(items["Dorm2_Presence"], OFF):
+			events.sendCommand("Dorm2_Presence", "ON")
+	if is_state(event.itemCommand, OFF):	
+		if is_state(items["Dorm2_PIR1"], OFF):
+			events.sendCommand("Dorm2_Presence", "OFF")
+			
+@rule("Decizie cand Dark devine activ", description="Item Dark received command ON", tags=["Dark", "DormC"])
+@when("Item Dark received command")
+def dark(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand("Permanent", "OFF")
+
+@rule("Decizie cand Permanent devine activ", description="Item Permanent received command ON", tags=["Permanent", "DormC"])
+@when("Item Permanent received command")
+def permanent(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand("Dark", "OFF")
+
+@rule("Decizie cand DarkSufra devine activ", description="Item DarkSufra received command ON", tags=["DarkSufra", "DormC"])
+@when("Item DarkSufra received command")
+def dark_sufra(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand("PermSufra", "OFF")
+
+@rule("Decizie cand PermSufra devine activ", description="Item PermSufra received command ON", tags=["PermSufra", "DormC"])
+@when("Item PermSufra received command")
+def perm_sufra(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand("DarkSufra", "OFF")
+		if _occ_sufra[0] is not None and not _occ_sufra[0].hasTerminated():
+			_occ_sufra[0].cancel()
+		
+@rule("Decizie cand DarkDormC devine activ", description="Item DarkDormC received command ON", tags=["DarkDormC", "DormC"])
+@when("Item DarkDormC received command")
+def dark_dormc(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand("PermDormC", "OFF")
+
+@rule("Decizie cand PermDormC devine activ", description="Item PermDormC received command ON", tags=["PermDormC", "DormC"])
+@when("Item PermDormC received command")
+def perm_dormc(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand("DarkDormC", "OFF")
+		if _occ_dormc[0] is not None and not _occ_dormc[0].hasTerminated():
+			_occ_dormc[0].cancel()
+
+@rule("Decizie cand DarkDormP devine activ", description="Item DarkDormP received command ON", tags=["DarkDormP", "DormP"])
+@when("Item DarkDormP received command")
+def dark_dormp(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand("PermDormP", "OFF")
+
+@rule("Decizie cand PermDormP devine activ", description="Item PermDormP received command ON", tags=["PermDormP", "DormP"])
+@when("Item PermDormP received command")
+def perm_dormp(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand("DarkDormP", "OFF")
+		if _occ_dormp[0] is not None and not _occ_dormp[0].hasTerminated():
+			_occ_dormp[0].cancel()
+
+@rule("Decizie cand DarkBucatarie devine activ", description="Item DarkBucatarie received command ON", tags=["DarkBucatarie", "Bucatarie"])
+@when("Item DarkBucatarie received command")
+def dark_bucatarie(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand("PermBucatarie", "OFF")
+
+@rule("Decizie cand PermBucatarie devine activ", description="Item PermBucatarie received command ON", tags=["PermBucatarie", "Bucatarie"])
+@when("Item PermBucatarie received command")
+def perm_bucatarie(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand("DarkBucatarie", "OFF")
+
+
+###############################################################		
+#def timer_sufra_reset():
+#	if d_lampa_s.state == 0 or d_lampa_s.state == NULL: ##nou 01.06.2022
+#		events.postUpdate(ir.getItem("DelayTimerLampaS"), 300) ##nou 01.06.2022
+#	elif d_lampa_s.state != 0 or d_lampa_s.state != NULL:
+#		valTimerSecLampa = int(str(items["DelayTimerLampaM"])) * 60 ##nou 05.06.2022
+#		events.postUpdate(ir.getItem("DelayTimerLampaS"), valTimerSecLampa) ##nou 05.06.2022
+#		events.postUpdate(ir.getItem("DelayTimerLampa"), str("DelayTimerLampaS"))
+#	if d_sufra_s.state == 0 or d_sufra_s.state == NULL: ##nou 01.06.2022
+#		events.postUpdate(ir.getItem("DelayTimerSufragerieS"), 300) ##nou 01.06.2022
+#	elif d_sufra_s.state != 0 or d_sufra_s.state != NULL:
+#		valTimerSecSufragerie = int(str(items["DelayTimerSufragerieM"])) * 60 ##nou 05.06.2022
+#		events.postUpdate(ir.getItem("DelayTimerSufragerieS"), valTimerSecSufragerie) ##nou 05.06.2022
+#		events.postUpdate(ir.getItem("DelayTimerSufragerie"), str("DelayTimerSufragerieS"))
+#	#HoldDown3 = 0  ##comentat la 04.06.2022
+#	if d_sufra_s.state == 0 or d_sufra_s.state == NULL:
+#		events.postUpdate(ir.getItem("DTSufragerie"), 7)
+#	if HoldDown3 != 0 or HoldDown3 != NULL:
+#		HoldDown3 = baseHoldDown3 ##nou 05.06.2022
+#	events.postUpdate(ir.getItem("HDSufragerie"), HoldDown3)
+
+def timer_sufra_reset():
+	#if dt_L.state == 0 or dt_L.state == NULL:
+		#events.postUpdate(ir.getItem("DTLampa"), 3)
+	#if dt_S.state == 0 or dt_S.state == NULL:
+		#events.postUpdate(ir.getItem("DTSufragerie"), 7)  ##nou 05.06.2022
+	#events.postUpdate(ir.getItem("DelayTimerLampaM"), ir.getItem("DTLampa").state) 
+	#events.postUpdate(ir.getItem("DelayTimerSufragerieM"), ir.getItem("DTSufragerie").state)
+	#valTimerSecLampa = int(str(items["DelayTimerLampaM"])) * 60
+	#valTimerSecSufragerie = int(str(items["DelayTimerSufragerieM"])) * 60 ##nou 05.06.2022
+	#events.postUpdate(ir.getItem("DelayTimerLampaS"), valTimerSecLampa)##nou 05.06.2022
+	#events.postUpdate(ir.getItem("DelayTimerSufragerieS"), valTimerSecSufragerie)
+	#events.postUpdate(ir.getItem("DelayTimerSufragerie"), str("DelayTimerSufragerieS"))  ##nou 05.06.2022
+	#baseHoldDown3 = (int(str(items["DTSufragerie"])) * 60) / 5
+	HoldDown3 = (int(str(items["DTSufragerie"])) * 60) / 5 ##nou 08.06.2022
+	events.postUpdate("HDSufragerie", str(HoldDown3))
+
+
+### comentat la 01.06.2022
+#def timer_sufra_reset():
+#	if d_lampa_s.state != 0 or d_lampa_s.state != NULL:
+#		events.sendCommand(ir.getItem("DelayTimerLampa"), str("DelayTimerLampaS"))
+#	if d_sufra_s.state != 0 or d_sufra_s.state != NULL:
+#		events.sendCommand(ir.getItem("DelayTimerSufragerie"), str("DelayTimerSufragerieS"))
+#	HoldDown3 = 0
+#	events.sendCommand(ir.getItem("HDSufragerie"), HoldDown3)	
+
+@rule("Sufra_Presence changed - reset inactivity timer", description="Sufra_Presence changed ON", tags=["Presence", "Sufragerie"])
+@when("Item Sufra_Presence changed")
+def sufra_wait_inactivity(event):
+	global resetTimer_sufra
+	if is_state(event.itemState, ON):
+		if resetTimer_sufra is None or resetTimer_sufra.hasTerminated():
+			resetTimer_sufra = ScriptExecution.createTimer(DateTime.now().plusMinutes(120), timer_sufra_reset)
+		elif resetTimer_sufra is not None and not resetTimer_sufra.hasTerminated():
+			resetTimer_sufra.reschedule(DateTime.now().plusMinutes(120))	
+
+@rule("Sufra_Presence received command - holddown", description="Sufra_Presence received command ON", tags=["Presence", "Sufragerie"])
+@when("Item Sufra_Presence received command")
+def sufragerie_presence_delay(event):
+	global HDtimer3
+	global HoldDown3
+	global incr3
+	global timeFract3
+	global HoldDown3_3
+	global DT_HDSufra
+	global DT_HDLampa
+	if is_state(items["Logging"], ON):
+		sufragerie_presence_delay.log.info("There is presence in Sufragerie")
+	if is_state(event.itemCommand, ON):
+		if HDtimer3 is None or HDtimer3.hasTerminated():
+				HoldDown3 = baseHoldDown3
+				incr3 = 0
+				events.sendCommand("HD3", "ON")
+				HDtimer3 = ScriptExecution.createTimer(DateTime.now().plusSeconds(HoldDown3), timer3_dynamic_delay)
+				
+		elif HDtimer3 is not None and not HDtimer3.hasTerminated():
+			incr3 += 1
+			timeFract3 = (baseHoldDown3 / incr3)
+			HoldDown3_3 = HoldDown3
+			if is_state(items["Sufragerie_Daytime"], OFF):
+				HoldDown3 = int(str(HoldDown3_3)) + timeFract3
+			if is_state(items["Sufragerie_Daytime"], ON):
+				HoldDown3 = (int(str(items["DTSufragerie"])) * 60)
+			events.sendCommand("HDSufragerie", str(HoldDown3))
+			####
+			if int(str(items["DTLampa"])) == 0:
+				events.postUpdate("DTLampa", str(3))
+			if d_lampa.state == 0 or d_lampa.state == NULL:
+				events.sendCommand("DelayTimerLampa", str(int(str(items["DTLampa"])) * 60 + int(str(items["HDSufragerie"]))))
+
+			if int(str(items["DTSufragerie"])) == 0:
+				events.postUpdate("DTSufragerie", str(7))
+			if d_sufra.state == 0 or d_sufra.state == NULL:
+				events.sendCommand("DelayTimerSufragerie", str(int(str(items["DTSufragerie"])) * 60 + int(str(items["HDSufragerie"]))))
+			###
+			if (items["PermSufra"] == OFF or items["DarkSufra"] == OFF) and items["Sufragerie_Illuminance_Switch"] == ON:
+				DT_HDSufra = int(str(items["DTSufragerie"])) * 60 + int(str(items["HDSufragerie"]))
+				DT_HDLampa = int(str(items["DTLampa"])) * 60 + int(str(items["HDSufragerie"]))
+				HDtimer3.reschedule(DateTime.now().plusSeconds(HoldDown3))
+				events.sendCommand("DelayTimerLampa", str(DT_HDLampa))
+				events.sendCommand("DelayTimerSufragerie", str(DT_HDSufra))
+				events.sendCommand("HD3", "ON")
+				if is_state(items["Logging"], ON):
+					sufragerie_presence_delay.log.info("DelayTimerLampa", "SufraLampa: Timerul Lampa este setat la " + DelayTimerLampa.state)
+					sufragerie_presence_delay.log.info("DelayTimerSufra", "Sufragerie: Timerul Sufra este setat la " + DelayTimerSufragerie.state)
+			
+@rule("LightSufra received ON", description="Sufra_Presence received update ON", tags=["Presence", "Sufra"])
+@when("Item Sufra_Presence changed")
+def sufra_presence(event):
+	room_presence_handler(_SUFRA, event, _occ_sufra, items, events)
+					
+def timer1_lampa_sufra():
+	events.sendCommand("gBec_LampaSufra", "OFF")
+	if occupancyTimer7 is not None and not occupancyTimer7.hasTerminated():
+		occupancyTimer7.cancel()
+
+@rule("LampaSufra received ON", description="LampaSufra changed to ON", tags=["Presence", "Lampa"])
+@when("Item Sufra_Presence changed")
+def lampa_sufra_presence(event):
+	global occupancyTimer7
+	morning = "MORNING"
+	day = "DAY"
+	afternoon = "AFTERNOON"
+	evening = "EVENING"
+	night = "NIGHT"
+	bed = "BED"
+	if is_state(event.itemState, ON):
+		if items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+			if is_state(items["DarkSufra"], OFF):
+				if is_state(items["PermSufra"], OFF):
+					if is_state(items["Sufragerie_Illuminance_Switch"], ON):
+						events.sendCommand("OffFlagLamp", "OFF")	#Nou 10.02.2023
+						if is_state(items["Logging"], ON):
+							lampa_sufra_presence.log.info("Sufra_Illuminance, changed from OFF to ON")
+						if occupancyTimer7 is None or occupancyTimer7.hasTerminated():
+							if not is_state(items["Sonoffmini3_Alive"], ON):
+								events.sendCommand("gBec_LampaSufra", "ON")
+							if is_state(items["Logging"], ON):
+								lampa_sufra_presence.log.info("Sufra_Illuminance, Creating Timer - Dark")
+							occupancyTimer7 = ScriptExecution.createTimer(DateTime.now().plusSeconds(on_timer2), timer1_lampa_sufra)
+							if is_state(items["Logging"], ON):
+								lampa_sufra_presence.log.info("Sufra_Illuminance, Timer Expired - Dark")
+						elif occupancyTimer7 is not None and not occupancyTimer7.hasTerminated():
+							occupancyTimer7.reschedule(DateTime.now().plusSeconds(on_timer2))
+							if not is_state(items["Sonoffmini3_Alive"], ON):
+								events.sendCommand("gBec_LampaSufra", "ON")
+					elif is_state(items["Sufragerie_Illuminance_Switch"], OFF):
+						events.sendCommand("OffFlagLamp", "ON")	#Nou 10.02.2023
+						if is_state(items["Logging"], ON):
+							lampa_sufra_presence.log.info("Sufra_Illuminance, There is enough natural light")
+						if occupancyTimer7 is None or occupancyTimer7.hasTerminated():
+							if is_state(items["Logging"], ON):
+								lampa_sufra_presence.log.info("Sufra_Illuminance, Creating Timer")
+							occupancyTimer7 = ScriptExecution.createTimer(DateTime.now().plusSeconds(on_timer2), timer1_lampa_sufra)
+							if is_state(items["Logging"], ON):
+								lampa_sufra_presence.log.info("Sufra_Illuminance, Timer Expired")
+				elif is_state(items["PermSufra"], ON):
+					events.sendCommand("OffFlagLamp", "OFF")	#Nou 10.02.2023
+					if not is_state(items["Sonoffmini3_Alive"], ON):
+						events.sendCommand("gBec_LampaSufra", "ON")
+					if is_state(items["Logging"], ON):
+						lampa_sufra_presence.log.info("Sufra_Illuminance, Permanent Mode")
+			elif is_state(items["DarkSufra"], ON):
+				events.sendCommand("OffFlagLamp", "ON")	#Nou 10.02.2023
+				events.sendCommand("gBec_LampaSufra", "OFF")
+				if is_state(items["Logging"], ON):
+					lampa_sufra_presence.log.info("Sufra_Illuminance, Dark Mode")
+			
+		elif items["vTimeOfDay"] == StringType(morning) or items["vTimeOfDay"] == StringType(evening): ### or items["vTimeOfDay"] == StringType(bed): ### or items["vTimeOfDay"] == StringType(night):
+			if is_state(items["DarkSufra"], OFF):
+				if is_state(items["PermSufra"], OFF):
+					events.sendCommand("OffFlagLamp", "OFF")	#Nou 10.02.2023
+					if is_state(items["Logging"], ON):
+						lampa_sufra_presence.log.info("Sufra_Illuminance, changed from OFF to ON")
+					if occupancyTimer7 is None or occupancyTimer7.hasTerminated():
+						if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
+							events.sendCommand("gBec_LampaSufra", "ON")
+						if is_state(items["Logging"], ON):
+							lampa_sufra_presence.log.info("Sufra_Illuminance, Creating Timer - Nighttime")
+						occupancyTimer7 = ScriptExecution.createTimer(DateTime.now().plusSeconds(on_timer2), timer1_lampa_sufra)
+						if is_state(items["Logging"], ON):
+							lampa_sufra_presence.log.info("Sufra_Illuminance, Timer Expired - Nighttime")
+					elif occupancyTimer7 is not None and not occupancyTimer7.hasTerminated():
+						occupancyTimer7.reschedule(DateTime.now().plusSeconds(on_timer2))
+						if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
+							events.sendCommand("gBec_LampaSufra", "ON")
+				elif is_state(items["PermSufra"], ON):
+					events.sendCommand("OffFlagLamp", "OFF")	#Nou 10.02.2023
+					if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
+						events.sendCommand("gBec_LampaSufra", "ON")
+					if is_state(items["Logging"], ON):
+						lampa_sufra_presence.log.info("Sufra_Illuminance, Permanent Mode")
+			elif is_state(items["DarkSufra"], ON):
+				events.sendCommand("OffFlagLamp", "ON")	#Nou 10.02.2023
+				events.sendCommand("gBec_LampaSufra", "OFF")
+				if is_state(items["Logging"], ON):
+					lampa_sufra_presence.log.info("Sufra_Illuminance, Dark Mode")
+
+		elif is_state(items["vTimeOfDay"], StringType(bed)): ### or items["vTimeOfDay"] == StringType(night):
+			if is_state(items["DarkSufra"], OFF):
+				if is_state(items["PermSufra"], OFF):
+					events.sendCommand("OffFlagLamp", "OFF")	#Nou 10.02.2023
+					if is_state(items["Logging"], ON):
+						lampa_sufra_presence.log.info("Sufra_Illuminance, changed from OFF to ON")
+					if occupancyTimer7 is None or occupancyTimer7.hasTerminated():
+						if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
+							events.sendCommand("gBec_LampaSufra", "ON")
+						if is_state(items["Logging"], ON):
+							lampa_sufra_presence.log.info("Sufra_Illuminance, Creating Timer - Nighttime")
+						occupancyTimer7 = ScriptExecution.createTimer(DateTime.now().plusSeconds(on_timer2), timer1_lampa_sufra)
+						if is_state(items["Logging"], ON):
+							lampa_sufra_presence.log.info("Sufra_Illuminance, Timer Expired - Nighttime")
+					elif occupancyTimer7 is not None and not occupancyTimer7.hasTerminated():
+						occupancyTimer7.reschedule(DateTime.now().plusSeconds(on_timer2))
+						if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
+							events.sendCommand("gBec_LampaSufra", "ON")
+				elif is_state(items["PermSufra"], ON):
+					events.sendCommand("OffFlagLamp", "OFF")	#Nou 10.02.2023
+					if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
+						events.sendCommand("gBec_LampaSufra", "ON")
+					if is_state(items["Logging"], ON):
+						lampa_sufra_presence.log.info("Sufra_Illuminance, Permanent Mode")
+			elif items["DarkSufra"] == ON or items["Clock_alarm"] == OFF:
+				events.sendCommand("OffFlagLamp", "ON")	#Nou 10.02.2023
+				events.sendCommand("gBec_LampaSufra", "OFF")
+				if is_state(items["Logging"], ON):
+					lampa_sufra_presence.log.info("Sufra_Illuminance, Dark Mode")
+
+#def timer_dormp_reset():
+#	if d_dormmic_s.state == 0 or d_dormmic_s.state == NULL:
+#		events.postUpdate(ir.getItem("DTDormMic"), 7)  ##nou 05.06.2022
+#	elif d_dormmic_s.state != 0 or d_dormmic_s.state != NULL: ##modificat 01.06.2022
+#		valTimerSecDormP = int(str(items["DelayTimerDormMicM"])) * 60 ##nou 05.06.2022
+#		events.postUpdate(ir.getItem("DelayTimerDormMicS"), valTimerSecDormP) ##nou 05.06.2022
+#		events.postUpdate(ir.getItem("DelayTimerDormMic"), str("DelayTimerDormMicS"))
+	#HoldDown1 = 0  ##comentat la 04.06.2022
+#	if HoldDown1 != 0 or HoldDown1 != NULL:
+#		HoldDown1 = baseHoldDown1 ##nou 05.06.2022
+#	events.postUpdate(ir.getItem("HDDormP"), HoldDown1)
+
+def timer_dormp_reset():
+	#if dt_DM.state == 0 or dt_DM.state == NULL:
+		#events.postUpdate(ir.getItem("DTDormMic"), 7)  ##nou 05.06.2022
+	#events.postUpdate(ir.getItem("DelayTimerDormMicM"), ir.getItem("DTDormMic").state)
+	#valTimerSecDormP = int(str(items["DelayTimerDormMicM"])) * 60 ##nou 05.06.2022
+	#events.postUpdate(ir.getItem("DelayTimerDormMicS"), valTimerSecDormP) ##nou 05.06.2022
+	#events.postUpdate(ir.getItem("DelayTimerDormMic"), str("DelayTimerDormMicS"))  ##nou 05.06.2022
+	#baseHoldDown1 = (int(str(items["DTDormMic"])) * 60) / 5
+	HoldDown1 = (int(str(items["DTDormMic"])) * 60) / 5 ##nou 08.06.2022s
+	events.postUpdate("HDDormP", str(HoldDown1))
+
+@rule("Dorm1_Presence changed - reset inactivity timer", description="DormP_Presence received ON", tags=["Presence", "DormP"])
+@when("Item Dorm1_Presence changed")
+def dormp_wait_inactivity(event):
+	global resetTimer_dormp
+	if is_state(event.itemState, ON):
+		if resetTimer_dormp is None or resetTimer_dormp.hasTerminated():
+			resetTimer_dormp = ScriptExecution.createTimer(DateTime.now().plusMinutes(120), timer_dormp_reset)
+		elif resetTimer_dormp is not None and not resetTimer_dormp.hasTerminated():
+			resetTimer_dormp.reschedule(DateTime.now().plusMinutes(120))
+
+@rule("Dorm1_Presence changed to ON", description="Dorm1_Presence changed to ON", tags=["Presence", "DormP"])
+@when("Item Dorm1_Presence changed")
+def dormp_presence(event):
+	room_presence_handler(_DORMP, event, _occ_dormp, items, events)
+					
+#def timer_dormc_reset():
+#	if d_dormcopii_s.state == 0 or d_dormcopii_s.state == NULL: ##nou 01.06.2022
+#		events.postUpdate(ir.getItem("DelayTimerDormCopiiS"), 300) ##nou 01.06.2022
+#	elif d_dormcopii_s.state != 0 or d_dormcopii_s.state != NULL:
+#		valTimerSecDormC = int(str(items["DelayTimerDormCopiiM"])) * 60 ##nou 05.06.2022
+#		events.postUpdate(ir.getItem("DelayTimerDormCopiiS"), valTimerSecDormC) ##nou 05.06.2022
+#		events.postUpdate(ir.getItem("DelayTimerDormCopii"), str("DelayTimerDormCopiiS"))
+	#HoldDown2 = 0  ##comentat la 04.06.2022
+#	if d_dormcopii_s.state == 0 or d_dormcopii_s.state == NULL:
+#		events.postUpdate(ir.getItem("DTDormCopii"), 10)
+#	if HoldDown2 != 0 or HoldDown2 != NULL:
+#		HoldDown2 = baseHoldDown2 ##nou 05.06.2022
+#	events.postUpdate(ir.getItem("HDDormC"), HoldDown2)
+
+def timer_dormc_reset():
+	#if dt_DC.state == 0 or dt_DC.state == NULL:
+		#events.postUpdate(ir.getItem("DTDormCopii"), 10)  ##nou 05.06.2022
+	#events.postUpdate(ir.getItem("DelayTimerDormCopiiM"), ir.getItem("DTDormCopii").state)
+	#valTimerSecDormC = int(str(items["DelayTimerDormCopiiM"])) * 60 ##nou 05.06.2022
+	#events.postUpdate(ir.getItem("DelayTimerDormCopiiS"), valTimerSecDormC) ##nou 05.06.2022
+	#events.postUpdate(ir.getItem("DelayTimerDormCopii"), str("DelayTimerDormCopiiS"))  ##nou 05.06.2022
+	#baseHoldDown2 = (int(str(items["DTDormCopii"])) * 60) / 5
+	HoldDown2 = (int(str(items["DTDormCopii"])) * 60) / 5 ##nou 08.06.2022
+	events.postUpdate("HDDormC", str(HoldDown2))
+
+@rule("DormC_Presence received ON", description="DormC_Presence received ON", tags=["Presence", "DormC"])
+@when("Item Dorm2_Presence changed")
+def dormc_wait_inactivity(event):
+	global resetTimer_dormc
+	if is_state(event.itemState, ON):
+		if resetTimer_dormc is None or resetTimer_dormc.hasTerminated():
+			resetTimer_dormc = ScriptExecution.createTimer(DateTime.now().plusMinutes(120), timer_dormc_reset)
+		elif resetTimer_dormc is not None and not resetTimer_dormc.hasTerminated():
+			resetTimer_dormc.reschedule(DateTime.now().plusMinutes(120))
+
+@rule("Dorm2_Presence changed to ON", description="Dorm2_Presence changed to ON", tags=["Presence", "DormC"])
+@when("Item Dorm2_Presence changed")
+def dormc_presence(event):
+	room_presence_handler(_DORMC, event, _occ_dormc, items, events)
+
+def timer1_telefunken():
+	events.sendCommand("Telefunken_Sw", "OFF")
+	if occupancyTimer10 is not None and not occupancyTimer10.hasTerminated():
+		occupancyTimer10.cancel()
+
+def timer_telefunken_hdmi1():
+	events.sendCommand("Telefunken_HDMI1", "OFF")
+	if sourceresetTimer is not None and not sourceresetTimer.hasTerminated():
+		sourceresetTimer.cancel()
+
+def timer_telefunken_kodi():
+	events.sendCommand("Telefunken_Kodi", "OFF")
+	if sourceresetTimer is not None or not sourceresetTimer.hasTerminated():
+		sourceresetTimer.cancel()
+
+@rule("Cinema received command ON", description="Cinema received command ON", tags=["Cinema", "TV"])
+@when("Item Cinema changed")
+def cinema_presence(event):
+	global occupancyTimer10
+	if is_state(event.itemState, ON):
+		#events.sendCommand (ir.getItem("Telefunken_Sw"), ON)  #commented on 20230305
+		if is_state(items["Logging"], ON):
+			dormp_presence.log.info("Cinema_Mode","Activated")
+		#if occupancyTimer10 is None or occupancyTimer10.hasTerminated():  #commented on 20230305
+			#if is_state(items["Logging"], ON):  #commented on 20230305
+				#dormp_presence.log.info("Cinema_Mode","Creating TimerTV")  #commented on 20230305
+			#occupancyTimer10 = ScriptExecution.createTimer(DateTime.now().plusMinutes(on_timer5), timer1_telefunken)  #commented on 20230305
+			#occupancyTimer10.cancel() #commented on 20230122
+			#occupancyTimer10 = None #commented on 20230121
+			#if is_state(items["Logging"], ON):  #commented on 20230305
+				#dormp_presence.log.info("Cinema_Mode","TimerTV Expired")  #commented on 20230305
+		#elif occupancyTimer10 is not None and not occupancyTimer10.hasTerminated():  #commented on 20230305
+			#occupancyTimer10.reschedule(DateTime.now().plusMinutes(on_timer5))  #commented on 20230305
+			#events.sendCommand(ir.getItem("Telefunken_Sw"), ON)  #commented on 20230305
+			#if is_state(items["Logging"], ON):  #commented on 20230305
+				#dormp_presence.log.info("Cinema_Mode","TimerTV Rescheduled")  #commented on 20230305
+	if is_state(event.itemState, OFF):
+		if occupancyTimer10 is None or occupancyTimer10.hasTerminated():
+			if is_state(items["Logging"], ON):
+				dormp_presence.log.info("Cinema_Mode","Creating TimerTV")
+			occupancyTimer10 = ScriptExecution.createTimer(DateTime.now().plusMinutes(on_timer5), timer1_telefunken)
+		elif occupancyTimer10 is not None and not occupancyTimer10.hasTerminated():
+			occupancyTimer10.reschedule(DateTime.now().plusMinutes(on_timer5))
+			if is_state(items["Logging"], ON):
+				dormp_presence.log.info("Cinema_Mode","TimerTV Rescheduled")
+
+#@rule("Telefunken switch off", description="Telefunken switch off", tags=["Cinema", "TV"])
+#@when("Item Telefunken_Sw changed")
+#def telefunken_off(event):
+#	if is_state(event.itemState, OFF):
+#		telefunken_off = Exec.executeCommandLine("/etc/openhab2/scripts/telefunkenoff.sh", 10000)
+#		if is_state(items["Logging"], ON):
+#			telefunken_off.log.info("Telefunken","Switch off")
+
+@rule("Telefunken HDMI1", description="Telefunken_HDMI1 changed to ON", tags=["Source", "TV"])
+@when("Item Telefunken_HDMI1 changed")
+def telefunken_hdmi1(event):
+	global sourceresetTimer
+	if is_state(event.itemState, ON):
+		telefunken_hdmi1 = Exec.executeCommandLine("/etc/openhab2/scripts/telefunken_src.sh hdmi1", 10000)
+		sourceresetTimer = ScriptExecution.createTimer(DateTime.now().plusMinutes(1), timer_telefunken_hdmi1)
+		if is_state(items["Logging"], ON):
+			telefunken_hdmi1.log.info("Telefunken","HDMI1 source selected")
+		
+@rule("Telefunken Kodi", description="Telefunken_Kodi changed to ON", tags=["Source", "TV"])
+@when("Item Telefunken_Kodi changed")
+def telefunken_kodi(event):
+	global sourceresetTimer
+	if is_state(event.itemState, ON):
+		telefunken_kodi = Exec.executeCommandLine("/etc/openhab2/scripts/telefunken_src.sh kodi", 10000)
+		sourceresetTimer = ScriptExecution.createTimer(DateTime.now().plusMinutes(1), timer_telefunken_kodi)
+		if is_state(items["Logging"], ON):
+			telefunken_kodi.log.info("Telefunken","Kodi source selected")
+			
+@rule("Decizie cand Sursa HDMI1 e activa", description="Telefunken_HDMI1 received command ON", tags=["Source", "TV"])
+@when("Item Telefunken_HDMI1 changed")
+def telefunken_hdmi1on(event):
+	if is_state(event.itemState, ON):
+		events.sendCommand("Telefunken_Kodi","OFF")
+		
+@rule("Decizie cand Sursa Kodi e activa", description="Telefunken_Kodi received command ON", tags=["Source", "TV"])
+@when("Item Telefunken_Kodi changed")
+def telefunken_kodion(event):
+	if is_state(event.itemState, ON):
+		events.sendCommand("Telefunken_HDMI1","OFF")
+
+@rule("Telefunken reachablility", description="SmartTVTelefunken_Online Status", tags=["Status", "TV"])
+@when("Item SmartTVTelefunken_Online changed")
+def telefunken_stat(event):
+	if is_state(event.itemState, OFF):
+		events.postUpdate("Telefunken_Sw", "OFF")
+		if is_state(items["Logging"], ON):
+			telefunken_stat.log.info("Telefunken","is not reachable")
+	elif is_state(event.itemState, ON):
+		events.postUpdate("Telefunken_Sw", "ON")
+		if is_state(items["Logging"], ON):
+			telefunken_stat.log.info("Telefunken","is reachable")
+
+#################################################
+###Bucatarie Start###############################
+#################################################
+
+
+
+#################################################
+###Bucatarie End#################################
+#################################################	
+@rule("Dorm1_Presence received command - holddown", description="DormP_Presence received ON", tags=["Presence", "DormP"])
+@when("Item Dorm1_Presence received command")
+def dormp_presence_delay(event):
+	room_holddown_handler(_DORMP, event, _hd_dormp, items, events)
+
+@rule("Dorm2_Presence received ON", description="Dorm2_Presence received command ON", tags=["Presence", "DormC"])
+@when("Item Dorm2_Presence received command")
+def dormc_presence_delay(event):
+	room_holddown_handler(_DORMC, event, _hd_dormc, items, events)
+
+		
+#@rule("SufraBec1_Online changed", description="SufraBec1_Online changed to Off", tags=["SufraBec1_Online", "Sufra"])
+#@when("Item SufraBec1_Online changed")
+#def sufra_bec1_ping(event):
+#	if is_state(event.itemState, OFF):
+#		if items["SufraBec2_Online"] == OFF and items["SufraBec3_Online"] == OFF:
+#			events.postUpdate("gBec_LampaSufra", "OFF")
+		
+#@rule("SufraBec2_Online changed", description="SufraBec2_Online changed to Off", tags=["SufraBec2_Online", "Sufra"])
+#@when("Item SufraBec2_Online changed")
+#def sufra_bec2_ping(event):
+#	if is_state(event.itemState, OFF):
+#		if items["SufraBec1_Online"] == OFF and items["SufraBec3_Online"] == OFF:
+#			events.postUpdate("gBec_LampaSufra", "OFF")
+		
+#@rule("SufraBec3_Online changed", description="SufraBec3_Online changed to Off", tags=["SufraBec3_Online", "Sufra"])
+#@when("Item SufraBec3_Online changed")
+#def sufra_bec3_ping(event):
+#	if is_state(event.itemState, OFF):
+#		if items["SufraBec1_Online"] == OFF and items["SufraBec2_Online"] == OFF:
+#			events.postUpdate("gBec_LampaSufra", "OFF")
+		
+@rule("Sonoff2_Online changed", description="Sonoff2_Online changed to Off", tags=["Sonoff2_Online", "DormP"])
+@when("Item Sonoff2_Online changed")
+def sonoffmini2_power_ping(event):
+	if is_state(event.itemState, OFF):
+		events.postUpdate("Sonoffmini2_Power", "OFF")
+		LogAction.logInfo("sonoffmini2_power_ping", "Sonoffmini2 didn't repond to ping. Sonoffmini2 is now [{}]", items["Sonoff2_Online"])
+		if _occ_dormp[0] is not None and not _occ_dormp[0].hasTerminated():
+			_occ_dormp[0].cancel()
+		
+@rule("Sonoff1_Online changed", description="Sonoff1_Online changed to Off", tags=["Sonoff1_Online", "DormC"])
+@when("Item Sonoff1_Online changed")
+def sonoffmini1_power_ping(event):
+	if is_state(event.itemState, OFF):
+		events.postUpdate("Sonoffmini1_Power", "OFF")
+		LogAction.logInfo("sonoffmini1_power_ping", "Sonoffmini1 didn't repond to ping. Sonoffmini1 is now [{}]", items["Sonoff1_Online"])
+		if _occ_dormc[0] is not None and not _occ_dormc[0].hasTerminated():
+			_occ_dormc[0].cancel()
+
+@rule("Becuri_Sufragerie cancel timer", description="Becuri_Sufragerie cancel timer", tags=["Becuri_Sufragerie", "Timer"])
+@when("Item 'Becuri_Sufragerie' received command OFF")
+def becuri_sufragerie_clear_timer(event):
+	if _occ_sufra[0] is not None and not _occ_sufra[0].hasTerminated():
+		_occ_sufra[0].cancel()
+		LogAction.logInfo("becuri_sufragerie_clear_timer", "occupancyTimersufra is cancelled")
+
+@rule("gBec_LampaSufra cancel timer", description="gBec_LampaSufra cancel timer", tags=["gBec_LampaSufra", "Timer"])
+@when("Item 'gBec_LampaSufra' received command OFF")
+def gbec_lampasufra_clear_timer(event):
+	if occupancyTimer7 is not None and not occupancyTimer7.hasTerminated():
+		occupancyTimer7.cancel()
+		LogAction.logInfo("gbec_lampasufra_clear_timer", "occupancyTimer7 is cancelled")
+
+@rule("Sonoffmini1_Power cancel timer", description="Sonoff1_Power cancel timer", tags=["Sonoff1_Power", "Timer"])
+@when("Item 'Sonoffmini1_Power' received command OFF")
+def sonoffmini1_clear_timer(event):
+	if _occ_dormc[0] is not None and not _occ_dormc[0].hasTerminated():
+		_occ_dormc[0].cancel()
+		LogAction.logInfo("sonoffmini1_clear_timer", "_occ_dormc[0] is cancelled")
+
+@rule("Sonoffmini2_Power cancel timer", description="Sonoff2_Power cancel timer", tags=["Sonoff2_Power", "Timer"])
+@when("Item 'Sonoffmini2_Power' received command OFF")
+def sonoffmini2_clear_timer(event):
+	if _occ_dormp[0] is not None and not _occ_dormp[0].hasTerminated():
+		_occ_dormp[0].cancel()
+		LogAction.logInfo("sonoffmini2_clear_timer", "_occ_dormp[0] is cancelled")
+
+def timer12_hol():
+	events.sendCommand("Hol_PIR1", "OFF")
+	occupancyTimer12.cancel()
+
+@rule("SNZB1_Presence received ON", description="SNZB1_Presence received update ON", tags=["Occupancy", "Hol"])
+@when("Item SNZB1_Presence received update")
+def hol_occupancy(event):
+	global occupancyTimer12
+	global timeout1Seconds
+	if is_state(event.itemState, ON):
+		if occupancyTimer12 is None or occupancyTimer12.hasTerminated():
+			events.sendCommand("Hol_PIR1", "ON")
+			events.sendCommand("WOL_pfsense", "ON")
+			events.postUpdate("PfSense_Online", "ON")
+			occupancyTimer12 = ScriptExecution.createTimer(DateTime.now().plusSeconds(timeout1Seconds), timer12_hol)
+		elif occupancyTimer12 is not None and not occupancyTimer12.hasTerminated():
+			events.sendCommand("Hol_PIR1", "ON")
+
+@rule("PfSense_Online received update", description="PfSense_Online received update", tags=["pfSense", "update"])
+@when("Item PfSense_Online received update")
+def pfsense_online(event):
+	if is_state(event.itemState, OFF):
+		#pfsense_off = Exec.executeCommandLine("/etc/openhab2/scripts/shutdownpfsense.sh", 10000)
+		events.postUpdate("WOL_pfsense", "OFF")
+	if is_state(event.itemState, ON):
+		events.sendCommand("WOL_pfsense", "ON")
+
+@rule("Regula cand HomePresence este inactiv", description="HomePresence is OFF", tags=["HomePresence", "Acasa"])
+@when("Item HomePresence changed")
+def homepresence(event):
+	if is_state(event.itemState, OFF):
+		events.sendCommand("Sufragerie_Daytime", "ON")
+		events.sendCommand("DormP_Daytime", "ON")
+		events.sendCommand("DormC_Daytime", "ON")
+		events.sendCommand("Bucatarie_Daytime", "ON")
+		hpTimersufra   = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), lambda: events.sendCommand("Becuri_Sufragerie", "OFF"))
+		hpTimerlampa   = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), timer1_lampa_sufra)
+		hpTimerparinti = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), lambda: events.sendCommand("Sonoffmini2_Power", "OFF"))
+		hpTimercopii   = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), lambda: events.sendCommand("Sonoffmini1_Power", "OFF"))
+		hpTimertelefunken = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), timer1_telefunken)
+	if is_state(event.itemState, ON):
+		events.sendCommand("WOL_pfsense", "ON")
+
+# ---------------------------------------------------------------------------
+# KE100 DormAlex — presence-based thermostat control v2
+#
+# Items:
+#   Dorm1_Presence          — Switch, consolidated DormP presence
+#   KE100_TargetTemp        — Number, thermostat setpoint
+#   KE100_CurrentTemp       — Number, measured temperature at valve
+#   DormP1_pir_Temperature  — Number, PIR sensor 1 temperature
+#   DormP2_pir_Temperature  — Number, PIR sensor 2 (closer to window)
+#
+# Setpoints:
+#   KE100_TEMP_PRESENCE = 23 C  (defined, not sent — documents intent)
+#   KE100_TEMP_ABSENCE  = 19 C  (day: after 15 min absence)
+#   KE100_TEMP_NIGHT    = 22 C  (21:00-07:00 hard cron, always wins)
+#
+# Presence rule (Dorm1_Presence changed):
+#   ON  -> cancel absence timer silently; no temperature change
+#   OFF -> start/restart 15-min absence timer; on expiry set 19 C
+#
+# Night schedule (hard crons):
+#   21:00 -> cancel absence timer (night takes ownership); set 22 C
+#   07:00 -> do NOT set any temperature; wait for next presence event
+#
+# Open window detection (DormP1/2_pir_Temperature or KE100_CurrentTemp changed):
+#   Suppressed when Dorm1_Presence is OFF
+#   Condition: KE100_CurrentTemp - min(PIR1, PIR2) >= KE100_WINDOW_DELTA
+#   On detection: log immediately; start 5-min cooldown (suppress repeat logs)
+#   On cooldown expiry: if delta still open, log again and restart cooldown
+#   No setpoint change — log only
+#   When delta drops below threshold: log closed; reset open state and cooldown
+#
+# Battery preservation: ke100_set_temp() only commands if value differs from
+#   current KE100_TargetTemp state. NULL/UNDEF: send unconditionally.
+#
+# Startup: no default temperature — act only on state changes.
+# Schulfrei_Alex: ignored.
+# ---------------------------------------------------------------------------
+
+#KE100_LOG = "KE100"
+#
+#KE100_TEMP_PRESENCE   = 23    # degC — presence setpoint (defined, not sent)
+#KE100_TEMP_ABSENCE    = 20    # degC — day absence setpoint
+#KE100_TEMP_NIGHT      = 22    # degC — night setpoint (21:00-07:00)
+#KE100_ABSENCE_DELAY   = 900
+#
+#KE100_WINDOW_DELTA_OPEN  = 3.0
+#KE100_WINDOW_DELTA_CLOSE = 1.5
+#KE100_WINDOW_CONFIRM     = 2
+#KE100_WINDOW_COOLDOWN    = 300
+#
+#ke100_absence_timer = None
+#ke100_window_timer  = None
+#
+#ke100_window_open = False
+#ke100_window_open_count  = 0
+#ke100_window_close_count = 0
+#
+#def log(msg, *args):
+#	LogAction.logInfo(KE100_LOG, msg, *args)
+#
+#
+#def parse_temp(item_name):
+#	val = items[item_name]
+#
+#	if val in [NULL, UNDEF]:
+#		return None
+#
+#	try:
+#		return float(str(val).split(" ")[0])
+#	except:
+#		return None
+#
+#
+#def cancel_timer(timer):
+#	if timer and not timer.hasTerminated():
+#		timer.cancel()
+#
+#
+#def set_timer(seconds, callback):
+#	return ScriptExecution.createTimer(
+#		DateTime.now().plusSeconds(seconds),
+#		callback
+#	)
+#
+#def ke100_set_temp(target_temp):
+#
+#	current = items["KE100_TargetTemp"]
+#
+#	if current in [NULL, UNDEF]:
+#		log("TargetTemp undefined -> sending {} C", str(target_temp))
+#		events.sendCommand("KE100_TargetTemp", str(target_temp))
+#		return
+#
+#	try:
+#		current_val = float(str(current).split(" ")[0])
+#
+#		if current_val == float(target_temp):
+#			log("TargetTemp already {} C -> skip command", str(target_temp))
+#			return
+#
+#	except Exception as e:
+#		log("Could not parse TargetTemp '{}' : {}", str(current), str(e))
+#
+#	log("Setting TargetTemp -> {} C", str(target_temp))
+#	events.sendCommand("KE100_TargetTemp", str(target_temp))
+#
+#def ke100_cancel_absence_timer():
+#	global ke100_absence_timer
+#
+#	cancel_timer(ke100_absence_timer)
+#	ke100_absence_timer = None
+#
+#	log("Absence timer cancelled")
+#
+#
+#def ke100_absence_expired():
+#	log("Absence timer expired -> {} C", str(KE100_TEMP_ABSENCE))
+#	ke100_set_temp(KE100_TEMP_ABSENCE)
+#
+#def ke100_evaluate_window():
+#
+#	global ke100_window_open
+#	global ke100_window_open_count
+#	global ke100_window_close_count
+#	global ke100_window_timer
+#
+#	if not is_state(items["Dorm1_Presence"], ON):
+#		return
+#
+#	t_valve = parse_temp("KE100_CurrentTemp")
+#	t_pir1  = parse_temp("DormP1_pir_Temperature")
+#	t_pir2  = parse_temp("DormP2_pir_Temperature")
+#
+#	if t_valve is None:
+#		return
+#
+#	pir_values = [t for t in [t_pir1, t_pir2] if t is not None]
+#
+#	if not pir_values:
+#		return
+#
+#	t_ref = min(pir_values)
+#	delta = t_valve - t_ref
+#
+#	if delta >= KE100_WINDOW_DELTA_OPEN:
+#
+#		ke100_window_open_count += 1
+#		ke100_window_close_count = 0
+#
+#		if not ke100_window_open and ke100_window_open_count >= KE100_WINDOW_CONFIRM:
+#
+#			ke100_window_open = True
+#
+#			log(
+#				"Window OPEN detected | valve={}C ref={}C delta={}C",
+#				str(round(t_valve,1)),
+#				str(round(t_ref,1)),
+#				str(round(delta,1))
+#			)
+#
+#	elif delta <= KE100_WINDOW_DELTA_CLOSE:
+#
+#		ke100_window_close_count += 1
+#		ke100_window_open_count = 0
+#
+#		if ke100_window_open and ke100_window_close_count >= KE100_WINDOW_CONFIRM:
+#
+#			ke100_window_open = False
+#
+#			cancel_timer(ke100_window_timer)
+#			ke100_window_timer = None
+#
+#			log(
+#				"Window CLOSED | valve={}C ref={}C delta={}C",
+#				str(round(t_valve,1)),
+#				str(round(t_ref,1)),
+#				str(round(delta,1))
+#			)
+#
+#	if ke100_window_open:
+#
+#		cancel_timer(ke100_window_timer)
+#
+#		ke100_window_timer = set_timer(
+#			KE100_WINDOW_COOLDOWN,
+#			ke100_window_cooldown_expired
+#		)
+#
+#
+#def ke100_window_cooldown_expired():
+#
+#	if ke100_window_open:
+#
+#		log(
+#			"Window still OPEN after {} s",
+#			str(KE100_WINDOW_COOLDOWN)
+#		)
+#
+#		ke100_evaluate_window()
+#
+#@rule("KE100 presence control", tags=["KE100"])
+#@when("Item Dorm1_Presence changed")
+#def ke100_presence(event):
+#
+#	global ke100_absence_timer
+#
+#	if is_state(event.itemState, ON):
+#
+#		if ke100_absence_timer:
+#			ke100_cancel_absence_timer()
+#			log("Presence returned -> timer cancelled")
+#
+#	else:
+#
+#		cancel_timer(ke100_absence_timer)
+#
+#		log(
+#			"Absence detected -> starting {} s timer",
+#			str(KE100_ABSENCE_DELAY)
+#		)
+#
+#		ke100_absence_timer = set_timer(
+#			KE100_ABSENCE_DELAY,
+#			ke100_absence_expired
+#		)
+#
+## ---------------------------------------------------------------------------
+## RULE: KE100 night schedule — 21:00 cron
+## Night takes ownership: cancel absence timer, set 22 C.
+## ---------------------------------------------------------------------------
+#
+#@rule("KE100 DormAlex night start", description="KE100 night setpoint at 21:00", tags=["KE100", "DormP", "Temperature"])
+#@when("Time cron 0 0 21 * * ?")
+#def ke100_night_start(event):
+#	LogAction.logInfo("KE100", "Night schedule start (21:00) -- cancelling absence timer, setting {} C", str(KE100_TEMP_NIGHT))
+#	ke100_cancel_absence_timer()
+#	ke100_set_temp(KE100_TEMP_NIGHT)
+#
+## ---------------------------------------------------------------------------
+## RULE: KE100 day schedule — 07:00 cron
+## Day logic resumes: do NOT set any temperature.
+## Absence timer will start fresh on next Dorm1_Presence OFF event.
+## ---------------------------------------------------------------------------
+#
+#@rule("KE100 DormAlex night end", description="KE100 day resume at 07:00", tags=["KE100", "DormP", "Temperature"])
+#@when("Time cron 0 0 7 * * ?")
+#def ke100_night_end(event):
+#	LogAction.logInfo("KE100", "Night schedule end (07:00) -- day logic resumes, temp unchanged")
+#
+## ---------------------------------------------------------------------------
+## RULE: KE100 open window detection
+## Triggered by temperature item changes. Delegates to ke100_evaluate_window().
+## ---------------------------------------------------------------------------
+#
+#@rule("KE100 DormAlex window detection", description="KE100 open window detection via temperature delta", tags=["KE100", "DormP", "Temperature"])
+#@when("Item DormP1_pir_Temperature changed")
+#@when("Item DormP2_pir_Temperature changed")
+#@when("Item KE100_CurrentTemp changed")
+#def ke100_window_detect(event):
+#	ke100_evaluate_window()

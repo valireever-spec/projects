@@ -1,0 +1,229 @@
+##045_Bucatarie.py
+
+########################################
+# https://openhab-scripters.github.io/ #
+########################################
+# 2026-05-02: UnDefType from org.eclipse.smarthome.core.types (ESH; OH 2.5.12).
+
+from core.rules import rule
+from core.triggers import when
+from core.actions import Exec
+from core.actions import ScriptExecution
+from org.joda.time import DateTime
+from threading import Timer
+import core
+from org.eclipse.smarthome.core.types import UnDefType
+from org.eclipse.smarthome.model.script.actions.Exec import executeCommandLine
+from core.jsr223.scope import events, items
+from core.actions import LogAction
+# FIX 2026-03-07: removed 'from core.utils import sendCommandCheckFirst, postUpdateCheckFirst'
+#   Cross-file imports don't work in OH2 Jython. Neither function was called in this file.
+# FIX 2026-03-07: renamed duplicate @rule 'Buca_Presence received ON' (would cause silent overwrite):
+#   First rule (Bucatarie2_Presence changed) -> 'Bucatarie2_Presence changed - reset inactivity timer'
+#   Second rule (Buca_Presence received command) -> 'Buca_Presence received command - holddown'
+
+NULL = UnDefType.NULL
+UNDEF = UnDefType.UNDEF
+
+from oh_utils import ctrl_dev
+ON = OnOffType.ON
+OFF = OnOffType.OFF
+
+def is_state(item_state, target_state):
+    """Safe state comparison using string conversion. Handles Java State objects reliably."""
+    return str(item_state).strip() == str(target_state).strip()
+
+
+createTimer = ScriptExecution.createTimer
+occupancyTimer13 = None
+occupancyTimerbuca = None
+sourceresetTimer = None
+hpTimerbuca = None
+timeout1Seconds = 10
+timeout2Seconds = 15
+default_value = 600  ###Nou 12.11.2021
+
+d_bucatarie = ir.getItem("DelayTimerBucatarie")
+
+dt_B = ir.getItem("DTBucatarie")
+
+on_timer6 = d_bucatarie.state.intValue() if d_bucatarie.state not in [NULL, UNDEF] else default_value
+resetTimer_buca = None
+
+###
+HDtimer4 = None
+baseHoldDown4 = (int(str(items["DTBucatarie"])) * 60) / 5
+HoldDown4 = None
+incr4 = 0
+timeFract4 = None
+HoldDown4_4 = None
+DT_HDBuca = None
+
+def timer4_dynamic_delay():
+	events.sendCommand("HD4", "OFF")
+	incr4 = 0
+	if HDtimer4:
+		HDtimer4.cancel()
+
+def timer9_buca():
+	#events.sendCommand("Buca_Presence", "OFF")
+	ctrl_dev("Buca_Presence", "OFF", items, events, command_type="sendCommand")
+	occupancyTimer13.cancel()
+
+@rule("Bucatarie2_Presence received ON", description="Bucatarie2_Presence received update ON", tags=["Occupancy", "Buca"])
+@when("Item Bucatarie2_Presence received update")
+def buca2_occupancy(event):
+	global occupancyTimer13
+	global timeout1Seconds
+	if is_state(event.itemState, ON):
+		if occupancyTimer13 is None or occupancyTimer13.hasTerminated():
+			#events.sendCommand (ir.getItem("Buca_Presence"), ON)  #New 10.02.2024
+			ctrl_dev("Buca_Presence", "ON", items, events, command_type="sendCommand")  #New 10.02.2024
+			occupancyTimer13 = ScriptExecution.createTimer(DateTime.now().plusSeconds(timeout1Seconds), timer9_buca)
+		elif occupancyTimer13 is not None and not occupancyTimer13.hasTerminated():
+			#events.sendCommand (ir.getItem("Buca_Presence"), ON)  #New 10.02.2024
+			ctrl_dev("Buca_Presence", "ON", items, events, command_type="sendCommand")  #New 10.02.2024
+	if is_state(event.itemState, OFF):
+		#events.sendCommand (ir.getItem("Buca_Presence"), OFF)  #New 10.02.2024
+		ctrl_dev("Buca_Presence", "OFF", items, events, command_type="sendCommand")  #New 10.02.2024
+
+@rule("Decizie cand DarkBucatarie devine activ", description="Item DarkBucatarie received command ON", tags=["DarkBucatarie", "Bucatarie"])
+@when("Item DarkBucatarie received command")
+def dark_bucatarie(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand (ir.getItem("PermBucatarie"), OFF)
+
+@rule("Decizie cand PermBucatarie devine activ", description="Item PermBucatarie received command ON", tags=["PermBucatarie", "Bucatarie"])
+@when("Item PermBucatarie received command")
+def perm_bucatarie(event):
+	if is_state(event.itemCommand, ON):
+		events.sendCommand (ir.getItem("DarkBucatarie"), OFF)
+
+def timer_buca_reset():
+	HoldDown4 = (int(str(items["DTBucatarie"])) * 60) / 5 ##nou 08.06.2022
+	events.postUpdate(ir.getItem("HDBucatarie"), HoldDown4)
+
+@rule("Bucatarie2_Presence changed - reset inactivity timer", description="Buca_Presence changed ON", tags=["Presence", "Bucatarie"])
+@when("Item Bucatarie2_Presence changed")
+def buca_wait_inactivity(event):
+	global resetTimer_buca
+	if is_state(event.itemState, ON):
+		if resetTimer_buca is None or resetTimer_buca.hasTerminated():
+			resetTimer_buca = ScriptExecution.createTimer(DateTime.now().plusMinutes(120), timer_buca_reset)
+		elif resetTimer_buca is not None and not resetTimer_buca.hasTerminated():
+			resetTimer_buca.reschedule(DateTime.now().plusMinutes(120))
+
+def timer1_msbucatarie():
+	#ctrl_dev("Priza11_Power", "OFF", items, events, command_type="sendCommand")
+	LogAction.logInfo("Bucatarie", "Dezactivare Lumina Bucatarie")
+	occupancyTimerbuca.cancel()	
+
+@rule("Buca_Presence received command - holddown", description="Buca_Presence received command ON", tags=["Presence", "Bucatarie"])
+@when("Item Buca_Presence received command")
+def bucatarie_presence_delay(event):
+	global HDtimer4
+	global HoldDown4
+	global incr4
+	global timeFract4
+	global HoldDown4_4
+	global DT_HDBuca
+	if is_state(items["Logging"], ON):
+		bucatarie_presence_delay.log.info("There is presence in Bucatarie")
+	if is_state(event.itemCommand, ON):
+		if HDtimer4 is None or HDtimer4.hasTerminated():
+				HoldDown4 = baseHoldDown4
+				incr4 = 0
+				events.sendCommand("HD4", "ON")
+				HDtimer4 = ScriptExecution.createTimer(DateTime.now().plusSeconds(HoldDown4), timer4_dynamic_delay)
+				
+		elif HDtimer4 is not None and not HDtimer4.hasTerminated():
+			incr4 += 1
+			timeFract4 = (baseHoldDown4 / incr4)
+			HoldDown4_4 = HoldDown4
+			if is_state(items["Bucatarie_Daytime"], OFF):
+				HoldDown4 = int(str(HoldDown4_4)) + timeFract4
+			if is_state(items["Bucatarie_Daytime"], ON):
+				HoldDown4 = (int(str(items["DTBucatarie"])) * 60)
+			events.sendCommand(ir.getItem("HDBucatarie"), HoldDown4)
+
+			if int(str(items["DTBucatarie"])) == 0:
+				events.postUpdate(ir.getItem("DTBucatarie"), 7)
+			if d_bucatarie.state == 0 or d_bucatarie.state == NULL:
+				events.sendCommand(ir.getItem("DelayTimerBucatarie"), int(str(items["DTBucatarie"])) * 60 + int(str(items["HDBucatarie"])))
+
+			if (items["PermBucatarie"] == OFF or items["DarkBucatarie"] == OFF) and items["Bucatarie_Illuminance_Switch"] == ON:
+				DT_HDBuca = int(str(items["DTBucatarie"])) * 60 + int(str(items["HDBucatarie"]))
+				HDtimer4.reschedule(DateTime.now().plusSeconds(HoldDown4))
+				events.sendCommand(ir.getItem("DelayTimerBucatarie"), DT_HDBuca)
+				events.sendCommand("HD4", "ON")
+				if is_state(items["Logging"], ON):
+					bucatarie_presence_delay.log.info("Bucatarie: Timerul Buca este setat la " + str(items["DelayTimerBucatarie"]))
+			
+@rule("LightBuca received ON", description="Buca_Presence received update ON", tags=["Presence", "Buca"])
+@when("Item Buca_Presence changed")
+def buca_presence(event):
+	global occupancyTimerbuca
+	global valTimerSecBucatarie
+	morning = "MORNING"
+	day = "DAY"
+	afternoon = "AFTERNOON"
+	evening = "EVENING"
+	night = "NIGHT"
+	bed = "BED"
+	if is_state(event.itemState, ON):
+		if items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+			if is_state(items["DarkBucatarie"], OFF):
+				if is_state(items["PermBucatarie"], OFF):
+					if items["Bucatarie_Illuminance_Switch"] == ON and items["HomePresence"] == ON:
+						if is_state(items["Logging"], ON):
+							buca_presence.log.info("Bucatarie_Illuminance, changed from OFF to ON")
+						if occupancyTimerbuca is None or occupancyTimerbuca.hasTerminated():
+							if is_state(items["Logging"], ON):
+								buca_presence.log.info("Bucatarie_Illuminance, Creating Timer - Dark")
+							occupancyTimerbuca = ScriptExecution.createTimer(DateTime.now().plusSeconds(on_timer6), timer1_msbucatarie)
+							if is_state(items["Logging"], ON):
+								buca_presence.log.info("Bucatarie_Illuminance, Timer Expired - Dark")
+						elif occupancyTimerbuca is not None and not occupancyTimerbuca.hasTerminated():
+							occupancyTimerbuca.reschedule(DateTime.now().plusSeconds(on_timer6))
+					elif is_state(items["Bucatarie_Illuminance_Switch"], OFF):
+						if is_state(items["Logging"], ON):
+							buca_presence.log.info("Bucatarie_Illuminance, There is enough natural light")
+						if occupancyTimerbuca is None or occupancyTimerbuca.hasTerminated():
+							buca_presence.log.info("Bucatarie_Illuminance, Creating Timer")
+							occupancyTimerbuca = ScriptExecution.createTimer(DateTime.now().plusSeconds(on_timer6), timer1_msbucatarie)
+							if is_state(items["Logging"], ON):
+								buca_presence.log.info("Bucatarie_Illuminance, Timer Expired")
+				elif is_state(items["PermBucatarie"], ON):
+					if is_state(items["HomePresence"], ON):
+						if is_state(items["Logging"], ON):
+							buca_presence.log.info("Bucatarie_Illuminance, Permanent Mode")
+			elif is_state(items["DarkBucatarie"], ON):
+				#ctrl_dev("Priza11_Power", "OFF", items, events, command_type="sendCommand")
+				LogAction.logInfo("Bucatarie", "Dezactivare Lumina Bucatarie")
+				if is_state(items["Logging"], OFF):
+					buca_presence.log.info("Bucatarie_Illuminance, Dark Mode")
+
+		elif items["vTimeOfDay"] == StringType(morning) or items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(night) or items["vTimeOfDay"] == StringType(bed):
+			if is_state(items["DarkBucatarie"], OFF):
+				if items["PermBucatarie"] == OFF and items["HomePresence"] == ON:
+					if is_state(items["Logging"], ON):
+						buca_presence.log.info("Bucatarie_Illuminance, changed from OFF to ON")
+					if occupancyTimerbuca is None or occupancyTimerbuca.hasTerminated():
+						if is_state(items["Logging"], ON):
+							buca_presence.log.info("Bucatarie_Illuminance, Creating Timer - Nighttime")
+						occupancyTimerbuca = ScriptExecution.createTimer(DateTime.now().plusSeconds(on_timer6), timer1_msbucatarie)
+						if is_state(items["Logging"], ON):
+							buca_presence.log.info("Bucatarie_Illuminance, Timer Expired - Nighttime")
+					elif occupancyTimerbuca is not None and not occupancyTimerbuca.hasTerminated():
+						occupancyTimerbuca.reschedule(DateTime.now().plusSeconds(on_timer6))
+				elif is_state(items["PermBucatarie"], ON):
+					if is_state(items["HomePresence"], ON):
+						if is_state(items["Logging"], ON):
+							buca_presence.log.info("Bucatarie_Illuminance, Permanent Mode")
+			elif is_state(items["DarkBucatarie"], ON):
+				#ctrl_dev("Priza11_Power", "OFF", items, events, command_type="sendCommand")
+				LogAction.logInfo("Bucatarie", "Dezactivare Lumina Bucatarie")
+				if is_state(items["Logging"], OFF):
+					buca_presence.log.info("Bucatarie_Illuminance, Dark Mode")
+					
+					

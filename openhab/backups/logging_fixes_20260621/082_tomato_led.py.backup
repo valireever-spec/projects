@@ -1,0 +1,158 @@
+##082_tomato_led.py
+# LED supplementation for tomato balcony based on daily cloud forecast
+# Simple logic:
+# - If daily forecast cloud >= 70% → LED ON during 07:00-09:00
+# - If daily forecast cloud < 70% → LED OFF all day
+# - Respect temperature inhibit (>= 32°C)
+# - Track daily LED minutes and stop when target reached
+
+from core.rules import rule
+from core.triggers import when
+from core.log import logging
+from core.jsr223.scope import events, items, ON, OFF
+from org.joda.time import DateTime
+
+log = logging.getLogger("tomato_led")
+
+LED_SWITCH = "Priza11_Power"
+DAILY_FORECAST_ITEM = "WeatherHome_DailyCloudForecast"
+TEMP_ITEM = "WeatherHome_Temperature"
+TOMATOES_ITEM = "Tomatoes_OnBalcony"
+LED_MINUTES_ITEM = "Priza11_LED_MinutesToday"
+
+CLOUD_THRESHOLD = 70  # If daily forecast >= 70%, LED on (average cloud cover sunrise-sundown)
+TEMP_INHIBIT_C = 32
+LED_WINDOW_START = 7   # 07:00
+LED_WINDOW_END = 10    # 09:00 (exclusive, so includes 07:00-08:59)
+MIN_LED_MINUTES = 20
+MAX_LED_MINUTES = 120
+CHECK_INTERVAL_MINUTES = 10
+
+last_reset_day = -1
+last_log_state = {}  # Track last logged state to avoid repetitive logging
+
+def is_valid_state(val_str):
+    """Check if state is valid (not NULL, UNDEF, etc)."""
+    normalized = str(val_str).strip().upper()
+    return normalized not in ("NULL", "UNDEF", "", "NONE")
+
+def get_daily_forecast():
+    """Get daily cloud forecast. Defaults to 50 on error."""
+    try:
+        val_str = str(items[DAILY_FORECAST_ITEM])
+        if not is_valid_state(val_str):
+            log.warn("DAILY_FORECAST_ITEM is NULL/UNDEF, using default 50%")
+            return 50.0
+        val = float(val_str)
+        return max(0.0, min(100.0, val))
+    except (KeyError, ValueError, AttributeError, TypeError) as e:
+        log.error("Failed to get daily forecast: {}".format(str(e)))
+        return 50.0
+
+def get_temperature():
+    """Get outdoor temperature. Defaults to 20°C on error."""
+    try:
+        val_str = str(items[TEMP_ITEM])
+        if not is_valid_state(val_str):
+            log.warn("TEMP_ITEM is NULL/UNDEF, using default 20°C")
+            return 20.0
+        return float(val_str.split(" ")[0])
+    except (KeyError, ValueError, AttributeError, TypeError, IndexError) as e:
+        log.error("Failed to get temperature: {}".format(str(e)))
+        return 20.0
+
+def get_led_minutes_today():
+    """Get accumulated LED minutes today. Defaults to 0 on error."""
+    try:
+        val_str = str(items[LED_MINUTES_ITEM])
+        if not is_valid_state(val_str):
+            return 0
+        val = float(val_str)
+        return int(val) if val >= 0 else 0
+    except (KeyError, ValueError, AttributeError, TypeError) as e:
+        log.error("Failed to get LED minutes: {}".format(str(e)))
+        return 0
+
+def set_led_minutes_today(minutes):
+    events.postUpdate(LED_MINUTES_ITEM, str(minutes))
+
+def compute_led_target_minutes(cloud):
+    """Linear interpolation: 0% cloud → MIN, 100% → MAX."""
+    fraction = cloud / 100.0
+    return int(MIN_LED_MINUTES + fraction * (MAX_LED_MINUTES - MIN_LED_MINUTES))
+
+def switch_led(state):
+    """Send command only if not already in target state."""
+    current = items[LED_SWITCH]
+    if state == "ON" and current != ON:
+        events.sendCommand(LED_SWITCH, "ON")
+    elif state == "OFF" and current != OFF:
+        events.sendCommand(LED_SWITCH, "OFF")
+
+@rule("Tomato Balcony LED - Daily Forecast Based")
+@when("Time cron 0 */10 * * * ?")  # Every 10 minutes
+def tomato_led_rule(event):
+    global last_reset_day, last_log_state
+
+    now = DateTime.now()
+    current_day = now.getDayOfYear()
+
+    # Daily reset at midnight
+    if current_day != last_reset_day:
+        set_led_minutes_today(0)
+        last_reset_day = current_day
+        last_log_state = {}  # Clear log state cache on day change
+        log.info("Tomato LED daily reset (day {})".format(current_day))
+
+    # Check if tomatoes are on balcony
+    if items[TOMATOES_ITEM] != ON:
+        switch_led("OFF")
+        return
+
+    # Read state
+    daily_forecast = get_daily_forecast()
+    temperature = get_temperature()
+    led_minutes_today = get_led_minutes_today()
+    target_minutes = compute_led_target_minutes(daily_forecast)
+    now_hour = now.getHourOfDay()
+
+    log.info("Daily forecast {}%  Temp {}°C  LED {}/{} min".format(
+        int(daily_forecast), int(temperature), led_minutes_today, target_minutes))
+
+    # Temperature inhibit - tomatoes heat stressed
+    if temperature >= TEMP_INHIBIT_C:
+        switch_led("OFF")
+        log.info("Heat inhibit {}°C >= {}°C — LEDs OFF".format(int(temperature), TEMP_INHIBIT_C))
+        return
+
+    # Daily target reached
+    if led_minutes_today >= target_minutes:
+        switch_led("OFF")
+        log.info("Daily target reached ({} min) — LEDs OFF".format(target_minutes))
+        return
+
+    # Decision based on daily forecast
+    if daily_forecast >= CLOUD_THRESHOLD:
+        # Cloudy day - LED should run during morning window
+        if LED_WINDOW_START <= now_hour < LED_WINDOW_END:
+            switch_led("ON")
+            set_led_minutes_today(led_minutes_today + CHECK_INTERVAL_MINUTES)
+            new_total = led_minutes_today + CHECK_INTERVAL_MINUTES
+            state_key = "led_on"
+            if last_log_state.get(state_key) != new_total:
+                log.info("Cloudy day forecast ({}% >= {}%) — LEDs ON ({}/{} min)".format(
+                    int(daily_forecast), CLOUD_THRESHOLD, new_total, target_minutes))
+                last_log_state[state_key] = new_total
+        else:
+            switch_led("OFF")
+            state_key = "led_off_window"
+            if state_key not in last_log_state:
+                log.info("Outside LED window ({:02d}:00-{:02d}:00) — LEDs OFF".format(LED_WINDOW_START, LED_WINDOW_END - 1))
+                last_log_state[state_key] = True
+    else:
+        # Clear day - no supplement needed
+        switch_led("OFF")
+        state_key = "led_off_clear"
+        if state_key not in last_log_state:
+            log.info("Clear day forecast ({}% < {}%) — LEDs OFF all day".format(int(daily_forecast), CLOUD_THRESHOLD))
+            last_log_state[state_key] = True

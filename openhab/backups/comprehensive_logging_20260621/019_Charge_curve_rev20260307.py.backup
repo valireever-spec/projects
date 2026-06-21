@@ -1,0 +1,277 @@
+##019_Charge_curve.py
+
+##Rule 019_Charge_curve.py
+# FIXES applied 2026-03-07:
+#   FIX-A: Added missing UnDefType import (NameError at module load without it).
+#          (2026-05-02: package is org.eclipse.smarthome.core.types — see line 19.)
+#   FIX-B: Added 'global valDelta*' declarations inside each rule function.
+#          Python/Jython treats assignment inside a function as local unless
+#          declared global. The commented-out declarations were incorrect —
+#          the module-level variables were never updated between readings.
+#          Note: in practice the delta is only used within the same call, so
+#          behaviour was correct by accident, but the global declarations make
+#          the intent explicit and future-proof.
+#   FIX-C: Removed redundant Priza1_BatteryFull reset from priza1_state
+#          (ascending curve). Reset is now done precisely in priza1_power
+#          when Priza1_Power turns ON (FIX3 from previous session). Resetting
+#          on ascending current delta is both too late (power is already ON)
+#          and a race condition against 017_Priza setting BatteryFull ON on
+#          the same current reading.
+#   2026-05-02: UnDefType import uses org.eclipse.smarthome.core.types (ESH; OH 2.5.12).
+#   2026-05-23 FIX-D: Renamed priza1_state rule from "Priza1_Current" to
+#          "Priza1_Current_ChargeCurve" — duplicate name with the same rule in
+#          017_Prize caused one rule to silently overwrite the other in the OH
+#          rule registry (same pattern as the lightstrip bug in 017's changelog).
+
+from core.rules import rule
+from core.triggers import when
+import core
+from core.jsr223.scope import events, items
+from core.actions import LogAction
+from org.joda.time import DateTime
+from org.eclipse.smarthome.core.types import UnDefType
+from org.eclipse.smarthome.core.library.types import OnOffType
+
+NULL = UnDefType.NULL
+UNDEF = UnDefType.UNDEF
+
+def is_state(item_state, target_state):
+    """Safe state comparison using string conversion. Handles Java State objects reliably."""
+    return str(item_state).strip() == str(target_state).strip()
+
+valDeltaPriza1 = None
+valDeltaPriza2 = None
+valDeltaPriza3 = None
+valDeltaPriza4 = None   #Laptop
+valDeltaPriza7 = None   #iPad
+
+minDelta1 = 0.0019
+minDelta2 = 0.003
+minDelta3 = 0.003
+minDelta4 = 0.005
+minDelta7 = 0.005
+
+@rule("Priza1_Power", description="Item Priza1_Power changed", tags=["State", "Priza1"])
+@when("Item Priza1_Power changed")
+def priza1_power(event):
+	if is_state(event.itemState, OnOffType.ON):
+		events.sendCommand("Priza1_Asc", "ON")
+		# FIX3: reset BatteryFull here (on actual charge start) rather than on a
+		# schedule in stop_prize. This avoids a wasted power cycle when the bike is
+		# still fully charged at noon/midnight cron reset time.
+		if not is_state(items["Priza1_BatteryFull"], OnOffType.OFF):
+			events.sendCommand("Priza1_BatteryFull", "OFF")
+			LogAction.logInfo("Priza1", "Priza1_BatteryFull cleared — new charge cycle started")
+
+@rule("Priza2_Power", description="Item Priza2_Power changed", tags=["State", "Priza2"])
+@when("Item Priza2_Power changed")
+def priza2_power(event):
+	if event.itemState == ON:
+		events.sendCommand("Priza2_Asc", "ON")
+
+@rule("Priza3_Power", description="Item Priza3_Power changed", tags=["State", "Priza3"])
+@when("Item Priza3_Power changed")
+def priza3_power(event):
+	if event.itemState == ON:
+		events.sendCommand("Priza3_Asc", "ON")
+
+@rule("Priza4_Power", description="Item Priza4_Power changed", tags=["State", "Priza4"])
+@when("Item Priza4_Power changed")
+def priza4_power(event):
+	if is_state(event.itemState, OnOffType.ON):
+		events.sendCommand("Priza4_Asc", "ON")
+		# Same contract as Priza1: outlet energised = new charge / use cycle — clear full latch
+		# so 080_Power may include Priza4 in ECO ON-sequence. Timer cancel is in 017_Prize.
+		if not is_state(items["Priza4_BatteryFull"], OnOffType.OFF):
+			events.sendCommand("Priza4_BatteryFull", "OFF")
+			LogAction.logInfo("Priza4", "Priza4_BatteryFull cleared — Priza4_Power ON (new cycle)")
+
+@rule("Priza7_Power", description="Item Priza7_Power changed", tags=["State", "Priza7"])
+@when("Item Priza7_Power changed")
+def priza7_power(event):
+	if event.itemState == ON:
+		events.sendCommand("Priza7_Asc", "ON")
+
+@rule("Priza1_Current_ChargeCurve", description="Item Priza1_Current changed — charge curve tracking", tags=["State", "Priza1"])
+@when("Item Priza1_Current changed")
+def priza1_state(event):
+	global valDeltaPriza1   # FIX-B: must declare global before assigning
+	global minDelta1
+	
+	lstValPriza1 = event.oldItemState.floatValue() if event.oldItemState not in [NULL, UNDEF] else 0.0
+	aktValPriza1 = event.itemState.floatValue()
+	
+	#LogAction.logInfo("lstValPriza1", "was {}", str(lstValPriza1), str(DateTime.now()))
+	#LogAction.logInfo("aktValPriza1", "is now {}", str(aktValPriza1), str(DateTime.now()))
+
+	valDeltaPriza1 = aktValPriza1 - lstValPriza1
+	#LogAction.logInfo("Priza1 Delta", "is {}", str(valDeltaPriza1), str(DateTime.now()))
+
+	if valDeltaPriza1 >= minDelta1:
+		LogAction.logInfo("Priza1", "Dispozitivul este pe curba de incarcare ascendenta", str(DateTime.now()))
+		# NOTE: Priza1_BatteryFull is reset in priza1_power (when Priza1_Power turns ON),
+		# not here. Resetting on ascending current delta is a race condition because 017
+		# may be setting BatteryFull ON on the exact same reading (current=0 after full charge).
+		if items["Priza1_Asc1"] != ON:
+			events.sendCommand("Priza1_Asc1", "ON")
+		elif items["Priza1_Asc1"] == ON:
+			if items["Priza1_Asc2"] != ON:
+				events.sendCommand("Priza1_Asc2", "ON")
+			if items["Priza1_Asc"] != ON:
+				events.sendCommand("Priza1_Asc", "ON")
+				
+	if valDeltaPriza1 < minDelta1:
+		LogAction.logInfo("Priza1", "Dispozitivul este pe curba de incarcare descendenta", str(DateTime.now()))
+		if items["Priza1ForceOn"] != ON:
+			if items["Priza1_Asc2"] != OFF:
+				events.sendCommand("Priza1_Asc2", "OFF")
+			elif items["Priza1_Asc2"] == OFF:
+				if items["Priza1_Asc1"] != OFF:
+					events.sendCommand("Priza1_Asc1", "OFF")
+				if items["Priza1_Asc"] != OFF:
+					events.sendCommand("Priza1_Asc", "OFF")
+
+@rule("Priza2_Current", description="Item Priza2_Current changed", tags=["State", "Priza2"])
+@when("Item Priza2_Current changed")
+def priza2_state(event):
+	global valDeltaPriza2   # FIX-B
+	global minDelta2
+
+	lstValPriza2 = event.oldItemState.floatValue() if event.oldItemState not in [NULL, UNDEF] else 0.0
+	aktValPriza2 = event.itemState.floatValue()
+	
+	#LogAction.logInfo("lstValPriza2", "was {}", str(lstValPriza2), str(DateTime.now()))
+	#LogAction.logInfo("aktValPriza2", "is now {}", str(aktValPriza2), str(DateTime.now()))
+
+	valDeltaPriza2 = aktValPriza2 - lstValPriza2
+	#LogAction.logInfo("Priza2 Delta", "is {}", str(valDeltaPriza2), str(DateTime.now()))
+
+	if valDeltaPriza2 >= minDelta2:
+		LogAction.logInfo("Priza2", "Dispozitivul este pe curba de incarcare ascendenta", str(DateTime.now()))
+		if items["Priza2_Asc1"] != ON:
+			events.sendCommand("Priza2_Asc1", "ON")
+		elif items["Priza2_Asc1"] == ON:
+			if items["Priza2_Asc2"] != ON:
+				events.sendCommand("Priza2_Asc2", "ON")
+			if items["Priza2_Asc"] != ON:
+				events.sendCommand("Priza2_Asc", "ON")
+				
+	if valDeltaPriza2 < minDelta2:
+		LogAction.logInfo("Priza2", "Dispozitivul este pe curba de incarcare descendenta", str(DateTime.now()))
+		if items["Priza2ForceOn"] != ON:
+			if items["Priza2_Asc2"] != OFF:
+				events.sendCommand("Priza2_Asc2", "OFF")
+			elif items["Priza2_Asc2"] == OFF:
+				if items["Priza2_Asc1"] != OFF:
+					events.sendCommand("Priza2_Asc1", "OFF")
+				if items["Priza2_Asc"] != OFF:
+					events.sendCommand("Priza2_Asc", "OFF")
+
+
+@rule("Priza3_Current", description="Item Priza3_Current changed", tags=["State", "Priza3"])
+@when("Item Priza3_Current changed")
+def priza3_state(event):
+	global valDeltaPriza3   # FIX-B
+	global minDelta3
+
+	lstValPriza3 = event.oldItemState.floatValue() if event.oldItemState not in [NULL, UNDEF] else 0.0
+	aktValPriza3 = event.itemState.floatValue()
+	
+	#LogAction.logInfo("lstValPriza3", "was {}", str(lstValPriza3), str(DateTime.now()))
+	#LogAction.logInfo("aktValPriza3", "is now {}", str(aktValPriza3), str(DateTime.now()))
+
+	valDeltaPriza3 = aktValPriza3 - lstValPriza3
+	#LogAction.logInfo("Priza3 Delta", "is {}", str(valDeltaPriza3), str(DateTime.now()))
+
+	if valDeltaPriza3 >= minDelta3:
+		LogAction.logInfo("Priza3", "Dispozitivul este pe curba de incarcare ascendenta", str(DateTime.now()))
+		if items["Priza3_Asc1"] != ON:
+			events.sendCommand("Priza3_Asc1", "ON")
+		elif items["Priza3_Asc1"] == ON:
+			if items["Priza3_Asc2"] != ON:
+				events.sendCommand("Priza3_Asc2", "ON")
+			if items["Priza3_Asc"] != ON:
+				events.sendCommand("Priza3_Asc", "ON")
+				
+	if valDeltaPriza3 < minDelta3:
+		LogAction.logInfo("Priza3", "Dispozitivul este pe curba de incarcare descendenta", str(DateTime.now()))
+		if items["Priza3ForceOn"] != ON:
+			if items["Priza3_Asc2"] != OFF:
+				events.sendCommand("Priza3_Asc2", "OFF")
+			elif items["Priza3_Asc2"] == OFF:
+				if items["Priza3_Asc1"] != OFF:
+					events.sendCommand("Priza3_Asc1", "OFF")
+				if items["Priza3_Asc"] != OFF:
+					events.sendCommand("Priza3_Asc", "OFF")
+		
+
+@rule("Priza4_Current", description="Item Priza4_Current changed", tags=["State", "Priza4"])
+@when("Item Priza4_Current changed")
+def priza4_state(event):
+	global valDeltaPriza4   # FIX-B
+	global minDelta4
+
+	lstValPriza4 = event.oldItemState.floatValue() if event.oldItemState not in [NULL, UNDEF] else 0.0
+	aktValPriza4 = event.itemState.floatValue()
+	
+	#LogAction.logInfo("lstValPriza4", "was {}", str(lstValPriza4), str(DateTime.now()))
+	#LogAction.logInfo("aktValPriza4", "is now {}", str(aktValPriza4), str(DateTime.now()))
+
+	valDeltaPriza4 = aktValPriza4 - lstValPriza4
+	#LogAction.logInfo("Priza4 Delta", "is {}", str(valDeltaPriza4), str(DateTime.now()))
+
+	if valDeltaPriza4 >= minDelta4:
+		LogAction.logInfo("Priza4", "Dispozitivul este pe curba de incarcare ascendenta", str(DateTime.now()))
+		if items["Priza4_Asc1"] != ON:
+			events.sendCommand("Priza4_Asc1", "ON")
+		elif items["Priza4_Asc1"] == ON:
+			if items["Priza4_Asc2"] != ON:
+				events.sendCommand("Priza4_Asc2", "ON")
+			if items["Priza4_Asc"] != ON:
+				events.sendCommand("Priza4_Asc", "ON")
+				
+	if valDeltaPriza4 < minDelta4:
+		LogAction.logInfo("Priza4", "Dispozitivul este pe curba de incarcare descendenta", str(DateTime.now()))
+		if items["Priza4_Asc2"] != OFF:
+			events.sendCommand("Priza4_Asc2", "OFF")
+		elif items["Priza4_Asc2"] == OFF:
+			if items["Priza4_Asc1"] != OFF:
+				events.sendCommand("Priza4_Asc1", "OFF")
+			if items["Priza4_Asc"] != OFF:
+				events.sendCommand("Priza4_Asc", "OFF")
+		
+
+@rule("Priza7_Current", description="Item Priza7_Current changed", tags=["State", "Priza7"])
+@when("Item Priza7_Current changed")
+def priza7_state(event):
+	global valDeltaPriza7   # FIX-B
+	global minDelta4
+
+	lstValPriza7 = event.oldItemState.floatValue() if event.oldItemState not in [NULL, UNDEF] else 0.0
+	aktValPriza7 = event.itemState.floatValue()
+	
+	#LogAction.logInfo("lstValPriza7", "was {}", str(lstValPriza7), str(DateTime.now()))
+	#LogAction.logInfo("aktValPriza7", "is now {}", str(aktValPriza7), str(DateTime.now()))
+
+	valDeltaPriza7 = aktValPriza7 - lstValPriza7
+	#LogAction.logInfo("Priza7 Delta", "is {}", str(valDeltaPriza7), str(DateTime.now()))
+
+	if valDeltaPriza7 >= minDelta7:
+		LogAction.logInfo("Priza7", "Dispozitivul este pe curba de incarcare ascendenta", str(DateTime.now()))
+		if items["Priza7_Asc1"] != ON:
+			events.sendCommand("Priza7_Asc1", "ON")
+		elif items["Priza7_Asc1"] == ON:
+			if items["Priza7_Asc2"] != ON:
+				events.sendCommand("Priza7_Asc2", "ON")
+			if items["Priza7_Asc"] != ON:
+				events.sendCommand("Priza7_Asc", "ON")
+				
+	if valDeltaPriza7 < minDelta7:
+		LogAction.logInfo("Priza7", "Dispozitivul este pe curba de incarcare descendenta", str(DateTime.now()))
+		if items["Priza7_Asc2"] != OFF:
+			events.sendCommand("Priza7_Asc2", "OFF")
+		elif items["Priza7_Asc2"] == OFF:
+			if items["Priza7_Asc1"] != OFF:
+				events.sendCommand("Priza7_Asc1", "OFF")
+			if items["Priza7_Asc"] != OFF:
+				events.sendCommand("Priza7_Asc", "OFF")

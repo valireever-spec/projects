@@ -1,0 +1,626 @@
+##011_Illumination_rev20240210.py
+# 25.10.2021 Correction of the rules
+# 09.03.2021 S-au corectat greselile din script
+# 07.03.2021 S-a adaugat activarea Daytime doar cand becurile sunt stinse
+# 22.02.2021
+# Corrected the rules
+#
+# FIXES applied 2026-03-07:
+#   OPT-irgetitem: replaced all 89 ir.getItem() calls with items[] dict lookups (state reads)
+#     and string-based sendCommand/postUpdate (commands). ir.getItem() calls registry
+#     on every invocation; items[] is a pre-populated dict — much lower overhead on
+#     high-frequency illuminance/presence events.
+#   FIX-sleep: Replaced all time.sleep()/sleep() calls with ScriptExecution.createTimer().
+#              sleep() blocks the entire Jython rule engine thread.
+#              11 sleep calls across 9 rules were replaced:
+#              - sufra1/2_daytime_switch, dormp1/2_daytime_switch, dormc1/2_daytime_switch:
+#                sleep(1) before reading Sonoffmini state -> deferred via 1s createTimer
+#              - forced_dormc/p/sufra ON branch: sleep(1) -> 1s createTimer
+#              - forced_dormc/p/sufra OFF branch: sleep(0.5)+cmd+sleep(0.5)+cmd -> cmd+500ms timer+cmd
+#              - sufra_illum_level: sleep(0.5) x2 between pure arithmetic -> removed entirely
+# 2026-05-02: UnDefType from org.eclipse.smarthome.core.types (ESH; OH 2.5.12).
+from core.rules import rule
+from core.triggers import when
+from core.actions import ScriptExecution
+from org.joda.time import DateTime
+import core
+from core.jsr223.scope import events, items
+from org.eclipse.smarthome.core.types import UnDefType
+from org.eclipse.smarthome.model.script.actions.Exec import executeCommandLine
+from core.actions import LogAction
+NULL = UnDefType.NULL
+ON = OnOffType.ON
+OFF = OnOffType.OFF
+
+def is_state(item_state, target_state):
+    """Safe state comparison using string conversion. Handles Java State objects reliably."""
+    return str(item_state).strip() == str(target_state).strip()
+
+UNDEF = UnDefType.UNDEF
+MinLightLevel = 0.008000000000000000
+MinLightlux = 3.0
+MinLightPhilips = 180
+Xiaomilux = 18.0
+levelLightSufra = None #20.08.2024
+####nou###
+@rule("Sufra1_deconz_Dark", description="Item Sufra1_Light_Illuminance changed", tags=["Illumination", "Sufra"])
+@when("Item Sufra1_Light_Illuminance changed")
+def sufra1_deconz_illum(event):
+    if items["Sufra1_Light_Illuminance"] >= QuantityType(u"18.0 lx") and items["Sufragerie1_Daytime"] != ON:
+        events.sendCommand("Sufragerie1_Daytime", "ON")
+    elif items["Sufra1_Light_Illuminance"] < QuantityType(u"18.0 lx") and items["Sufragerie1_Daytime"] != OFF:
+        events.sendCommand("Sufragerie1_Daytime", "OFF")
+@rule("Sufra2_deconz_Dark", description="Item Sufra2_Light_Illuminance changed", tags=["Illumination", "Sufra"])
+@when("Item Sufra2_Light_Illuminance changed")
+def sufra2_deconz_illum(event):
+    if items["Sufra2_Light_Illuminance"] >= QuantityType(u"18.0 lx") and items["Sufragerie2_Daytime"] != ON:
+        events.sendCommand("Sufragerie2_Daytime", "ON")
+    elif items["Sufra2_Light_Illuminance"] < QuantityType(u"18.0 lx") and items["Sufragerie2_Daytime"] != OFF:
+        events.sendCommand("Sufragerie2_Daytime", "OFF")
+##########
+@rule("Dark_Sufra1", description="Item Sufra1_Light_Dark changed", tags=["Illumination", "Sufra"])
+@when("Item Sufra1_Light_Dark changed")
+def sufra1_deconz_dark(event):
+    if event.itemState == ON and items["Sufragerie1_Daytime"] != OFF:
+        events.sendCommand("Sufragerie1_Daytime", "OFF")
+    elif event.itemState == OFF and items["Sufragerie1_Daytime"] != ON:
+        events.sendCommand("Sufragerie1_Daytime", "ON")
+@rule("DayLight_Sufra1", description="Item Sufra1_Light_Daylight changed", tags=["Illumination", "Sufra"])
+@when("Item Sufra1_Light_Daylight changed")
+def sufra1_deconz_daylight(event):
+    if event.itemState == ON and items["Sufragerie1_Daytime"] != ON:
+        events.sendCommand("Sufragerie1_Daytime", "ON")
+#    elif is_state(event.itemState, OFF):
+#        events.sendCommand(ir.getItem("Sufragerie1_Daytime"), OFF)
+#@rule("DayLight_Sufra1", description="Item SufragerieSenzorMiscare_Illuminance changed", tags=["Illumination", "Sufragerie"])
+#@when("Item SufragerieSenzorMiscare_Illuminance changed")
+#def sufra1_illum(event):
+#    if float(str(items["SufragerieSenzorMiscare_Illuminance"])) > MinLightLevel:
+#        events.sendCommand(ir.getItem("Sufragerie1_Daytime"), ON)
+#        if is_state(items["Logging"], ON):
+#            sufra1_illum.log.info("SufragerieSenzorMiscare measured enough light")
+#    elif float(str(items["SufragerieSenzorMiscare_Illuminance"])) < MinLightLevel:
+#        events.sendCommand(ir.getItem("Sufragerie1_Daytime"), OFF)
+#        if is_state(items["Logging"], ON):
+#            sufra1_illum.log.info("SufragerieSenzorMiscare measured not enough light")
+@rule("Dark_Sufra2", description="Item Sufra2_Light_Dark changed", tags=["Illumination", "Sufra"])
+@when("Item Sufra2_Light_Dark changed")
+def sufra2_deconz_dark(event):
+    if event.itemState == ON and items["Sufragerie2_Daytime"] != OFF:
+        events.sendCommand("Sufragerie2_Daytime", "OFF")
+    elif event.itemState == OFF and items["Sufragerie2_Daytime"] != ON:
+        events.sendCommand("Sufragerie2_Daytime", "ON")
+@rule("DayLight_Sufra2", description="Item Sufra2_Light_Daylight changed", tags=["Illumination", "Sufra"])
+@when("Item Sufra2_Light_Daylight changed")
+def sufra2_deconz_daylight(event):
+    if event.itemState == ON and items["Sufragerie2_Daytime"] != ON:
+        events.sendCommand("Sufragerie2_Daytime", "ON")
+#    elif is_state(event.itemState, OFF):
+#        events.sendCommand(ir.getItem("Sufragerie2_Daytime"), OFF)
+#@rule("DayLight_Sufra2", description="Item Sufragerie2SenzorMiscare_Illuminance changed", tags=["Illumination", "Sufragerie"])
+#@when("Item Sufragerie2SenzorMiscare_Illuminance changed")
+#def sufra2_illum(event):
+#    if float(str(items["Sufragerie2SenzorMiscare_Illuminance"])) > MinLightLevel:
+#        events.sendCommand(ir.getItem("Sufragerie2_Daytime"), ON)
+#        if is_state(items["Logging"], ON):
+#            sufra2_illum.log.info("Sufragerie2SenzorMiscare measured enough light")
+#    elif float(str(items["Sufragerie2SenzorMiscare_Illuminance"])) < MinLightLevel:
+#        events.sendCommand(ir.getItem("Sufragerie2_Daytime"), OFF)
+#        if is_state(items["Logging"], ON):
+#            sufra2_illum.log.info("Sufragerie2SenzorMiscare measured not enough light")
+####nou###
+@rule("Bucatarie1_deconz_Dark", description="Item Bucatarie1_Light_Illuminance changed", tags=["Illumination", "Bucatarie"])
+@when("Item Bucatarie1_Illuminance changed")
+def bucatarie1_deconz_illum(event):
+    if items["Bucatarie1_Illuminance"] >= QuantityType(u"25.0 lx") and items["Bucatarie_Daytime"] != ON:
+        events.sendCommand("Bucatarie_Daytime", "ON")
+    elif items["Bucatarie1_Illuminance"] < QuantityType(u"25.0 lx") and items["Bucatarie_Daytime"] != OFF:
+        events.sendCommand("Bucatarie_Daytime", "OFF")
+##########
+@rule("Dark_Bucatarie", description="Item Bucatarie1_Dark changed", tags=["Illumination", "Bucatarie"])
+@when("Item Bucatarie1_Dark changed")
+def bucatarie_deconz_dark(event):
+    if event.itemState == ON and items["Bucatarie_Daytime"] != OFF:
+        events.sendCommand("Bucatarie_Daytime", "OFF")
+    elif event.itemState == OFF and items["Bucatarie_Daytime"] != ON:
+        events.sendCommand("Bucatarie_Daytime", "ON")
+#@rule("Daylight_Bucatarie", description="Item Bucatarie1_Daylight changed", tags=["Illumination", "Bucatarie"])
+#@when("Item Bucatarie1_Daylight changed")
+#def bucatarie_deconz_daylight(event):
+#    if is_state(event.itemState, ON):
+#        events.sendCommand(ir.getItem("Bucatarie1_Daytime"), ON)
+#    elif is_state(event.itemState, OFF):
+#        events.sendCommand(ir.getItem("Bucatarie1_Daytime"), OFF)
+#@rule("DayLight_Bucatarie", description="Item Bucatarie1_Illuminance changed", tags=["Illumination", "Bucatarie"])
+#@when("Item Bucatarie1_Illuminance changed")
+#def bucatarie1_illum(event):
+#    if str(items["Bucatarie1_Illuminance"]) > MinLightlux:  ## ValueError: invalid literal for float: 1.0 lx
+#        events.sendCommand(ir.getItem("Bucatarie1_Daytime"), ON)
+#        if is_state(items["Logging"], ON):
+#            bucatarie1_illum.log.info("Bucatarie1 measured enough light")
+#    elif str(items["Bucatarie1_Illuminance"]) < MinLightlux:
+#        events.sendCommand(ir.getItem("Bucatarie1_Daytime"), OFF)
+#        if is_state(items["Logging"], ON):
+#            bucatarie1_illum.log.info("Bucatarie1 measured not enough light")
+@rule("DayLight_Philips", description="Item Bucatarie2_Illuminance changed", tags=["Illumination", "Bucatarie"])
+@when("Item Bucatarie2_Presence received command")
+def bucatarie2_illum(event):
+    if is_state(event.itemCommand, ON):
+#        if items["DaylightPhilips_DaylightValue"] < MinLightPhilips:
+        if float(str(items["DaylightPhilips_DaylightValue"])) < MinLightPhilips and items["Philips_Daytime"] != ON:
+            events.sendCommand("Philips_Daytime", "ON")
+            if is_state(items["Logging"], ON):
+                bucatarie2_illum.log.info("Philips sensor measured enough light")
+        elif float(str(items["DaylightPhilips_DaylightValue"]))>= MinLightPhilips and items["Philips_Daytime"] != OFF:
+#        elif items["DaylightPhilips_DaylightValue"] > MinLightPhilips:
+            events.sendCommand("Philips_Daytime", "OFF")
+            if is_state(items["Logging"], ON):
+                bucatarie2_illum.log.info("Philips sensor measured enough light")
+@rule("Decizie cand Sufragerie1_Daytime e activ", description="Item Sufragerie1_Daytime received command ON", tags=["Illumination", "Sufragerie"])
+@when("Item Sufragerie1_Daytime received update")
+def sufra1_daytime_switch(event):
+    if is_state(event.itemState, ON):
+        # FIX-sleep: replaced time.sleep(1) with createTimer to avoid blocking rule engine
+        def _sufra1_daytime_on():
+            if is_state(items["Sonoffmini3_Alive"], ON):
+                if items["Sonoffmini3_Power"] != ON and items["Sufragerie_Daytime"] != ON:
+                    events.sendCommand("Sufragerie_Daytime", "ON")
+            #if ir.getItem("Sonoffmini3_Power").state != ON:
+            if items["Sonoffmini3_Alive"] != ON and items["Sufragerie_Daytime"] != ON:
+                events.sendCommand("Sufragerie_Daytime", "ON")
+                if is_state(items["Logging"], ON):
+                    sufra1_daytime_switch.log.info("Daytime received command ON")
+        ScriptExecution.createTimer(DateTime.now().plusSeconds(1), _sufra1_daytime_on)
+    if is_state(event.itemState, OFF):
+        if items["Sufragerie2_Daytime"] == OFF and items["Sufragerie_Daytime"] != OFF:
+            events.sendCommand("Sufragerie_Daytime", "OFF")
+            if is_state(items["Logging"], ON):
+                sufra1_daytime_switch.log.info("Daytime received command OFF")
+@rule("Decizie cand Sufragerie2_Daytime e activ", description="Item Sufragerie2_Daytime received command ON", tags=["Illumination", "Sufragerie"])
+@when("Item Sufragerie2_Daytime received update")
+def sufra2_daytime_switch(event):
+    if is_state(event.itemState, ON):
+        # FIX-sleep: replaced time.sleep(1) with createTimer
+        def _sufra2_daytime_on():
+            if is_state(items["Sonoffmini3_Alive"], ON):
+                if not is_state(items["Sonoffmini3_Power"], ON):
+                    events.sendCommand("Sufragerie_Daytime", "ON")
+            #if ir.getItem("Sonoffmini3_Power").state != ON:
+            if not is_state(items["Sonoffmini3_Alive"], ON):
+                events.sendCommand("Sufragerie_Daytime", "ON")
+                if is_state(items["Logging"], ON):
+                    sufra2_daytime_switch.log.info("Daytime received command ON")
+        ScriptExecution.createTimer(DateTime.now().plusSeconds(1), _sufra2_daytime_on)
+    if is_state(event.itemState, OFF):
+        if is_state(items["Sufragerie1_Daytime"], OFF):
+            events.sendCommand("Sufragerie_Daytime", "OFF")
+            if is_state(items["Logging"], ON):
+                sufra2_daytime_switch.log.info("Daytime received command OFF")
+@rule("Decizie cand Bucatarie1_Daytime e activ", description="Item Bucatarie1_Daytime received command ON", tags=["Illumination", "Bucatarie"])
+@when("Item Bucatarie1_Daytime received update")
+def bucatarie1_daytime_switch(event):
+    if is_state(event.itemState, ON):
+        if not is_state(items["Bec_TechPro4"], ON):
+            events.sendCommand("Bucatarie_Daytime", "ON")
+            if is_state(items["Logging"], ON):
+                bucatarie1_daytime_switch.log.info("Daytime received command ON")
+    if is_state(event.itemState, OFF):
+        if is_state(items["Philips_Daytime"], OFF):
+            events.sendCommand("Bucatarie_Daytime", "OFF")
+            if is_state(items["Logging"], ON):
+                bucatarie1_daytime_switch.log.info("Daytime received command OFF")
+@rule("Decizie cand Philips_Daytime e activ", description="Item Philips_Daytime received command ON", tags=["Illumination", "Bucatarie"])
+@when("Item Philips_Daytime received command")
+def bucatarie2_daytime_switch(event):
+    if is_state(event.itemCommand, ON):
+        if not is_state(items["Bec_TechPro4"], ON):
+            events.sendCommand("Bucatarie_Daytime", "ON")
+            if is_state(items["Logging"], ON):
+                bucatarie2_daytime_switch.log.info("Daytime received command ON")
+    if is_state(event.itemCommand, OFF):
+        if is_state(items["Bucatarie1_Daytime"], OFF):
+            events.sendCommand("Bucatarie_Daytime", "OFF")
+            if is_state(items["Logging"], ON):
+                bucatarie2_daytime_switch.log.info("Daytime received command OFF")
+####nou###
+@rule("DormP1_deconz_Dark", description="Item DormP1_Light_Illuminance changed", tags=["Illumination", "DormP"])
+@when("Item DormP1_Light_Illuminance changed")
+def dormp1_deconz_illum(event):
+    if items["DormP1_Light_Illuminance"] >= QuantityType(u"18.0 lx"):
+        events.sendCommand("DormP1_Daytime", "ON")
+    elif items["DormP1_Light_Illuminance"] < QuantityType(u"18.0 lx"):
+        events.sendCommand("DormP1_Daytime", "OFF")
+@rule("DormP2_deconz_Dark", description="Item DormP2_Light_Illuminance changed", tags=["Illumination", "DormP"])
+@when("Item DormP2_Light_Illuminance changed")
+def dormp2_deconz_illum(event):
+    if items["DormP2_Light_Illuminance"] >= QuantityType(u"18.0 lx"):
+        events.sendCommand("DormP2_Daytime", "ON")
+    elif items["DormP2_Light_Illuminance"] < QuantityType(u"18.0 lx"):
+        events.sendCommand("DormP2_Daytime", "OFF")
+##########
+@rule("Dark_DormP1", description="Item DormP1_Light_Dark changed", tags=["Illumination", "DormitorP"])
+@when("Item DormP1_Light_Dark changed")
+def dormp1_deconz_dark(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("DormP1_Daytime", "OFF")
+    elif is_state(event.itemState, OFF):
+        events.sendCommand("DormP1_Daytime", "ON")
+@rule("Daylight_DormP1", description="Item DormP1_Light_Daylight changed", tags=["Illumination", "DormitorP"])
+@when("Item DormP1_Light_Daylight changed")
+def dormp1_deconz_daylight(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("DormP1_Daytime", "ON")
+#    elif is_state(event.itemState, OFF):
+#        events.sendCommand(ir.getItem("DormP1_Daytime"), OFF)
+#@rule("DayLight_DormP1", description="Item DormitorPSenzorMiscare_Illuminance changed", tags=["Illumination", "DormitorP"])
+#@when("Item DormitorPSenzorMiscare_Illuminance changed")
+#def dormp1_illum(event):
+#    if float(str(items["DormitorPSenzorMiscare_Illuminance"])) > MinLightLevel:
+#        events.sendCommand(ir.getItem("DormP1_Daytime"), ON)
+#        if is_state(items["Logging"], ON):
+#            dormp1_illum.log.info("DormitorPSenzorMiscare measured enough light")
+#    elif float(str(items["DormitorPSenzorMiscare_Illuminance"])) < MinLightLevel:
+#        events.sendCommand(ir.getItem("DormP1_Daytime"), OFF)
+#        if is_state(items["Logging"], ON):
+#            dormp1_illum.log.info("DormitorPSenzorMiscare measured not enough light")
+@rule("Dark_DormP2", description="Item DormP2_Light_Dark changed", tags=["Illumination", "DormitorP"])
+@when("Item DormP2_Light_Dark changed")
+def dormp2_deconz_dark(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("DormP2_Daytime", "OFF")
+    elif is_state(event.itemState, OFF):
+        events.sendCommand("DormP2_Daytime", "ON")
+@rule("Daylight_DormP2", description="Item DormP2_Light_Daylight changed", tags=["Illumination", "DormitorP"])
+@when("Item DormP2_Light_Daylight changed")
+def dormp2_deconz_daylight(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("DormP2_Daytime", "ON")
+#    elif is_state(event.itemState, OFF):
+#        events.sendCommand(ir.getItem("DormP2_Daytime"), OFF)
+#@rule("DayLight_DormP2", description="Item HolSenzorMiscare_Illuminance changed", tags=["Illumination", "DormitorP"])
+#@when("Item HolSenzorMiscare_Illuminance changed")
+#def dormp2_illum(event):
+#    if float(str(items["HolSenzorMiscare_Illuminance"])) > MinLightLevel:
+#        events.sendCommand(ir.getItem("DormP2_Daytime"), ON)
+#        if is_state(items["Logging"], ON):
+#            dormp2_illum.log.info("HolSenzorMiscare_Illuminance measured enough light")
+#    elif float(str(items["HolSenzorMiscare_Illuminance"])) < MinLightLevel:
+#        events.sendCommand(ir.getItem("DormP2_Daytime"), OFF)
+#        if is_state(items["Logging"], ON):
+#            dormp2_illum.log.info("HolSenzorMiscare_Illuminance measured not enough light")
+@rule("Decizie cand DormP1_Daytime e activ", description="Item DormP1_Daytime received command ON", tags=["Illumination", "DormitorP"])
+@when("Item DormP1_Daytime received update")
+def dormp1_daytime_switch(event):
+    if is_state(event.itemState, ON):
+        # FIX-sleep: replaced time.sleep(1) with createTimer
+        def _dormp1_daytime_on():
+            if is_state(items["Sonoffmini2_Alive"], ON):
+                if not is_state(items["Sonoffmini2_Power"], ON):
+                    events.sendCommand("DormP_Daytime", "ON")
+            #if ir.getItem("Sonoffmini2_Power").state != ON:
+            if not is_state(items["Sonoffmini2_Alive"], ON):
+                events.sendCommand("DormP_Daytime", "ON")
+                if is_state(items["Logging"], ON):
+                    dormp1_daytime_switch.log.info("Daytime received command ON")
+        ScriptExecution.createTimer(DateTime.now().plusSeconds(1), _dormp1_daytime_on)
+    if is_state(event.itemState, OFF):
+        if is_state(items["DormP2_Daytime"], OFF):
+            events.sendCommand("DormP_Daytime", "OFF")
+            if is_state(items["Logging"], ON):
+                dormp1_daytime_switch.log.info("Daytime received command OFF")
+@rule("Decizie cand DormP2_Daytime e activ", description="Item DormP2_Daytime received command ON", tags=["Illumination", "DormitorP"])
+@when("Item DormP2_Daytime received update")
+def dormp2_daytime_switch(event):
+    if is_state(event.itemState, ON):
+        # FIX-sleep: replaced time.sleep(1) with createTimer
+        def _dormp2_daytime_on():
+            if is_state(items["Sonoffmini2_Alive"], ON):
+                if not is_state(items["Sonoffmini2_Power"], ON):
+                    events.sendCommand("DormP_Daytime", "ON")
+            #if ir.getItem("Sonoffmini2_Power").state != ON:
+            if not is_state(items["Sonoffmini2_Alive"], ON):
+                events.sendCommand("DormP_Daytime", "ON")
+                if is_state(items["Logging"], ON):
+                    dormp2_daytime_switch.log.info("Daytime received command ON")
+        ScriptExecution.createTimer(DateTime.now().plusSeconds(1), _dormp2_daytime_on)
+    if is_state(event.itemState, OFF):
+        if is_state(items["DormP1_Daytime"], OFF):
+            events.sendCommand("DormP_Daytime", "OFF")
+            if is_state(items["Logging"], ON):
+                dormp2_daytime_switch.log.info("Daytime received command OFF")
+####nou###
+@rule("DormC1_deconz_Dark", description="Item DormC1_Light_Illuminance changed", tags=["Illumination", "DormC"])
+@when("Item DormC1_Light_Illuminance changed")
+def dormc1_deconz_illum(event):
+    if items["DormC1_Light_Illuminance"] >= QuantityType(u"18.0 lx"):
+        events.sendCommand("DormC1_Daytime", "ON")
+    elif items["DormC1_Light_Illuminance"] < QuantityType(u"18.0 lx"):
+        events.sendCommand("DormC1_Daytime", "OFF")
+@rule("DormC2_deconz_Dark", description="Item DormC2_Light_Illuminance changed", tags=["Illumination", "DormC"])
+@when("Item DormC2_Light_Illuminance changed")
+def dormc2_deconz_illum(event):
+    if items["DormC2_Light_Illuminance"] >= QuantityType(u"18.0 lx"):
+        events.sendCommand("DormC2_Daytime", "ON")
+    elif items["DormC2_Light_Illuminance"] < QuantityType(u"18.0 lx"):
+        events.sendCommand("DormC2_Daytime", "OFF")
+##########
+@rule("Dark_DormC1", description="Item DormC1_Light_Dark changed", tags=["Illumination", "DormitorC"])
+@when("Item DormC1_Light_Dark changed")
+def dormc1_deconz_dark(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("DormC1_Daytime", "OFF")
+    elif is_state(event.itemState, OFF):
+        events.sendCommand("DormC1_Daytime", "ON")
+@rule("Daylight_DormC1", description="Item DormC1_Light_Daylight changed", tags=["Illumination", "DormitorC"])
+@when("Item DormC1_Light_Daylight changed")
+def dormc1_deconz_daylight(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("DormC1_Daytime", "ON")
+#    elif is_state(event.itemState, OFF):
+#        events.sendCommand(ir.getItem("DormC1_Daytime"), OFF)
+#@rule("DayLight_DormC1", description="Item DormitorCSenzorMiscare_Illuminance changed", tags=["Illumination", "DormitorC"])
+#@when("Item DormitorCSenzorMiscare_Illuminance changed")
+#def dormc1_illum(event):
+#    if float(str(items["HolSenzorMiscare_Illuminance"])) > MinLightLevel:
+#        events.sendCommand(ir.getItem("DormC1_Daytime"), ON)
+#        if is_state(items["Logging"], ON):
+#            dormc1_illum.log.info("DormitorCSenzorMiscare measured enough light")
+#    elif float(str(items["HolSenzorMiscare_Illuminance"])) < MinLightLevel:
+#        events.sendCommand(ir.getItem("DormC1_Daytime"), OFF)
+#        if is_state(items["Logging"], ON):
+#            dormc1_illum.log.info("DormitorCSenzorMiscare measured not enough light")
+@rule("Dark_DormC2", description="Item DormC2_Light_Dark changed", tags=["Illumination", "DormitorC"])
+@when("Item DormC2_Light_Dark changed")
+def dormc2_deconz_dark(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("DormC2_Daytime", "OFF")
+    elif is_state(event.itemState, OFF):
+        events.sendCommand("DormC2_Daytime", "ON")
+@rule("Daylight_DormC2", description="Item DormC2_Light_Daylight changed", tags=["Illumination", "DormitorC"])
+@when("Item DormC2_Light_Daylight changed")
+def dormc2_deconz_daylight(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("DormC2_Daytime", "ON")
+#    elif is_state(event.itemState, OFF):
+#        events.sendCommand(ir.getItem("DormC2_Daytime"), OFF)
+#@rule("DayLight_DormC2", description="Item BaieSenzorMiscare_Illuminance changed", tags=["Illumination", "DormitorC"])
+#@when("Item BaieSenzorMiscare_Illuminance changed")
+#def dormc2_illum(event):
+#    if float(str(items["BaieSenzorMiscare_Illuminance"])) > MinLightLevel:
+#        events.sendCommand(ir.getItem("DormC2_Daytime"), ON)
+#        if is_state(items["Logging"], ON):
+#            dormc2_illum.log.info("BaieSenzorMiscare_Illuminance measured enough light")
+#    elif float(str(items["BaieSenzorMiscare_Illuminance"])) < MinLightLevel:
+#        events.sendCommand(ir.getItem("DormC2_Daytime"), OFF)
+#        if is_state(items["Logging"], ON):
+#            dormc2_illum.log.info("BaieSenzorMiscare_Illuminance measured not enough light")
+@rule("Decizie cand DormC1_Daytime e activ", description="Item DormC1_Daytime received command ON", tags=["Illumination", "DormitorC"])
+@when("Item DormC1_Daytime received update")
+def dormc1_daytime_switch(event):
+    if is_state(event.itemState, ON):
+        # FIX-sleep: replaced time.sleep(1) with createTimer
+        def _dormc1_daytime_on():
+            if is_state(items["Sonoffmini1_Alive"], ON):
+                if not is_state(items["Sonoffmini1_Power"], ON):
+                    events.sendCommand("DormC_Daytime", "ON")
+            #if ir.getItem("Sonoffmini1_Power").state != ON:
+            if not is_state(items["Sonoffmini1_Alive"], ON):
+                events.sendCommand("DormC_Daytime", "ON")
+                if is_state(items["Logging"], ON):
+                    dormc1_daytime_switch.log.info("Daytime received command ON")
+        ScriptExecution.createTimer(DateTime.now().plusSeconds(1), _dormc1_daytime_on)
+    if is_state(event.itemState, OFF):
+        if is_state(items["DormC2_Daytime"], OFF):
+            events.sendCommand("DormC_Daytime", "OFF")
+            if is_state(items["Logging"], ON):
+                dormc1_daytime_switch.log.info("Daytime received command OFF")
+@rule("Decizie cand DormC2_Daytime e activ", description="Item DormC2_Daytime received command ON", tags=["Illumination", "DormitorC"])
+@when("Item DormC2_Daytime received update")
+def dormc2_daytime_switch(event):
+    if is_state(event.itemState, ON):
+        # FIX-sleep: replaced time.sleep(1) with createTimer
+        def _dormc2_daytime_on():
+            if is_state(items["Sonoffmini1_Alive"], ON):
+                if not is_state(items["Sonoffmini1_Power"], ON):
+                    events.sendCommand("DormC_Daytime", "ON")
+            #if ir.getItem("Sonoffmini1_Power").state != ON:
+            if not is_state(items["Sonoffmini1_Alive"], ON):
+                events.sendCommand("DormC_Daytime", "ON")
+                if is_state(items["Logging"], ON):
+                    dormc2_daytime_switch.log.info("Daytime received command ON")
+        ScriptExecution.createTimer(DateTime.now().plusSeconds(1), _dormc2_daytime_on)
+    if is_state(event.itemState, OFF):
+        if is_state(items["DormC1_Daytime"], OFF):
+            events.sendCommand("DormC_Daytime", "OFF")
+            if is_state(items["Logging"], ON):
+                dormc2_daytime_switch.log.info("Daytime received command OFF")
+@rule("Daytime Sufragerie", description="Item Sufragerie_Daytime received command", tags=["Lumina naturala", "Sufragerie"])
+@when("Item Sufragerie_Daytime received update")
+def sufra_daylight(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("Sufragerie_Illuminance_Switch", "OFF")
+        if is_state(items["Logging"], ON):
+            sufra_daylight.log.info("Este destula lumina naturala in sufragerie")
+    elif is_state(event.itemState, OFF):
+        events.sendCommand("Sufragerie_Illuminance_Switch", "ON")
+        if is_state(items["Logging"], ON):
+            sufra_daylight.log.info("Nu este destula lumina naturala in sufragerie")
+@rule("Illumination DormitorParinti", description="Item DormP_Daytime received command", tags=["Lumina naturala", "DormitorParinti"])
+@when("Item DormP_Daytime received update")
+def dormp_daylight(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("DormitorP_Illuminance_Switch", "OFF")
+        if is_state(items["Logging"], ON):
+            dormp_daylight.log.info("Este destula lumina naturala in dormitor parinti")
+    elif is_state(event.itemState, OFF):
+        events.sendCommand("DormitorP_Illuminance_Switch", "ON")
+        if is_state(items["Logging"], ON):
+            dormp_daylight.log.info("Nu este destula lumina naturala in dormitor parinti")
+@rule("Illumination DormitorCopii", description="Item DormC_Daytime received command", tags=["Lumina naturala", "DormitorCopii"])
+@when("Item DormC_Daytime received update")
+def dormc_daylight(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("DormitorC_Illuminance_Switch", "OFF")
+        if is_state(items["Logging"], ON):
+            dormc_daylight.log.info("Este destula lumina naturala in dormitor copii")
+    elif is_state(event.itemState, OFF):
+        events.sendCommand("DormitorC_Illuminance_Switch", "ON")
+        if is_state(items["Logging"], ON):
+            LogAction.logInfo("Illumination DormitorCopii", "Nu este destula lumina naturala in dormitor copii")
+@rule("Illumination Bucatarie", description="Item Bucatarie_Daytime received command", tags=["Lumina naturala", "Bucatarie"])
+@when("Item Bucatarie_Daytime received update")
+def bucatarie_daylight(event):
+    if is_state(event.itemState, ON):
+        #if ir.getItem("Bec_TechPro4").state == OFF:
+        events.sendCommand("Bucatarie_Illuminance_Switch", "OFF")
+        if is_state(items["Logging"], ON):
+            bucatarie_daylight.log.info("Este destula lumina naturala in Bucatarie")
+    if is_state(event.itemState, OFF):
+        events.sendCommand("Bucatarie_Illuminance_Switch", "ON")
+        if is_state(items["Logging"], ON):
+            LogAction.logInfo("Illumination Bucatarie", "Nu este destula lumina naturala in Bucatarie")
+###Adaugat la 29.08.2021###
+@rule("Natural light off", description="Item DaylightPhilips_Dark received update on", tags=["Lumina naturala"])
+@when("Item DaylightPhilips_Dark received update")
+def natural_light_off(event):
+    if is_state(event.itemState, ON):
+        events.sendCommand("Sufragerie_Daytime", "OFF")
+        events.sendCommand("Bucatarie_Daytime", "OFF")
+        events.sendCommand("DormP_Daytime", "OFF")
+        events.sendCommand("DormC_Daytime", "OFF")
+        natural_light_off = executeCommandLine("/etc/openhab2/scripts/daylight.sh night", 10000)  #Update 21.05.2024
+        LogAction.logInfo("Natural light off", "Nu este destula lumina naturala afara")
+@rule("Natural light on", description="Item DaylightPhilips_Dark received update off", tags=["Lumina naturala"])
+@when("Item DaylightPhilips_Dark received update")
+def natural_light_on(event):
+    spring = "Spring"
+    summer = "Summer"
+    autumn = "Autumn"
+    winter = "Winter"
+    if is_state(event.itemState, OFF):
+        natural_light_off = executeCommandLine("/etc/openhab2/scripts/daylight.sh day", 10000) #Update 21.05.2024
+        if is_state(items["AstroSunData_Season_SeasonName"], StringType(summer)): #or items["AstroSunData_Season_SeasonName"] == StringType(spring):
+            events.sendCommand("Sufragerie_Daytime", "ON")
+            events.sendCommand("Bucatarie_Daytime", "ON")
+            events.sendCommand("DormP_Daytime", "ON")
+            events.sendCommand("DormC_Daytime", "ON")
+            natural_light_on.log.info("Este destula lumina naturala afara")
+#########Reguli noi 05.10.2021#########
+#Chiar si cand e lumina suficienta, la aprinderea becurilor, trebuie ca lumina sa ramana permanent aprinsa#
+@rule("PermDormC forced switch on", description="PermDormC change to ON", tags=["forced", "Sonoffmini1"])
+#@when("Item Sonoffmini1_Power changed")
+@when("Item Sonoffmini1_Alive changed")
+def forced_dormc(event):
+    if is_state(event.itemState, ON):
+        # FIX-sleep: replaced time.sleep(1) with createTimer
+        def _forced_dormc_on():
+            if not is_state(items["DormC_Daytime"], OFF):
+                if not is_state(items["DormitorC_Illuminance_Switch"], ON):
+                    #if not is_state(items["Sonoffmini1_Alive"], OFF):
+                    events.sendCommand("PermDormC", "ON")
+                    events.sendCommand("PermDormC_Forced", "ON")
+                    forced_dormc.log.info("Sonoffmini1 a activat fortat PermDormC si PermDormC_Forced")
+        ScriptExecution.createTimer(DateTime.now().plusSeconds(1), _forced_dormc_on)
+    if is_state(event.itemState, OFF):
+        forced_dormc.log.info("Sonoffmini1_Reachable este inactiv")
+        if not is_state(items["PermDormC_Forced"], OFF):
+            # FIX-sleep: replaced sleep(0.5)+cmd+sleep(0.5)+cmd with chained timers
+            def _forced_dormc_off_step2():
+                events.sendCommand("PermDormC", "OFF")
+                forced_dormc.log.info("Sonoffmini1 a dezactivat fortat PermDormC si PermDormC_Forced")
+            events.sendCommand("PermDormC_Forced", "OFF")
+            ScriptExecution.createTimer(DateTime.now().plusMillis(500), _forced_dormc_off_step2)
+@rule("PermDormP forced switch on", description="PermDormP change to ON", tags=["forced", "Sonoffmini2"])
+#@when("Item Sonoffmini2_Power changed")
+@when("Item Sonoffmini2_Alive changed")
+def forced_dormp(event):
+    if is_state(event.itemState, ON):
+        # FIX-sleep: replaced time.sleep(1) with createTimer
+        def _forced_dormp_on():
+            if not is_state(items["DormP_Daytime"], OFF):
+                if not is_state(items["DormitorP_Illuminance_Switch"], ON):
+                    #if not is_state(items["Sonoffmini2_Alive"], OFF):
+                    events.sendCommand("PermDormP", "ON")
+                    events.sendCommand("PermDormP_Forced", "ON")
+                    forced_dormp.log.info("Sonoffmini2 a activat fortat PermDormP si PermDormP_Forced")
+        ScriptExecution.createTimer(DateTime.now().plusSeconds(1), _forced_dormp_on)
+    if is_state(event.itemState, OFF):
+        forced_dormp.log.info("Sonoffmini2_Reachable este inactiv")
+        if not is_state(items["PermDormP_Forced"], OFF):
+            # FIX-sleep: replaced sleep(0.5)+cmd+sleep(0.5)+cmd with chained timers
+            def _forced_dormp_off_step2():
+                events.sendCommand("PermDormP", "OFF")
+                forced_dormp.log.info("Sonoffmini2 a dezactivat fortat PermDormP si PermDormP_Forced")
+            events.sendCommand("PermDormP_Forced", "OFF")
+            ScriptExecution.createTimer(DateTime.now().plusMillis(500), _forced_dormp_off_step2)
+@rule("PermSufra forced switch on", description="PermSufra change to ON when switch is switched on", tags=["forced", "Sonoffmini3"])
+#@when("Item Sonoffmini3_Power changed")
+@when("Item Sonoffmini3_Alive changed")
+def forced_sufra(event):
+    if is_state(event.itemState, ON):
+        # FIX-sleep: replaced time.sleep(1) with createTimer
+        def _forced_sufra_on():
+            if not is_state(items["Sufragerie_Daytime"], OFF):
+                if not is_state(items["Sufragerie_Illuminance_Switch"], ON):
+                    #if not is_state(items["Sonoffmini3_Alive"], OFF):
+                    events.sendCommand("PermSufra", "ON")
+                    events.sendCommand("PermSufra_Forced", "ON")
+                    forced_sufra.log.info("Sonoffmini3 a activat fortat PermSufra si PermSufra_Forced")
+        ScriptExecution.createTimer(DateTime.now().plusSeconds(1), _forced_sufra_on)
+    if is_state(event.itemState, OFF):
+        forced_sufra.log.info("Sonoffmini3_Reachable este inactiv")
+        if not is_state(items["PermSufra_Forced"], OFF):
+            # FIX-sleep: replaced sleep(0.5)+cmd+sleep(0.5)+cmd with chained timers
+            def _forced_sufra_off_step2():
+                events.sendCommand("PermSufra", "OFF")
+                forced_sufra.log.info("Sonoffmini3 a dezactivat fortat PermSufra si PermSufra_Forced")
+            events.sendCommand("PermSufra_Forced", "OFF")
+            ScriptExecution.createTimer(DateTime.now().plusMillis(500), _forced_sufra_off_step2)
+@rule("Sufra_Light_Illuminance changed", description="Sufra_Light_Illuminance changed", tags=["Sufra_Light"])
+@when("Item Sufra1_Light_Illuminance changed")
+@when("Item Sufra2_Light_Illuminance changed")
+def sufra_illum_level(event):
+    global valIllumSufra 
+    valIllumSufra1 = None
+    valIllumSufra2 = None
+    levelLightSufra = 0.0  # Initialize levelLightSufra
+    morning = "MORNING"
+    day = "DAY"
+    afternoon = "AFTERNOON"
+    evening = "EVENING"
+    night = "NIGHT"
+    bed = "BED"
+    if items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon) or items["vTimeOfDay"] == StringType(evening): #or items["vTimeOfDay"] == StringType(morning):
+        if is_state(items["OffFlagLamp"], OFF):
+            illuminance_values = {
+                QuantityType(u"18.0 lx"): 18, QuantityType(u"17.0 lx"): 17, QuantityType(u"16.0 lx"): 16,
+                QuantityType(u"15.0 lx"): 15, QuantityType(u"14.0 lx"): 14, QuantityType(u"13.0 lx"): 13,
+                QuantityType(u"12.0 lx"): 12, QuantityType(u"11.0 lx"): 11, QuantityType(u"10.0 lx"): 10,
+                QuantityType(u"9.0 lx"): 9, QuantityType(u"8.0 lx"): 8, QuantityType(u"7.0 lx"): 7,
+                QuantityType(u"6.0 lx"): 6, QuantityType(u"5.0 lx"): 5, QuantityType(u"4.0 lx"): 4,
+                QuantityType(u"3.0 lx"): 3, QuantityType(u"2.0 lx"): 2, QuantityType(u"1.0 lx"): 1,
+                QuantityType(u"0.0 lx"): 0
+            }
+            valIllumSufra1 = illuminance_values.get(items["Sufra1_Light_Illuminance"], None)
+            valIllumSufra2 = illuminance_values.get(items["Sufra2_Light_Illuminance"], None)
+            if valIllumSufra1 is not None and valIllumSufra2 is not None:
+                valIllumSufra = (valIllumSufra1 + valIllumSufra2) / 2
+                # FIX-sleep: removed sleep(0.5) x2 — they were between pure arithmetic, no I/O needed
+                levelLightSufra = valIllumSufra + ((18 - valIllumSufra) * 5.5)
+                if is_state(items["OffFlagLamp"], OFF):
+                    if is_state(items["Sufra_Presence"], ON):
+                        if is_state(items["Logging"], ON):
+                            LogAction.logInfo("valIllumSufra", "changed to {} lx at {}", valIllumSufra, str(DateTime.now()))
+                            LogAction.logInfo("levelLightSufra", "changed to {} at {}", levelLightSufra, str(DateTime.now()))
+                        events.postUpdate("Bec_TechPro8_Dimmer", str(levelLightSufra))
+                        events.postUpdate("Bec_TechPro9_Dimmer", str(levelLightSufra))
+                        events.postUpdate("gBec_LampaSufra", "ON")
+    elif items["vTimeOfDay"] == StringType(night) or items["vTimeOfDay"] == StringType(bed) or items["vTimeOfDay"] == StringType(morning):
+        if is_state(items["Clock_alarm"], OFF):
+            events.postUpdate("Bec_TechPro8_Dimmer", str(0))
+            events.postUpdate("Bec_TechPro9_Dimmer", str(0))
+            events.postUpdate("gBec_LampaSufra", "OFF")
+        elif is_state(items["Clock_alarm"], ON):
+            events.postUpdate("Bec_TechPro8_Dimmer", str(levelLightSufra))
+            events.postUpdate("Bec_TechPro9_Dimmer", str(levelLightSufra))
+            events.postUpdate("gBec_LampaSufra", "ON")

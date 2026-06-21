@@ -1,0 +1,156 @@
+# OH 2.5.12: OnOffType / UnDefType from org.eclipse.smarthome.core.* (ESH). Normalized 2026-05-02.
+
+from core.rules import rule
+from core.triggers import when
+from core.actions import ScriptExecution
+from core.jsr223.scope import events, items
+from org.eclipse.smarthome.model.script.actions.Exec import executeCommandLine
+from org.joda.time import DateTime
+from core.actions import LogAction
+from org.eclipse.smarthome.core.library.types import OnOffType
+from org.eclipse.smarthome.core.types import UnDefType
+
+# ----- Helpers -----
+def is_on(state):   return str(state) == "ON"
+def is_off(state):  return str(state) == "OFF"
+
+# ----- Timer placeholders -----
+FireplaceTimerOn = None
+FireplaceTimerOff = None
+FireplaceRestartTimer = None
+FireplaceStartTimer = None
+
+# ====================================================================
+#  RULE 1: MQTT → Fireplace command
+# ====================================================================
+@rule("MQTT fireplace trigger")
+@when("Item ScriptParrot_Pi_fireplace changed")
+def rule_mqtt_fireplace(event):
+    LogAction.logInfo("fireplace", "MQTT trigger: ScriptParrot changed to {}".format(event.itemState))
+
+    if is_on(event.itemState):
+        events.sendCommand("Pi_fireplace", "ON")
+        events.postUpdate("Fireplace", "ON")
+        events.postUpdate("Fireplace_restart", "OFF")
+
+    #elif is_off(event.itemState):
+    #    events.sendCommand("Pi_fireplace", "OFF")
+
+
+# ====================================================================
+#  RULE 2: Pi_fireplace → Execute shell scripts
+# ====================================================================
+@rule("Pi_fireplace executor")
+@when("Item Pi_fireplace changed")
+def rule_pifireplace(event):
+    new_state = event.itemState
+    LogAction.logInfo("fireplace", "Pi_fireplace changed to {}".format(new_state))
+
+    if is_off(new_state):
+        LogAction.logInfo("fireplace", "Running shutdown script")
+        res = executeCommandLine("/etc/openhab2/scripts/shutdownfireplace.sh", 60000)
+        LogAction.logInfo("fireplace", "Shutdown result: {}".format(res))
+
+        events.postUpdate("Pi_fireplace_restart", "OFF")
+        events.postUpdate("Fireplace", "OFF")
+
+    elif is_on(new_state):
+        LogAction.logInfo("fireplace", "Running start script")
+        res = executeCommandLine("/etc/openhab2/scripts/fireplace.sh", 20000)
+        LogAction.logInfo("fireplace", "Start result: {}".format(res))
+
+
+# ====================================================================
+#  RULE 3: Pi_fireplace_restart → Execute restart
+# ====================================================================
+@rule("Pi_fireplace restart executor")
+@when("Item Pi_fireplace_restart changed")
+def rule_pifireplace_restart(event):
+    if is_on(event.itemState):
+        LogAction.logInfo("fireplace", "Restart script triggered")
+        res = executeCommandLine("/etc/openhab2/scripts/restartfireplace.sh", 20000)
+        LogAction.logInfo("fireplace", "Restart result: {}".format(res))
+
+
+# ====================================================================
+#  RULE 4: Fireplace main logic & timers
+# ====================================================================
+def timer_on_callback():
+    LogAction.logInfo("fireplace", "TimerOn → Forcing Pi_fireplace ON")
+    events.sendCommand("Pi_fireplace", "ON")
+
+def timer_off_callback():
+    LogAction.logInfo("fireplace", "TimerOff → Turning Priza8 OFF")
+    events.sendCommand("Priza8_Power", "OFF")
+
+@rule("Fireplace state handler")
+@when("Item Fireplace changed")
+def rule_fireplace(event):
+    global FireplaceTimerOn, FireplaceTimerOff
+
+    new_state = event.itemState
+    LogAction.logInfo("fireplace", "Fireplace changed to {}".format(new_state))
+
+    # Fireplace turned ON
+    if is_on(new_state):
+        events.sendCommand("Priza8_Power", "ON")
+
+        # Cancel previous timer
+        if FireplaceTimerOn:
+            FireplaceTimerOn.cancel()
+
+        FireplaceTimerOn = ScriptExecution.createTimer(
+            DateTime.now().plusMinutes(2),
+            timer_on_callback
+        )
+        LogAction.logInfo("fireplace", "TimerOn set for 2 minutes")
+
+    # Fireplace turned OFF
+    elif is_off(new_state):
+        events.sendCommand("Pi_fireplace", "OFF")
+
+        if FireplaceTimerOff:
+            FireplaceTimerOff.cancel()
+
+        FireplaceTimerOff = ScriptExecution.createTimer(
+            DateTime.now().plusMinutes(2),
+            timer_off_callback
+        )
+        LogAction.logInfo("fireplace", "TimerOff set for 2 minutes")
+
+
+# ====================================================================
+#  RULE 5: Fireplace restart sequence logic
+# ====================================================================
+def timer_restart_mid():
+    global FireplaceStartTimer
+    LogAction.logInfo("fireplace", "Restart mid-phase → Priza8 OFF")
+    events.sendCommand("Priza8_Power", "OFF")
+
+    FireplaceStartTimer = ScriptExecution.createTimer(
+        DateTime.now().plusSeconds(10),
+        timer_restart_end
+    )
+
+def timer_restart_end():
+    LogAction.logInfo("fireplace", "Restart end → Priza8 ON")
+    events.sendCommand("Priza8_Power", "ON")
+    events.postUpdate("Fireplace_restart", "OFF")
+
+@rule("Fireplace restart sequence")
+@when("Item Fireplace_restart changed")
+def rule_fireplace_restart(event):
+    global FireplaceRestartTimer
+
+    if is_on(event.itemState):
+        LogAction.logInfo("fireplace", "Restart sequence initiated")
+        events.sendCommand("Pi_fireplace", "OFF")
+
+        if FireplaceRestartTimer:
+            FireplaceRestartTimer.cancel()
+
+        FireplaceRestartTimer = ScriptExecution.createTimer(
+            DateTime.now().plusMinutes(1),
+            timer_restart_mid
+        )
+        LogAction.logInfo("fireplace", "RestartTimer set for 1 min")

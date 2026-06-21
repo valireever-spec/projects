@@ -1,0 +1,312 @@
+##016_HomePresence_rev20240725.py
+# FIXES applied 2026-03-07:
+#   FIX-sleep: Removed all time.sleep(0.5) calls.
+#              Each sleep was placed immediately before a timer.reschedule() call
+#              as an informal guard. reschedule() is safe to call without a preceding
+#              sleep — the Joda timer API is thread-safe. Removing the sleeps returns
+#              the rule engine thread immediately instead of blocking it for 500ms.
+# 2026-05-02: UnDefType already org.eclipse.smarthome.core.types (ESH; OH 2.5.12 project convention).
+###
+from core.rules import rule
+from core.triggers import when
+from core.actions import ScriptExecution
+from org.joda.time import DateTime
+import core
+from org.eclipse.smarthome.core.types import UnDefType
+from core.actions import LogAction
+from core.jsr223.scope import events, items
+NULL = UnDefType.NULL
+UNDEF = UnDefType.UNDEF
+from oh_utils import ctrl_dev  # shared module at jsr223/python/oh_utils.py
+OFF = OnOffType.OFF
+
+def is_state(item_state, target_state):
+    """Safe state comparison using string conversion. Handles Java State objects reliably."""
+    return str(item_state).strip() == str(target_state).strip()
+
+createTimer = ScriptExecution.createTimer
+# Timer variables
+DelayTimer1 = None
+DelayTimer1_1 = None
+timeoutMinutes = 45
+HomePres = ir.getItem("HomePresence")
+DelayTimer2 = None
+DelayTimer2_1 = None
+timeoutMinutes2 = 5
+TelOnline = ir.getItem("TelephoneOnline")
+DelayTimerGargoyleOn = None
+DelayTimerDAP0On = None
+DelayTimerDAP1On = None
+DelayTimerDAP2On = None
+DelayTimerGargoyleOff = None
+DelayTimerDAP0Off = None
+DelayTimerDAP1Off = None
+DelayTimerDAP2Off = None
+timeoutRouter = 5
+DAP0_res = ir.getItem("Repeater0_restart")
+DAP1_res = ir.getItem("Repeater1_restart")
+DAP2_res = ir.getItem("Repeater2_restart")
+Gargoyle_res = ir.getItem("Gargoyle_restart")
+def timer1_homepresence_off():
+    if TelOnline.state != ON and items["HomePresence"] != OFF:
+        events.sendCommand("HomePresence", "OFF")
+        if DelayTimer1 is not None and not DelayTimer1.hasTerminated():
+            DelayTimer1.cancel()
+        LogAction.logInfo("sufra_occupancy", "HomePresence is cancelled by Presence OFF")
+def homepresence_on():
+    if not is_state(items["HomePresence"], ON):
+        events.sendCommand("HomePresence", "ON")
+        LogAction.logInfo("Presence", "Somebody is at home now")
+    if DelayTimer1_1 is not None and not DelayTimer1_1.hasTerminated():
+        DelayTimer1_1.cancel()
+    if DelayTimer1 is not None and not DelayTimer1.hasTerminated():
+        # FIX-sleep: removed time.sleep(0.5) before reschedule — not needed, reschedule is thread-safe
+        DelayTimer1.reschedule(DateTime.now().plusMinutes(timeoutMinutes))
+@rule("Decizia 1 cand nu e nimeni acasa", description="Sufra_Presence received update OFF", tags=["Presence", "Sufra"])
+@when("Item Sufra_Presence changed")
+def sufra_occupancy(event):
+    global DelayTimer1, DelayTimer1_1
+    day_periods = ["DAY", "AFTERNOON", "EVENING"]
+    if is_state(event.itemState, OFF):
+        if items["vTimeOfDay"] in [StringType(period) for period in day_periods]:
+            if all(items[presence] != ON for presence in ["Dorm1_Presence", "Dorm2_Presence", "Bucatarie2_Presence", "SNZB1_Presence"]):
+                if DelayTimer1 is None or DelayTimer1.hasTerminated():
+                    LogAction.logInfo("HomePresence", "DelayTimer1 is started by Sufra_Presence OFF")
+                    DelayTimer1 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutes), timer1_homepresence_off)
+                    if is_state(items["Logging"], ON):
+                        sufra_occupancy.log.info("Presence", "Nobody home")
+                elif DelayTimer1 is not None and not DelayTimer1.hasTerminated():
+                    # FIX-sleep: removed time.sleep(0.5) before reschedule
+                    DelayTimer1.reschedule(DateTime.now().plusMinutes(timeoutMinutes))
+    elif is_state(event.itemState, ON):
+        DelayTimer1_1 = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), homepresence_on)
+        if is_state(items["Logging"], ON):
+            sufra_occupancy.log.info("Presence Sufra", "Somebody is at home now")
+@rule("Decizia 2 cand nu e nimeni acasa", description="Dorm1_Presence received update OFF", tags=["Presence", "DormP"])
+@when("Item Dorm1_Presence changed")
+def dorm1_occupancy(event):
+    global DelayTimer1, DelayTimer1_1
+    day_periods = ["DAY", "AFTERNOON", "EVENING"]
+    if is_state(event.itemState, OFF):
+        if items["vTimeOfDay"] in [StringType(period) for period in day_periods]:
+            if all(items[presence] != ON for presence in ["Sufra_Presence", "Dorm2_Presence", "Bucatarie2_Presence", "SNZB1_Presence"]):
+                if DelayTimer1 is None or DelayTimer1.hasTerminated():
+                    LogAction.logInfo("HomePresence", "DelayTimer1 is started by Dorm1_Presence OFF")
+                    DelayTimer1 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutes), timer1_homepresence_off)
+                    if is_state(items["Logging"], ON):
+                        dorm1_occupancy.log.info("Presence", "Nobody home")
+                elif DelayTimer1 is not None and not DelayTimer1.hasTerminated():
+                    # FIX-sleep: removed time.sleep(0.5) before reschedule
+                    DelayTimer1.reschedule(DateTime.now().plusMinutes(timeoutMinutes))
+    elif is_state(event.itemState, ON):
+        DelayTimer1_1 = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), homepresence_on)
+        if is_state(items["Logging"], ON):
+            dorm1_occupancy.log.info("Presence Dorm1", "Somebody is at home now")
+@rule("Decizia 3 cand nu e nimeni acasa", description="Dorm2_Presence received update OFF", tags=["Presence", "DormC"])
+@when("Item Dorm2_Presence changed")
+def dorm2_occupancy(event):
+    global DelayTimer1, DelayTimer1_1
+    day_periods = ["DAY", "AFTERNOON", "EVENING"]
+    if is_state(event.itemState, OFF):
+        if items["vTimeOfDay"] in [StringType(period) for period in day_periods]:
+            if all(items[presence] != ON for presence in ["Sufra_Presence", "Dorm1_Presence", "Bucatarie2_Presence", "SNZB1_Presence"]):
+                if DelayTimer1 is None or DelayTimer1.hasTerminated():
+                    LogAction.logInfo("HomePresence", "DelayTimer1 is started by Dorm2_Presence OFF")
+                    DelayTimer1 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutes), timer1_homepresence_off)
+                    if is_state(items["Logging"], ON):
+                        dorm2_occupancy.log.info("Presence", "Nobody home")
+                elif DelayTimer1 is not None and not DelayTimer1.hasTerminated():
+                    # FIX-sleep: removed time.sleep(0.5) before reschedule
+                    DelayTimer1.reschedule(DateTime.now().plusMinutes(timeoutMinutes))
+    elif is_state(event.itemState, ON):
+        DelayTimer1_1 = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), homepresence_on)
+        if is_state(items["Logging"], ON):
+            dorm2_occupancy.log.info("Presence Dorm2", "Somebody is at home now")
+@rule("Decizia 4 cand nu e nimeni acasa", description="Bucatarie2_Presence received update OFF", tags=["Presence", "bucatarie"])
+@when("Item Bucatarie2_Presence changed")
+def bucatarie_occupancy(event):
+    global DelayTimer1, DelayTimer1_1
+    day_periods = ["DAY", "AFTERNOON", "EVENING"]
+    if is_state(event.itemState, OFF):
+        if items["vTimeOfDay"] in [StringType(period) for period in day_periods]:
+            if all(items[presence] != ON for presence in ["Sufra_Presence", "Dorm1_Presence", "Dorm2_Presence", "SNZB1_Presence"]):
+                if DelayTimer1 is None or DelayTimer1.hasTerminated():
+                    LogAction.logInfo("HomePresence", "DelayTimer1 is started by Bucatarie2_Presence OFF")
+                    DelayTimer1 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutes), timer1_homepresence_off)
+                    if is_state(items["Logging"], ON):
+                        bucatarie_occupancy.log.info("Presence", "Nobody home")
+                elif DelayTimer1 is not None and not DelayTimer1.hasTerminated():
+                    # FIX-sleep: removed time.sleep(0.5) before reschedule
+                    DelayTimer1.reschedule(DateTime.now().plusMinutes(timeoutMinutes))
+    elif is_state(event.itemState, ON):
+        DelayTimer1_1 = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), homepresence_on)
+        if is_state(items["Logging"], ON):
+            bucatarie_occupancy.log.info("Presence Bucatarie", "Somebody is at home now")
+@rule("Decizia 5 cand nu e nimeni acasa", description="SNZB1_Presence received update OFF", tags=["Presence", "SNZB"])
+@when("Item SNZB1_Presence changed")
+def hol_occupancy(event):
+    global DelayTimer1, DelayTimer1_1
+    day_periods = ["DAY", "AFTERNOON", "EVENING"]
+    if is_state(event.itemState, OFF):
+        if items["vTimeOfDay"] in [StringType(period) for period in day_periods]:
+            if all(items[presence] != ON for presence in ["Sufra_Presence", "Dorm1_Presence", "Dorm2_Presence", "Bucatarie2_Presence"]):
+                if DelayTimer1 is None or DelayTimer1.hasTerminated():
+                    LogAction.logInfo("HomePresence", "DelayTimer1 is started by SNZB1_Presence OFF")
+                    DelayTimer1 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutes), timer1_homepresence_off)
+                    if is_state(items["Logging"], ON):
+                        hol_occupancy.log.info("Presence", "Nobody home")
+                elif DelayTimer1 is not None and not DelayTimer1.hasTerminated():
+                    # FIX-sleep: removed time.sleep(0.5) before reschedule
+                    DelayTimer1.reschedule(DateTime.now().plusMinutes(timeoutMinutes))
+    elif is_state(event.itemState, ON):
+        DelayTimer1_1 = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), homepresence_on)
+        if is_state(items["Logging"], ON):
+            hol_occupancy.log.info("Presence Hol", "Somebody is at home now")
+def timer1_tel_presence_off():
+	if TelOnline.state == ON or TelOnline.state == NULL:
+		events.sendCommand("TelephoneOnline", "OFF")
+	DelayTimer2.cancel()
+	LogAction.logInfo("TelephonePresence", "TelephoneOnline is cancelled by Presence OFF")
+def tel_presence_on():
+	if TelOnline.state == OFF or TelOnline.state == NULL:
+		events.sendCommand("TelephoneOnline", "ON")
+		LogAction.logInfo("TelephonePresence", "Somebody is at home now")
+	if DelayTimer2_1 is not None and not DelayTimer2_1.hasTerminated():
+		DelayTimer2_1.cancel()
+	if DelayTimer2 is not None and not DelayTimer2.hasTerminated():
+		DelayTimer2.reschedule(DateTime.now().plusMinutes(timeoutMinutes2))
+@rule("Decizia 1 cand nu e niciun telefon acasa", description="Adina_s_a52_up received update", tags=["Telephone", "Adina"])
+@when("Item ScriptParrot_Adina_s_a52_up changed")
+def Adina_Tel_online(event):
+	global DelayTimer2
+	global DelayTimer2_1
+	if is_state(event.itemState, OFF):
+		if items["ScriptParrot_Redmi_note_up"] == OFF and items["ScriptParrot_Galaxy_s20_fe_5g_up"] == OFF:
+			if DelayTimer2 is None or DelayTimer2.hasTerminated():
+				DelayTimer2 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutes2), timer1_tel_presence_off)
+			elif DelayTimer2 is not None and not DelayTimer2.hasTerminated():
+				DelayTimer2.reschedule(DateTime.now().plusMinutes(timeoutMinutes2))
+	elif is_state(event.itemState, ON):
+		DelayTimer2_1 = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), tel_presence_on)
+@rule("Decizia 2 cand nu e niciun telefon acasa", description="Redmi_note_up received update", tags=["Telephone", "Ancuta"])
+@when("Item ScriptParrot_Redmi_note_up changed")
+def Ancuta_Tel_online(event):
+	global DelayTimer2
+	global DelayTimer2_1
+	if is_state(event.itemState, OFF):
+		if items["ScriptParrot_Adina_s_a52_up"] == OFF and items["ScriptParrot_Galaxy_s20_fe_5g_up"] == OFF:
+			if DelayTimer2 is None or DelayTimer2.hasTerminated():
+				DelayTimer2 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutes2), timer1_tel_presence_off)
+			elif DelayTimer2 is not None and not DelayTimer2.hasTerminated():
+				DelayTimer2.reschedule(DateTime.now().plusMinutes(timeoutMinutes2))
+	elif is_state(event.itemState, ON):
+		DelayTimer2_1 = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), tel_presence_on)
+@rule("Decizia 3 cand nu e niciun telefon acasa", description="Galaxy_s20_fe_5g_up received update", tags=["Telephone", "Vali"])
+@when("Item ScriptParrot_Galaxy_s20_fe_5g_up changed")
+def Vali_Tel_online(event):
+	global DelayTimer2
+	global DelayTimer2_1
+	if is_state(event.itemState, OFF):
+		if items["ScriptParrot_Adina_s_a52_up"] == OFF and items["ScriptParrot_Redmi_note_up"] == OFF:
+			if DelayTimer2 is None or DelayTimer2.hasTerminated():
+				DelayTimer2 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutMinutes2), timer1_tel_presence_off)
+			elif DelayTimer2 is not None and not DelayTimer2.hasTerminated():
+				DelayTimer2.reschedule(DateTime.now().plusMinutes(timeoutMinutes2))
+	elif is_state(event.itemState, ON):
+		DelayTimer2_1 = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), tel_presence_on)
+def homepresenceon():
+	global DelayTimerGargoyleOn
+	global DelayTimerDAP0On
+	global DelayTimerDAP1On
+	global DelayTimerDAP2On
+	global DelayTimerON
+	if DelayTimerON is not None and not DelayTimerON.hasTerminated():
+		DelayTimerON.cancel()
+	events.postUpdate("Gargoyle_restart", "ON")
+	if DelayTimerGargoyleOn is not None and not DelayTimerGargoyleOn.hasTerminated():
+		DelayTimerGargoyleOn.cancel()
+	events.postUpdate("Repeater0_restart", "ON")
+	if DelayTimerDAP0On is not None and not DelayTimerDAP0On.hasTerminated():
+		DelayTimerDAP0On.cancel()
+	events.postUpdate("Repeater1_restart", "ON")
+	if DelayTimerDAP1On is not None and not DelayTimerDAP1On.hasTerminated():
+		DelayTimerDAP1On.cancel()
+	events.postUpdate("Repeater2_restart", "ON")
+	if DelayTimerDAP2On is not None and not DelayTimerDAP2On.hasTerminated():
+		DelayTimerDAP2On.cancel()
+@rule("HomePresence", description="HomePresence triggers other things", tags=["HomePresence", "Trigger"])
+@when("Item HomePresence changed")
+def homepresence_trigger(event):
+	global DelayTimerGargoyleOn
+	global DelayTimerGargoyleOff
+	global DelayTimerDAP0On
+	global DelayTimerDAP0Off
+	global DelayTimerDAP1On
+	global DelayTimerDAP1Off
+	global DelayTimerDAP2On
+	global DelayTimerON
+	morning = "MORNING"
+	day = "DAY"
+	afternoon = "AFTERNOON"
+	evening = "EVENING"
+	night = "NIGHT"
+	bed = "BED"
+	if items["vTimeOfDay"] == StringType(afternoon) or items["vTimeOfDay"] == StringType(day): ##26.05.2024 added items["vTimeOfDay"] == StringType(day)
+		if is_state(event.itemState, OFF):
+			events.sendCommand("Repeater2_restart", "OFF")
+			events.sendCommand("Repeater1_restart", "OFF")
+			if DelayTimerDAP0Off is None or DelayTimerDAP0Off.hasTerminated():
+				DelayTimerDAP0Off = ScriptExecution.createTimer(DateTime.now().plusMinutes(1), lambda: events.sendCommand("Repeater0_restart","OFF"))
+			if DelayTimerGargoyleOff is None or DelayTimerGargoyleOff.hasTerminated():
+				DelayTimerGargoyleOff = ScriptExecution.createTimer(DateTime.now().plusMinutes(2), lambda: events.sendCommand("Gargoyle_restart","OFF"))
+			if DelayTimerDAP2On is None or DelayTimerDAP2On.hasTerminated():
+				DelayTimerDAP2On = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutRouter), lambda: events.sendCommand("Repeater2_restart","ON"))
+			if DelayTimerDAP1On is None or DelayTimerDAP1On.hasTerminated():
+				DelayTimerDAP1On = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutRouter), lambda: events.sendCommand("Repeater1_restart","ON"))
+			if DelayTimerDAP0On is None or DelayTimerDAP0On.hasTerminated():
+				DelayTimerDAP0On = ScriptExecution.createTimer(DateTime.now().plusMinutes(6), lambda: events.sendCommand("Repeater0_restart","ON"))
+			if DelayTimerGargoyleOn is None or DelayTimerGargoyleOn.hasTerminated():
+				DelayTimerGargoyleOn = ScriptExecution.createTimer(DateTime.now().plusMinutes(7), lambda: events.sendCommand("Gargoyle_restart","ON"))
+			#ctrl_dev("Priza11_Power", "OFF", items, events, command_type="sendCommand")
+			LogAction.logInfo("Bucatarie", "Dezactivare Lumina Bucatarie")
+			ctrl_dev("gBec_LampaSufra", "OFF", items, events, command_type="sendCommand")
+			ctrl_dev("Led_Contr_Alex_Power", "OFF", items, events, command_type="sendCommand")
+			ctrl_dev("Led_Contr_Adina_Power", "OFF", items, events, command_type="sendCommand")
+			ctrl_dev("Pi_fireplace", "OFF", items, events, command_type="sendCommand")
+		elif is_state(event.itemState, ON):
+			DelayTimerON = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), homepresenceon)
+	elif is_state(items["vTimeOfDay"], StringType(day)):
+		if is_state(items["Weekend"], OFF):
+			if is_state(event.itemState, OFF):
+				events.sendCommand("Repeater2_restart", "OFF")
+				events.sendCommand("Repeater1_restart", "OFF")
+				if DelayTimerDAP0Off is None or DelayTimerDAP0Off.hasTerminated():
+					DelayTimerDAP0Off = ScriptExecution.createTimer(DateTime.now().plusMinutes(1), lambda: events.sendCommand("Repeater0_restart","OFF"))
+				if DelayTimerGargoyleOff is None or DelayTimerGargoyleOff.hasTerminated():
+					DelayTimerGargoyleOff = ScriptExecution.createTimer(DateTime.now().plusMinutes(2), lambda: events.sendCommand("Gargoyle_restart","OFF"))
+				if DelayTimerDAP2On is None or DelayTimerDAP2On.hasTerminated():
+					DelayTimerDAP2On = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutRouter), lambda: events.sendCommand("Repeater2_restart","ON"))
+				if DelayTimerDAP1On is None or DelayTimerDAP1On.hasTerminated():
+					DelayTimerDAP1On = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeoutRouter), lambda: events.sendCommand("Repeater1_restart","ON"))
+				if DelayTimerDAP0On is None or DelayTimerDAP0On.hasTerminated():
+					DelayTimerDAP0On = ScriptExecution.createTimer(DateTime.now().plusMinutes(6), lambda: events.sendCommand("Repeater0_restart","ON"))
+				if DelayTimerGargoyleOn is None or DelayTimerGargoyleOn.hasTerminated():
+					DelayTimerGargoyleOn = ScriptExecution.createTimer(DateTime.now().plusMinutes(7), lambda: events.sendCommand("Gargoyle_restart","ON"))
+				#ctrl_dev("Priza11_Power", "OFF", items, events, command_type="sendCommand")
+				LogAction.logInfo("Bucatarie", "Dezactivare Lumina Bucatarie")
+				ctrl_dev("gBec_LampaSufra", "OFF", items, events, command_type="sendCommand")
+				ctrl_dev("Led_Contr_Alex_Power", "OFF", items, events, command_type="sendCommand")
+				ctrl_dev("Led_Contr_Adina_Power", "OFF", items, events, command_type="sendCommand")
+				ctrl_dev("Pi_fireplace", "OFF", items, events, command_type="sendCommand")
+			elif is_state(event.itemState, ON):
+				DelayTimerON = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), homepresenceon)
+	elif items["vTimeOfDay"] == StringType(morning) or items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(bed):
+		if is_state(event.itemState, OFF):
+			#ctrl_dev("Priza11_Power", "OFF", items, events, command_type="sendCommand")
+			LogAction.logInfo("Bucatarie", "Dezactivare Lumina Bucatarie")
+			ctrl_dev("gBec_LampaSufra", "OFF", items, events, command_type="sendCommand")
+			ctrl_dev("Led_Contr_Alex_Power", "OFF", items, events, command_type="sendCommand")
+			ctrl_dev("Led_Contr_Adina_Power", "OFF", items, events, command_type="sendCommand")
+			ctrl_dev("Pi_fireplace", "OFF", items, events, command_type="sendCommand")
+		elif is_state(event.itemState, ON):
+			DelayTimerON = ScriptExecution.createTimer(DateTime.now().plusSeconds(1), homepresenceon)

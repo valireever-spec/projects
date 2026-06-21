@@ -1,0 +1,152 @@
+# Rev1
+# 04.02.2021
+# Linia 116 a fost comentata
+
+from core.rules import rule
+from core.triggers import when
+from core.actions import ScriptExecution
+from org.joda.time import DateTime
+from threading import Timer
+import core
+from core.actions import Exec
+ON = OnOffType.ON
+OFF = OnOffType.OFF
+
+def is_state(item_state, target_state):
+    """Safe state comparison using string conversion. Handles Java State objects reliably."""
+    return str(item_state).strip() == str(target_state).strip()
+
+
+HDtimer3 = None
+occupancyTimer1 = None
+occupancyTimer2 = None
+occupancyTimer3 = None
+occupancyTimer4 = None
+occupancyTimer5 = None
+timeout1Minutes = 2
+timeout2Minutes = 2
+timeout3Minutes = 2
+timeout4Minutes = 2
+
+def timer1_cinema():
+	events.sendCommand("Cinema1", "OFF")
+	occupancyTimer1.cancel()
+#	occupancyTimer1 = None
+#	sufragerie_cinema1.log.info("Cinema1 received command OFF because timer expired")
+	
+def timer2_cinema():
+	events.sendCommand("Cinema2", "OFF")
+	occupancyTimer2.cancel()
+#	occupancyTimer2 = None
+#	dormp_cinema2.log.info("Cinema2 received command OFF because timer expired")
+	
+def timer3_cinema():
+	events.sendCommand("Cinema3", "OFF")
+	occupancyTimer3.cancel()
+#	occupancyTimer3 = None
+#	dormc_cinema3.log.info("Cinema3 received command OFF because timer expired")
+	
+def timer4_cinema():
+	events.sendCommand("Cinema", "OFF")
+	occupancyTimer4.cancel()
+#	occupancyTimer4 = None
+#	switch_cinema2.log.info("Cinema received command OFF because timer expired")
+	
+def timer5_cinema():
+	events.sendCommand("Cinema", "OFF")
+	occupancyTimer5.cancel()
+#	occupancyTimer5 = None
+#	switch_cinema3.log.info("Cinema received command OFF because timer expired")
+
+@rule("Sufra_Presence_Cinema received ON", description="Sufra_Presence changed ON", tags=["Presence", "Sufragerie"])
+@when("Item Sufra_Presence changed")
+def sufragerie_cinema1(event):
+	global occupancyTimer1
+	if is_state(event.itemState, ON):
+		#if is_state(items["Logging"], ON):
+		sufragerie_cinema1.log.info("Cinema1, S-a activat")
+		if occupancyTimer1 is None or occupancyTimer1.hasTerminated():
+			events.sendCommand (ir.getItem("Cinema1"), ON)
+			#if is_state(items["Logging"], ON):
+			sufragerie_cinema1.log.info("Cinema1, Creating Timer")
+			occupancyTimer1 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeout1Minutes), timer1_cinema)
+			#if is_state(items["Logging"], ON):
+			sufragerie_cinema1.log.info("Cinema1, Timer Expired")
+		elif occupancyTimer1 is not None and not occupancyTimer1.hasTerminated():
+			occupancyTimer1.reschedule(DateTime.now().plusMinutes(timeout1Minutes))
+			events.sendCommand (ir.getItem("Cinema1"), ON)
+
+@rule("Dorm1_Presence_Cinema received ON", description="Dorm1_Presence changedON", tags=["Presence", "DormP"])
+@when("Item Dorm1_Presence changed")
+def dormp_cinema2(event):
+	global occupancyTimer2
+	if is_state(event.itemState, ON):
+		#if is_state(items["Logging"], ON):
+		dormp_cinema2.log.info("Cinema2, S-a activat")
+		if occupancyTimer2 is None or occupancyTimer2.hasTerminated():
+			events.sendCommand (ir.getItem("Cinema2"), ON)
+			#if is_state(items["Logging"], ON):
+			dormp_cinema2.log.info("Cinema2, Creating Timer")
+			occupancyTimer2 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeout2Minutes), timer2_cinema)
+			#if is_state(items["Logging"], ON):
+			dormp_cinema2.log.info("Cinema2, Timer Expired")
+		elif occupancyTimer2 is not None and not occupancyTimer2.hasTerminated():
+			occupancyTimer2.reschedule(DateTime.now().plusMinutes(timeout2Minutes))
+			events.sendCommand (ir.getItem("Cinema2"), ON)
+				
+@rule("Dorm2_Presence_Cinema received ON", description="Dorm2_Presence changedON", tags=["Presence", "DormC"])
+@when("Item Dorm2_Presence changed")
+def dormc_cinema3(event):
+	global occupancyTimer3
+	if is_state(event.itemState, ON):
+		#if is_state(items["Logging"], ON):
+		dormc_cinema3.log.info("Cinema3, S-a activat")
+		if occupancyTimer3 is None or occupancyTimer3.hasTerminated():
+			events.sendCommand (ir.getItem("Cinema3"), ON)
+			#if is_state(items["Logging"], ON):
+			dormc_cinema3.log.info("Cinema3, Creating Timer")
+			occupancyTimer3 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeout3Minutes), timer3_cinema)
+			#if is_state(items["Logging"], ON):
+			dormc_cinema3.log.info("Cinema3, Timer Expired")
+		elif occupancyTimer3 is not None and not occupancyTimer3.hasTerminated():
+			occupancyTimer3.reschedule(DateTime.now().plusMinutes(timeout3Minutes))
+			events.sendCommand (ir.getItem("Cinema3"), ON)
+				
+@rule("Cinema1 changed ON", description="Cinema1 changed ON", tags=["Cinema1", "Sufra"])
+@when("Item Cinema1 changed")
+def switch_cinema1(event):
+	global occupancyTimer1
+	if is_state(event.itemState, ON):
+		#events.sendCommand (ir.getItem("Cinema1"), ON)
+		#if is_state(items["Logging"], ON):
+		if is_state(items["Cinema"], OFF): #Test 28.02.2023
+			events.sendCommand (ir.getItem("Cinema"), ON) #Test 28.02.2023
+		if occupancyTimer1 is None or occupancyTimer1.hasTerminated():
+			occupancyTimer1 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeout1Minutes), timer1_cinema)
+		switch_cinema1.log.info("Cinema, S-a activat")
+	elif is_state(event.itemState, OFF):
+		#events.sendCommand (ir.getItem("Cinema1"), OFF)
+		#if is_state(items["Logging"], ON):
+		switch_cinema1.log.info("Cinema1 was deactivated, No longer activity in the room")
+			
+@rule("Cinema2 changed ON", description="Cinema2 changed ON", tags=["Cinema2", "DormP"])
+@when("Item Cinema2 changed")
+def switch_cinema2(event):
+	global occupancyTimer4
+	if is_state(event.itemState, ON):
+		if is_state(items["Cinema1"], OFF):
+			if occupancyTimer4 is None or occupancyTimer4.hasTerminated():
+				occupancyTimer4 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeout4Minutes), timer4_cinema)
+				#if is_state(items["Logging"], ON):
+				switch_cinema2.log.info("Cinema was deactivated, Seemingly nobody in Living Room")
+
+@rule("Cinema3 changed ON", description="Decizie cand Cinema3 e activ", tags=["Cinema3", "DormP"])
+@when("Item Cinema3 changed")
+def switch_cinema3(event):
+	global occupancyTimer5
+	if is_state(event.itemState, ON):
+		if is_state(items["Cinema1"], OFF):
+			if occupancyTimer5 is None or occupancyTimer5.hasTerminated():
+				occupancyTimer5 = ScriptExecution.createTimer(DateTime.now().plusMinutes(timeout4Minutes), timer5_cinema)
+				#if is_state(items["Logging"], ON):
+				switch_cinema3.log.info("Cinema was deactivated, Seemingly nobody in Living Room")

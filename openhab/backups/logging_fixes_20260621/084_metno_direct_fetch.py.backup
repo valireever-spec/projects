@@ -1,0 +1,61 @@
+from core.rules import rule
+from core.triggers import when
+from core.log import logging
+from core.jsr223.scope import events, items
+from org.joda.time import DateTime
+import urllib2
+import json
+
+log = logging.getLogger("metno_direct")
+
+@rule("Met.no Direct API Fetch - Hourly")
+@when("Time cron 0 * * * * ?")  # Every hour
+def fetch_metno_direct(event):
+    """Fetch weather directly from Met.no API and update OpenHAB items."""
+    try:
+        url = "https://aa015h6buqvih86i1.api.met.no/weatherapi/locationforecast/2.0/complete?lat=52.05&lon=8.65"
+
+        # Fetch data with proper headers (Met.no requires User-Agent)
+        req = urllib2.Request(url)
+        req.add_header('User-Agent', 'OpenHAB-TomatoLED/1.0 (+https://github.com/openhab/openhab-core)')
+        response = urllib2.urlopen(req, timeout=10)
+        data = json.load(response)
+        response.close()
+        
+        # Parse current conditions
+        timeseries = data.get("properties", {}).get("timeseries", [])
+        if not timeseries:
+            log.error("No timeseries data from Met.no")
+            return
+        
+        current = timeseries[0].get("data", {})
+        instant = current.get("instant", {}).get("details", {})
+        
+        cloud_cover = instant.get("cloud_area_fraction", 50)
+        temperature = instant.get("air_temperature", 20)
+        
+        # Update OpenHAB items
+        events.postUpdate("WeatherHome_CloudCoverage", str(int(cloud_cover)))
+        events.postUpdate("WeatherHome_Temperature", str(round(temperature, 1)))
+        
+        log.info("Met.no updated: Cloud {}% Temp {}C".format(int(cloud_cover), round(temperature, 1)))
+        
+        # Calculate daily average (daylight hours 6-22)
+        daylight_clouds = []
+        for ts in timeseries:
+            try:
+                ts_time = ts.get("time", "")
+                hour = int(ts_time.split("T")[1].split(":")[0])
+                if 6 <= hour < 22:
+                    cloud = ts["data"]["instant"]["details"].get("cloud_area_fraction", 50)
+                    daylight_clouds.append(cloud)
+            except:
+                pass
+        
+        daily_avg = int(sum(daylight_clouds) / len(daylight_clouds)) if daylight_clouds else 50
+        events.postUpdate("WeatherHome_DailyCloudForecast", str(daily_avg))
+        
+        log.info("Daily forecast calculated: {}%".format(daily_avg))
+        
+    except Exception as e:
+        log.error("Met.no fetch failed: {}".format(str(e)))
