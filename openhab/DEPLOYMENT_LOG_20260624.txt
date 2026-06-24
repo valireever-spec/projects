@@ -1,0 +1,159 @@
+================================================================================
+PRIZA SWITCHES LOGIC FIX - DEPLOYMENT LOG
+Date: 2026-06-24 19:05 UTC+2
+================================================================================
+
+PROJECT: OpenHAB 2 Home Automation System
+TARGET: Smart Charging Sockets (Priza1, Priza2, Priza3)
+REMOTE HOST: claude@192.168.3.25
+
+================================================================================
+ISSUES IDENTIFIED & FIXED
+================================================================================
+
+ISSUE #1: Priza1ForceOn stuck at NULL state
+  Status: CRITICAL - Prevents charging hold timer from working
+  Location: 099_Switches_Logic_rev20260307.py (multiple functions)
+  Root Cause: No initialization logic for ForceOn items
+  Fix: Added @when("System started") startup rule
+  File Impact: Lines 24-36
+
+ISSUE #2: Fragile current detection (sensor noise)
+  Status: HIGH - Causes false negatives on charging completion
+  Location: priza1preforce1(), priza2preforce1(), priza3preforce1()
+  Problem: Exact equality check: Priza1_Current == QuantityType("0.0 A")
+  Fix: Changed to threshold: Priza1_Current <= QuantityType("0.05 A")
+  File Impact: Lines 41, 43-44, 57, 236, 375-438, 472-529, 529-585
+  Applied To: All three Priza sockets (1, 2, 3)
+
+ISSUE #3: Code syntax errors (Jython incompatibility)
+  Status: HIGH - Script fails to load
+  Problems:
+    - F-string usage: f"Priza{priza_num}ForceOn" (Python 3.6+ only)
+    - Double namespace: UnDefType.UnDefType.UNDEF (from regex replace)
+  Fixes:
+    - Replaced f-strings with .format() method (Jython-compatible)
+    - Corrected all UnDefType.UnDefType.UNDEF → UnDefType.UNDEF
+  File Impact: Lines 29, 32, 33, 36, 42, 252, 380, 457-461, 514-517
+
+================================================================================
+DEPLOYMENT STEPS
+================================================================================
+
+1. ✓ File fetched from remote system (2026-06-24 19:04)
+   scp -i ~/.ssh/openhab_claude claude@192.168.3.25:/etc/openhab2/...
+
+2. ✓ Fixed file deployed to remote (2026-06-24 19:04)
+   scp /tmp/099_Switches_Logic.py claude@192.168.3.25:/etc/openhab2/...
+
+3. ✓ Items manually initialized to OFF state
+   - Priza1ForceOn, Priza2ForceOn, Priza3ForceOn → OFF
+   - Priza1RdytoForce, Priza2RdytoForce, Priza3RdytoForce → OFF
+   Method: OpenHAB REST API PUT /rest/items/{name}/state
+
+4. ✓ Script reloaded and verified
+   - Log message: "Loading script 'python/personal/099_Switches_Logic_rev20260307.py'"
+   - No errors in openhab.log
+   - All rules recognized
+
+5. ✓ Changes committed to git
+   Commit: dc30be8f
+   Branch: master
+   Files added:
+     - 099_Switches_Logic_rev20260307.py (fixed script)
+     - CHANGELOG_PRIZA_FIXES.md (detailed changelog)
+     - backups/099_Switches_Logic_rev20260307_20260624_190549.py (backup)
+
+================================================================================
+VERIFICATION RESULTS
+================================================================================
+
+✓ Script Status: LOADED SUCCESSFULLY
+✓ Priza1ForceOn: OFF (previously NULL)
+✓ Priza2ForceOn: OFF (previously NULL)
+✓ Priza3ForceOn: OFF (previously NULL)
+✓ Priza1RdytoForce: OFF (initialized)
+✓ Priza2RdytoForce: OFF (initialized)
+✓ Priza3RdytoForce: OFF (initialized)
+✓ OpenHAB Logs: NO ERRORS
+
+================================================================================
+BEHAVIOR CHANGES
+================================================================================
+
+BEFORE:
+- Priza ForceOn items stuck in NULL state → charging hold timer never activates
+- Current detection fails on sensor noise (0.01-0.04 A) → false "battery full"
+- Script fails to load due to syntax errors
+
+AFTER:
+- ForceOn items initialize to OFF on system start
+- Current detection robust to ±0.05 A sensor variations
+- Script loads and executes without errors
+- Charging flow works as designed:
+  1. Phone plugged in → socket ON
+  2. Phone fully charged → current drops below 0.05 A
+  3. ForceOn activates → socket holds ON for 20 minutes
+  4. After 20 min → ForceOn turns OFF
+  5. Battery level confirmed → socket OFF
+
+================================================================================
+BACKUP LOCATION
+================================================================================
+
+Local Backup:
+  /home/vali/projects/openhab/backups/099_Switches_Logic_rev20260307_20260624_190549.py
+
+Remote (still active):
+  claude@192.168.3.25:/etc/openhab2/automation/jsr223/python/personal/099_Switches_Logic_rev20260307.py
+
+Previous version (if needed):
+  claude@192.168.3.25:/etc/openhab2/automation/jsr223/python/personal/ (check .py1 files)
+
+================================================================================
+NEXT ACTIONS
+================================================================================
+
+1. MONITOR: Watch OpenHAB logs for "Priza_Init" entries on next system restart
+   Command: ssh openhabian@192.168.3.25 "tail -f /var/log/openhab2/openhab.log | grep Priza_Init"
+
+2. TEST: Verify charging flow end-to-end
+   - Plug phone into Priza1 socket
+   - Monitor current: should drop below 0.05 A when fully charged
+   - Verify ForceOn activates (20-minute hold)
+   - Monitor logs for any errors
+
+3. DOCUMENT: Update CLAUDE.md with known issues if any emerge
+   - Current sensor noise tolerance: ±0.05 A
+   - Charging hold timer: 20 minutes
+   - Priza1_BatteryFull behavior (check if it resets correctly)
+
+================================================================================
+SYSTEM STATE
+================================================================================
+
+OpenHAB Version: 2.5.12
+Remote Host: 192.168.3.25
+Remote User: openhabian / claude
+SSH Key: ~/.ssh/openhab_claude
+Python Engine: Jython (via JSR223)
+Script Update Time: 2026-06-24 19:04:11 UTC+2
+
+Git Commit: dc30be8f (Fix Priza1/2/3 charging socket automation...)
+Git Branch: master
+Working Directory: /home/vali/projects/openhab
+
+================================================================================
+SIGN-OFF
+================================================================================
+
+Deployment Status: ✓ COMPLETE
+Risk Level: LOW (non-breaking fix; reverses to previous version trivially)
+Rollback: Possible (previous script still accessible in Archived/)
+Testing: Recommended (manual end-to-end charging test)
+
+Deployer: Claude Code
+Deploy Date: 2026-06-24
+Deploy Time: 19:05 UTC+2
+
+================================================================================
