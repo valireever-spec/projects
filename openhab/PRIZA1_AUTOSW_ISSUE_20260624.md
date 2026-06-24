@@ -174,3 +174,67 @@ The earlier Priza1ForceOn initialization rule (FIX4) helps but doesn't fully sol
 ---
 
 Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>
+
+---
+
+## UPDATE: Summer Charging Schedule Found ✓
+
+**Summer charging DOES exist** — it's based on **EXPORT_MODE** (excess solar).
+
+### How Summer Charging Works
+
+In May-August, Priza1_Power_auto triggers when:
+1. **Power flow = EXPORT** (exporting excess solar to grid)
+2. **Priza1_BatteryFull = OFF** (battery not full)
+3. **ECO sequence activated** (automatic when EXPORT detected)
+
+### Why It Didn't Trigger Today
+
+**Event Timeline (2026-06-24):**
+- **14:29**: System detected EXPORT (excess solar power)
+- **14:29-14:3X**: Eco sequence should have activated Priza1_Power_auto
+- **BLOCKED**: Priza1_BatteryFull was ON → prevented charging
+- **Result**: Priza1_Power_auto stayed OFF despite EXPORT conditions
+
+### Evidence
+
+```
+2026-06-24 14:29:25.023 [INFO] DIR=EXPORT INTENT=EXPORT_MODE
+  ↓ (should have triggered)
+2026-06-24 14:29:xx.xxx [INFO] WINTER: Priza1_Power_auto ON...
+  ↓ (missing log line — charging was blocked)
+```
+
+### Root Cause Chain
+
+```
+Priza1_BatteryFull ON (stuck)
+    ↓
+is_device_allowed("Priza1_Power_auto", "ON") returns False
+    ↓
+ECO sequence skips Priza1_Power_auto
+    ↓
+Priza1_Power_auto stays OFF
+    ↓
+Phone/e-bike NOT charged during EXPORT window (wasted solar)
+```
+
+### Resolution
+
+✓ **Priza1_BatteryFull reset to OFF**
+
+**Next EXPORT window:** Priza1_Power_auto will trigger and charge the phone/e-bike automatically
+
+---
+
+## Conclusion
+
+**"The summer schedule" = EXPORT-based charging**
+
+In summer (May-Aug), Priza1_Power_auto is NOT scheduled at fixed times like winter (7am, 2pm, 9pm). Instead, it charges automatically whenever:
+- Solar production exceeds consumption (EXPORT)
+- Battery is not already full
+- ECO system activates the charging sequence
+
+Today's issue was not a missing summer schedule, but a **stuck BatteryFull flag** that prevented automatic charging during the afternoon EXPORT window.
+
