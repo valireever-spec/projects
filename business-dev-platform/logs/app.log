@@ -179,3 +179,54 @@ INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
 INFO:     Finished server process [1459]
+Tue Jun 23 03:53:03 PM CEST 2026: Port 8000 is available. Starting service on http://localhost:8000
+Tue Jun 23 03:53:03 PM CEST 2026: Starting Business Dev Platform on port 8000
+INFO:     Started server process [1517]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:37848 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37864 - "POST /api/screener/sentiment-discover HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37874 - "POST /api/screener/sentiment-discover HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37876 - "POST /api/screener/sentiment-discover HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37890 - "POST /api/screener/sentiment-discover HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37898 - "POST /api/screener/sentiment-discover HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:46512 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56762 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37384 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49804 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:46784 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51590 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53488 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55794 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55714 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50280 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51234 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49052 - "POST /api/paper/quick-order HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49068 - "POST /api/paper/quick-order HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60144 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34682 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38370 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57034 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55064 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55558 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54138 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:41280 - "POST /api/paper/quick-order HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:41290 - "POST /api/paper/quick-order HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53446 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:41340 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45346 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57104 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45388 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55570 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50134 - "POST /api/paper/quick-order HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50136 - "POST /api/paper/quick-order HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:34956 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:32986 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60694 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45752 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37670 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1517]
