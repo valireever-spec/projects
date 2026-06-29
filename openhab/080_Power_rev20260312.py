@@ -85,7 +85,7 @@ ALPHA_FALL = 0.6
 MAX_ALPHA = 0.5
 SIGN_RESET_DELTA = BigDecimal("250")
 LARGE_JUMP_RESET = BigDecimal("2000")
-SEQUENCE_MIN_RUNTIME = 12  # 8 seconds
+SEQUENCE_MIN_RUNTIME = 18  # Increased from 12 to allow devices to stabilize
 
 # Sanity / spike handling
 REL_DELTA = BigDecimal("3.0")
