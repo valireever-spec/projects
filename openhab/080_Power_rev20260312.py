@@ -99,12 +99,6 @@ MIN_ON_TIME = 5
 MIN_OFF_TIME = 5
 INTENT_MIN_HOLD_SEC = 10
 NEUTRAL_GRACE_SEC = 15
-# FIX 2026-06-30: Sustained condition to prevent noise-triggered oscillation
-# Requires power to stay below EXPORT_THRESHOLD for this duration before
-# triggering ON sequences. This prevents rapid sequence starts/stops from
-# House_Power_Consumption fluctuations (±8-16W noise observed).
-# Philosophy: noise is temporary, real load changes are sustained.
-SUSTAINED_EXPORT_SEC = 30
 
 # Watchdog / scheduling
 PWR_STALE_SEC = 20
@@ -178,9 +172,6 @@ direction_state = "NEUTRAL"       # IMPORT / EXPORT / NEUTRAL
 intent_state = "NEUTRAL_HOLD"     # IMPORT_MODE / EXPORT_MODE / NEUTRAL_HOLD
 last_intent_change = None
 neutral_since = None
-# FIX 2026-06-30: Track when power first dropped below EXPORT_THRESHOLD
-# to enforce sustained condition (prevents noise-triggered sequences)
-export_threshold_since = None
 
 # PWR command/state timing
 last_state_change = None           # when PWRConsumption item actually changed
@@ -681,37 +672,12 @@ def update_intent(new_direction):
                 log_important("INTENT -> NEUTRAL_HOLD")
         return
 
-    # Directional transition subject to min hold + sustained condition for EXPORT
+    # Directional transition subject to min hold
     if intent_state != desired:
         if held_for >= INTENT_MIN_HOLD_SEC:
-            # FIX 2026-06-30: EXPORT_MODE requires sustained low power (not noise)
-            if desired == "EXPORT_MODE":
-                global export_threshold_since
-                # Track when power first dropped below threshold
-                if filtered_power is not None and filtered_power.compareTo(EXPORT_THRESHOLD) < 0:
-                    if export_threshold_since is None:
-                        export_threshold_since = now_t
-                        log_debug("EXPORT threshold: power now sustained-low (0s)")
-                    # Only transition if power stayed low for SUSTAINED_EXPORT_SEC
-                    sustained_for = secs_since(export_threshold_since)
-                    if sustained_for is not None and sustained_for >= SUSTAINED_EXPORT_SEC:
-                        intent_state = desired
-                        last_intent_change = now_t
-                        log_important("INTENT -> {} (sustained {}s)".format(intent_state, round(sustained_for, 1)))
-                    else:
-                        remaining = SUSTAINED_EXPORT_SEC - (sustained_for if sustained_for else 0)
-                        log_debug("EXPORT sustained: {} more seconds needed".format(round(remaining, 1)))
-                else:
-                    # Power rose above threshold, reset the timer
-                    if export_threshold_since is not None:
-                        log_debug("EXPORT threshold: power rose, sustained timer reset")
-                        export_threshold_since = None
-            else:
-                # IMPORT_MODE or other transitions (no sustained check needed)
-                intent_state = desired
-                last_intent_change = now_t
-                log_important("INTENT -> {}".format(intent_state))
-                export_threshold_since = None  # reset on any mode change
+            intent_state = desired
+            last_intent_change = now_t
+            log_important("INTENT -> {}".format(intent_state))
         else:
             log_debug("INTENT HOLD active ({}s remaining)".format(round(INTENT_MIN_HOLD_SEC - held_for, 1)))
 
