@@ -498,10 +498,12 @@ def start_hmsmqtt(event):
 def stop_hmsmqtt(event):
 	events.sendCommand("HMS2mqtt", "OFF")
 
-@rule("Delete large log files", description="Mosquitto & linux log", tags=["Mosquitto", "Log"])
-@when("Time cron 0 0 0 * * ? *")
-def large_log(event):
-	large_log = Exec.executeCommandLine("/etc/openhab2/scripts/delete_logs.sh", 10000)
+# DISABLED 2026-06-30: Log deletion script replaced with persistent logging
+# Logs will no longer be truncated daily; use proper logrotate configuration instead
+# @rule("Delete large log files", description="Mosquitto & linux log", tags=["Mosquitto", "Log"])
+# @when("Time cron 0 0 0 * * ? *")
+# def large_log(event):
+# 	large_log = Exec.executeCommandLine("/etc/openhab2/scripts/delete_logs.sh", 10000)
 
 @rule("Stop Prize", description="Stop prize", tags=["cron", "Prize"])
 @when("Time cron 0 0 0 * * ? *")
