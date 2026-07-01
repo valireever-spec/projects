@@ -131,8 +131,8 @@ DEBUG_VERBOSE = False  # Disabled after L4 investigation (2026-06-25)
 # =========================================================
 devices_on = [
     "Priza12_Power_auto",
-    # "Priza7_Power",  # DISABLED 2026-06-30: Controlled by external automation (Home Assistant)
-    # "Priza3_Power",  # DISABLED 2026-06-30: Controlled by external automation (Home Assistant)
+    "Priza7_Power",
+    "Priza3_Power",
     "Priza4_Power_auto",
     "Priza9_Power",
     "Priza1_Power_auto"
