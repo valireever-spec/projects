@@ -15,7 +15,7 @@ from core.jsr223.scope import events, items
 from org.eclipse.smarthome.core.types import UnDefType
 from core.actions import LogAction
 from org.eclipse.smarthome.model.script.actions.Exec import executeCommandLine
-from org.eclipse.smarthome.core.library.types import OnOffType
+from org.eclipse.smarthome.core.library.types import OnOffType, QuantityType
 
 ON = OnOffType.ON
 OFF = OnOffType.OFF
@@ -391,6 +391,7 @@ def safe_float(state):
 @rule("Priza1_Current", description="Priza1_Current changes Priza1RdytoForce", tags=["Current", "Priza1"])
 @when("Item Priza1_Current changed")
 def priza1preforce1(event):
+	global Priza1ForceOnTimer
 	#lstValcurrPriza1 = event.oldItemState.floatValue()
 	#aktValcurrPriza1 = event.itemState.floatValue()
 	lstValcurrPriza1 = safe_float(event.oldItemState)
@@ -457,6 +458,7 @@ def priza1forceon(event):
 @rule("Priza2_Current", description="Priza2_Current changes Priza2RdytoForce", tags=["Current", "Priza2"])
 @when("Item Priza2_Current changed")
 def priza2preforce1(event):
+	global Priza2ForceOnTimer
 	lstValcurrPriza2 = event.oldItemState.floatValue() if event.oldItemState not in [NULL, UnDefType.UNDEF] else 0
 	aktValcurrPriza2 = event.itemState.floatValue() if event.itemState not in [NULL, UnDefType.UNDEF] else 0
 
@@ -512,6 +514,7 @@ def priza2forceon(event):
 @rule("Priza3_Current", description="Priza3_Current changes Priza3RdytoForce", tags=["Current", "Priza3"])
 @when("Item Priza3_Current changed")
 def priza3preforce1(event):
+	global Priza3ForceOnTimer
 	lstValcurrPriza3 = event.oldItemState.floatValue() if event.oldItemState not in [NULL, UnDefType.UNDEF] else 0
 	aktValcurrPriza3 = event.itemState.floatValue() if event.itemState not in [NULL, UnDefType.UNDEF] else 0
 

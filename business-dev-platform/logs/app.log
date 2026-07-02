@@ -230,3 +230,606 @@ INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
 INFO:     Finished server process [1517]
+Tue Jun 30 08:49:15 PM CEST 2026: Port 8000 is available. Starting service on http://localhost:8000
+Tue Jun 30 08:49:15 PM CEST 2026: Starting Business Dev Platform on port 8000
+INFO:     Started server process [1668]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:42394 - "GET /api/dashboard/morning-brief HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42404 - "POST /api/screener/sentiment-discover HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42414 - "POST /api/screener/sentiment-discover HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42422 - "POST /api/screener/sentiment-discover HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42430 - "POST /api/screener/sentiment-discover HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42436 - "POST /api/screener/sentiment-discover HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:57960 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:55066 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:45614 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:60632 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:48260 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:40582 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:54304 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:34458 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:39988 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:39668 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:60826 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:59926 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35144 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:52946 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:34624 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:48774 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:60266 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:39334 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:43726 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58782 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:51954 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:57550 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:57808 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:52198 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:38498 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:49844 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:51746 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:57896 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:47770 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:54408 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:40718 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:56504 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:54300 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44230 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:60608 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:38924 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:48678 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:56912 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:46880 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:50650 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58534 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:51818 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:59490 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:39772 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:48334 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33126 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:51288 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33812 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:49342 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:34278 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:55184 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:55112 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:46948 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:43992 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:47134 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:55452 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:36598 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:46588 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44798 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:49490 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:36540 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:55224 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58386 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:34744 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58052 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:43618 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33942 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:55292 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:38278 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41788 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:36058 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:36724 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:49658 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:49160 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:37844 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:49828 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:50362 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35656 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:54818 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:53048 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:40180 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:48176 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44308 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:42312 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:42102 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:48814 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:54654 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44960 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:32984 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33324 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:60702 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:38396 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35902 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:42200 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33866 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:54008 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:59280 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:42694 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:52152 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:46548 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:49292 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:40072 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58382 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:47674 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:39258 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58906 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:40510 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:50690 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:52258 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:42830 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:55834 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41824 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44768 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:59400 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:39982 - "GET /api/symbol/TSLA/profile HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:39982 - "GET /sw.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "GET /api/live/quotes HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50400 - "GET /api/live/macro HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50400 - "GET /api/symbols HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "GET /api/strategies HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "GET /api/guardian/backend-status HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50400 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50400 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50406 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50412 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "GET /api/ingest/status HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "GET /sw.js HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:45866 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "GET /api/config/status HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:45598 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "GET /api/broker/orders/pending HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50390 - "POST /api/errors/report HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45668 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45668 - "POST /sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45684 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45700 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:48692 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:42202 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41972 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33772 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:34240 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58624 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58782 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:40908 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:56614 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58072 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:34668 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41130 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:37264 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33734 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:38810 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:38160 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:36574 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:57520 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:53538 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:48312 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:57272 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:53620 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41598 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:53918 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33638 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:46732 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:53268 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:42810 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35692 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:43402 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:60584 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:60328 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:45766 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44552 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:38394 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:52392 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:37832 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:55276 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:56810 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33602 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:54986 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:40258 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:40074 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41090 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:45608 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:60918 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:43190 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:45614 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:51884 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:57914 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:60580 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41618 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35622 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:50450 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:34310 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44982 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:56374 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:37258 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35698 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:34272 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:55672 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:40774 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:49218 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:42622 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:49456 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:50860 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44762 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:48218 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:51628 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58122 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35188 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:52848 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41328 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:49540 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33922 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35434 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:42150 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:59858 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:43486 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44086 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:48512 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:48156 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41864 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:54430 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:37524 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:38960 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:46946 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41248 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:51462 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35782 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:54152 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:40772 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:46004 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:56936 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35114 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33328 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:49668 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:53944 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:45964 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:38488 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33676 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:51276 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:55700 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:47008 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:37718 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35090 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:33744 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58984 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:34644 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:55178 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41434 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:36172 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44716 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44362 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:39740 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:37742 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:53504 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:58426 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:44006 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:46722 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:37026 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44240 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44240 - "POST /sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44242 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     172.18.0.3:55004 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41718 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:53804 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:51854 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:42584 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:35396 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40782 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40782 - "GET /sessions/99b5a232-2701-41e1-a141-9c8e3cb96f56 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40798 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40782 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40798 - "GET /sessions/99b5a232-2701-41e1-a141-9c8e3cb96f56 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40782 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     172.18.0.3:43414 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:53648 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:39094 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45968 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45968 - "GET /sessions/99b5a232-2701-41e1-a141-9c8e3cb96f56 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45974 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     172.18.0.3:53540 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45968 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45974 - "GET /sessions/99b5a232-2701-41e1-a141-9c8e3cb96f56 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45968 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     172.18.0.3:58260 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:50296 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:41206 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37204 - "GET /sessions/99b5a232-2701-41e1-a141-9c8e3cb96f56 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37214 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     172.18.0.3:37014 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:48596 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48596 - "GET /sessions/99b5a232-2701-41e1-a141-9c8e3cb96f56 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48600 - "GET /domains/trending HTTP/1.1" 200 OK
+INFO:     172.18.0.3:42662 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:51698 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     172.18.0.3:32800 - "GET /api/monitoring/metrics HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1668]
+Tue Jun 30 09:52:58 PM CEST 2026: Port 8000 is available. Starting service on http://localhost:8000
+Tue Jun 30 09:52:58 PM CEST 2026: Starting Business Dev Platform on port 8000
+INFO:     Started server process [32009]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('0.0.0.0', 8000): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+Tue Jun 30 09:53:09 PM CEST 2026: Port 8000 is in use, trying next...
+Tue Jun 30 09:53:09 PM CEST 2026: Port 8001 is available. Starting service on http://localhost:8001
+Tue Jun 30 09:53:09 PM CEST 2026: Starting Business Dev Platform on port 8001
+INFO:     Started server process [32102]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:54286 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54306 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54308 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56274 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:35832 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53898 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56784 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55024 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55032 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60074 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60086 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60092 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55086 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55088 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55094 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47924 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47936 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47944 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42046 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42052 - "GET /api/projects HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42068 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42084 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42100 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42116 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42100 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /api/paper/positions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54292 - "GET /api/paper/trades?limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54296 - "GET /static/unified-dashboard.html HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40006 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42100 - "GET /static/unified-dashboard.html HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40006 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40022 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40024 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54286 - "GET /static/unified-dashboard.html HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40006 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40026 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44894 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44910 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44920 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47320 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47326 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47328 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47338 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:41626 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:41640 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:41650 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:41658 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:41668 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:32784 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:32786 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:32794 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49250 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49262 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49266 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57238 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57248 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60068 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60076 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60080 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56464 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56468 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56472 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37412 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37424 - "POST /v1/completions HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52402 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:39146 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:39162 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:39178 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53780 - "GET /api/health HTTP/1.1" 404 Not Found
+Tue Jun 30 09:57:12 PM CEST 2026: Port 8000 is in use, trying next...
+Tue Jun 30 09:57:12 PM CEST 2026: Port 8001 is available. Starting service on http://localhost:8001
+Tue Jun 30 09:57:12 PM CEST 2026: Starting Business Dev Platform on port 8001
+INFO:     Started server process [33482]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('0.0.0.0', 8001): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+Tue Jun 30 09:57:23 PM CEST 2026: Port 8000 is in use, trying next...
+Tue Jun 30 09:57:23 PM CEST 2026: Port 8001 is in use, trying next...
+Tue Jun 30 09:57:23 PM CEST 2026: Port 8002 is in use, trying next...
+Tue Jun 30 09:57:23 PM CEST 2026: Port 8003 is available. Starting service on http://localhost:8003
+Tue Jun 30 09:57:23 PM CEST 2026: Starting Business Dev Platform on port 8003
+INFO:     Started server process [33529]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8003 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [33529]

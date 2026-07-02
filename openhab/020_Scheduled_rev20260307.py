@@ -17,6 +17,7 @@ from core.rules import rule
 from core.triggers import when
 from core.actions import Exec
 from org.eclipse.smarthome.core.types import UnDefType
+from org.eclipse.smarthome.core.library.types import OnOffType
 from org.joda.time import DateTime
 from org.eclipse.smarthome.model.script.actions.Exec import executeCommandLine
 from core.actions import ScriptExecution
@@ -28,6 +29,8 @@ from core.jsr223 import scope
 
 NULL = UnDefType.NULL
 UNDEF = UnDefType.UNDEF
+ON = OnOffType.ON
+OFF = OnOffType.OFF
 
 # =========================================================
 # SUSTAINABLE LOGGING FRAMEWORK (Added 2026-06-21)
@@ -102,7 +105,9 @@ def scheduled_tasks(event):
 		events.sendCommand("Backup_Openhab2", "OFF")
 		#events.sendCommand("Priza1_Power", "ON") ###18.10.2025### A fost transformata Priza1 pentru E-Bike
 		events.sendCommand("Priza2_Power", "ON")
-		events.sendCommand("Priza3_Power", "ON")
+		# Guard: Don't turn ON Priza3 if ECO is managing power
+		if items["PWRConsumption"] != OnOffType.ON:
+			events.sendCommand("Priza3_Power", "ON")
 		if items["Sufragerie_Daytime"] == OFF or items["Sufragerie_Illuminance_Switch"] == ON:  # update 06.06.2022 #este intuneric in camera
 			events.sendCommand("Priza5_Power", "ON")
 
@@ -130,8 +135,13 @@ def scheduled_tasks2(event):
 		events.sendCommand("Backup_Openhab2", "OFF")
 		#events.sendCommand("Priza1_Power", "ON") ###18.10.2025### A fost transformata Priza1 pentru E-Bike
 		events.sendCommand("Priza2_Power", "ON")
-		events.sendCommand("Priza3_Power", "ON")
-		events.sendCommand("Priza4_Power", "ON") ###08.05.2022### A fost transformata Priza4 pentru laptop
+		# Guard: Don't turn ON Priza3/4 if ECO is managing power
+		if items["PWRConsumption"] != OnOffType.ON:
+			events.sendCommand("Priza3_Power", "ON")
+			events.sendCommand("Priza4_Power", "ON") ###08.05.2022### A fost transformata Priza4 pentru laptop
+		else:
+			if items["Priza4_Power"] != OnOffType.ON:
+				events.sendCommand("Priza4_Power", "ON")
 		#events.sendCommand("Priza5_Power", "ON")
 		#events.sendCommand("Priza6_Power", "ON")
 
@@ -419,6 +429,16 @@ def priza9_power_cron_jobs(event):
 		if items["HomePresence"] == ON and items["Priza9_Power"] != ON and items["Eco_Power_Switch"] == ON:
 			events.sendCommand("Priza9_Power", "ON")
 
+@rule("ECO Guard: Auto-OFF Priza3/7 when powered ON during ECO management", description="Force OFF if ECO is managing power", tags=["ECO", "Guard"])
+@when("Item Priza3_Power changed")
+@when("Item Priza7_Power changed")
+def eco_guard_priza_power(event):
+	"""When Priza3/7 power turns ON while ECO is managing, immediately turn OFF"""
+	if str(event.itemState).upper() == "ON" and items["PWRConsumption"] == ON:
+		dev_name = event.itemName
+		logger.info("ECO_GUARD", "{} turned ON during ECO management - forcing OFF", dev_name)
+		events.sendCommand(dev_name, "OFF")
+
 @rule("Priza7_Power OFF state cronjob", description="Priza7_Power OFF2 state", tags=["cron", "Priza7_Power"])
 @when("Time cron 0 0 22 * * ?")
 def priza7_power_off2_state(event):
@@ -532,7 +552,9 @@ def start_prize(event):
 	logger.info("SCHEDULE", "Starting devices on schedule (Priza2, Priza3)")
 	#events.sendCommand("Priza1_Power", "ON") ###18.10.2025### A fost transformata Priza1 pentru E-Bike
 	events.sendCommand("Priza2_Power", "ON")
-	events.sendCommand("Priza3_Power", "ON")
+	# Guard: Don't turn ON Priza3 if ECO is managing power
+	if items["PWRConsumption"] != OnOffType.ON:
+		events.sendCommand("Priza3_Power", "ON")
 	#events.sendCommand("Priza4_Power", "ON")
 #	events.sendCommand("Priza7_Power", "ON")
 

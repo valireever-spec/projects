@@ -769,6 +769,29 @@ def is_device_allowed(dev, target):
             log_important("Skip Priza4 OFF (battery not confirmed full)")
             return False
 
+    # Guard Priza3/7: Don't turn OFF if actively charging
+    if dev == "Priza3_Power" and target == "OFF":
+        try:
+            curr = items["Priza3_Current"]
+            if curr not in [NULL, UNDEF]:
+                curr_val = float(str(curr).split()[0]) if " " in str(curr) else float(str(curr))
+                if curr_val > 0.070:  # MinCLevel_P3_1 threshold
+                    log_important("Skip Priza3 OFF (actively charging, current={})".format(curr_val))
+                    return False
+        except:
+            pass
+
+    if dev == "Priza7_Power" and target == "OFF":
+        try:
+            curr = items["Priza7_Current"]
+            if curr not in [NULL, UNDEF]:
+                curr_val = float(str(curr).split()[0]) if " " in str(curr) else float(str(curr))
+                if curr_val > 0.010:  # MinCLevel_P7_1 threshold
+                    log_important("Skip Priza7 OFF (actively charging, current={})".format(curr_val))
+                    return False
+        except:
+            pass
+
     if dev == "Priza9_Power" and target == "ON":
         if not is_priza9_allowed():
             log_important("Skip Priza9 (time)")
