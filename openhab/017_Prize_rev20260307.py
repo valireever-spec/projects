@@ -600,6 +600,10 @@ def update_teleperiod_based_on_current_P2():
             events.sendCommand(ir.getItem("Priza2_TelePeriod"), (TelePeriod2_3))
 
 def timer3_charge_off():
+    # Guard: Don't interfere when ECO is managing power
+    if items["Eco_Power_Switch"] == ON:
+        logger.info("TIMER", "timer3_charge_off blocked - ECO power management active")
+        return
     ctrl_dev("Priza3_Power", "ON", items, events, command_type="sendCommand")
     ctrl_dev("Priza3_Relay1", "OFF", items, events, command_type="sendCommand")
     ctrl_dev("Priza3_Relay2", "OFF", items, events, command_type="sendCommand")
@@ -613,6 +617,10 @@ def timer3_charge_off():
 @when("Item Priza3_Current changed")
 def Priza3_Current(event):
     global DelayTimer3
+
+    # Guard: Don't interfere when ECO power management is active
+    if items["Eco_Power_Switch"] == ON and items["PWRConsumption"] == ON:
+        return
 
     if items["AstroSunData_Season_SeasonName"] == StringType(SPRING) or items["AstroSunData_Season_SeasonName"] == StringType(SUMMER) or items["AstroSunData_Season_SeasonName"] == StringType(AUTUMN):
         if items["Eco_Power_Switch"] == ON:
