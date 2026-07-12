@@ -3,10 +3,11 @@ Designer Agent - Phase 2 Core Component
 
 Analyzes requirements and generates design decisions.
 State: Proposed → Accepted
-Uses Claude API for intelligent analysis.
+Uses Claude API (via ClaudeIntegration) for intelligent analysis.
 """
 
 import logging
+import sys
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -14,12 +15,20 @@ from enum import Enum
 
 logger = logging.getLogger(__name__)
 
+# Try to import Claude integration
+try:
+    from claude_api_integration import ClaudeIntegration
+    HAS_CLAUDE_INTEGRATION = True
+except ImportError:
+    HAS_CLAUDE_INTEGRATION = False
+    logger.warning("claude_api_integration not available, using mock mode")
+
+# Fallback to old anthropic for backward compatibility
 try:
     import anthropic
     HAS_ANTHROPIC = True
 except ImportError:
     HAS_ANTHROPIC = False
-    logger.warning("anthropic library not installed, using mock mode")
 
 
 class RequirementType(Enum):
@@ -66,23 +75,41 @@ class DesignOutput:
 class DesignerAgent:
     """Analyzes requirements and generates design decisions."""
 
-    def __init__(self, use_claude: bool = True):
+    def __init__(self, use_claude: bool = True, api_key: Optional[str] = None):
         """Initialize Designer Agent.
 
         Args:
             use_claude: Use real Claude API (True) or mock (False)
+            api_key: Optional Anthropic API key
         """
-        self.use_claude = use_claude and HAS_ANTHROPIC
+        self.use_claude = use_claude
         self.client = None
+        self.claude_integration = None
 
-        if self.use_claude:
+        # Try new Claude integration first
+        if self.use_claude and HAS_CLAUDE_INTEGRATION:
             try:
-                self.client = anthropic.Anthropic()
-                logger.info("Initialized Designer Agent with Claude API")
+                self.claude_integration = ClaudeIntegration(api_key=api_key, use_real_api=True)
+                if self.claude_integration.is_available():
+                    logger.info("Initialized Designer Agent with real Claude API via ClaudeIntegration")
+                else:
+                    logger.info("Claude API not available, using fallback/mock mode")
+                    self.use_claude = False
+            except Exception as e:
+                logger.warning(f"Could not initialize Claude integration: {e}, trying anthropic SDK")
+                self.claude_integration = None
+                self.use_claude = False
+
+        # Fallback to direct anthropic SDK
+        if self.use_claude and not self.claude_integration and HAS_ANTHROPIC:
+            try:
+                self.client = anthropic.Anthropic(api_key=api_key)
+                logger.info("Initialized Designer Agent with Claude API (direct anthropic)")
             except Exception as e:
                 logger.warning(f"Could not initialize Claude client: {e}, using mock mode")
                 self.use_claude = False
-        else:
+
+        if not self.use_claude:
             logger.info("Initialized Designer Agent in mock mode")
 
     def analyze_requirement(self, requirement: Requirement) -> DesignOutput:
@@ -124,31 +151,69 @@ class DesignerAgent:
             Updated DesignOutput
         """
         try:
-            prompt = self._build_analysis_prompt(requirement)
+            # Try new Claude integration first
+            if self.claude_integration:
+                result = self.claude_integration.analyze_requirement(
+                    requirement.id,
+                    requirement.title,
+                    requirement.description,
+                    "\n".join(requirement.acceptance_criteria) if requirement.acceptance_criteria else "",
+                    requirement.type.value
+                )
 
-            message = self.client.messages.create(
-                model="claude-opus-4-8",
-                max_tokens=1500,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
-            )
+                if result:
+                    # Convert from integration response format
+                    for decision_dict in result.get('decisions', []):
+                        output.design_decisions.append(
+                            DesignDecision(
+                                title=decision_dict.get('title', ''),
+                                rationale=decision_dict.get('rationale', ''),
+                                confidence=decision_dict.get('confidence', 0.9)
+                            )
+                        )
 
-            response_text = message.content[0].text
+                    output.implementation_tasks = result.get('tasks', [])
+                    output.estimated_effort_hours = result.get('effort', 16.0)
+                    output.risks = result.get('risks', [])
+                    output.status = "Accepted"
 
-            # Parse response
-            output = self._parse_design_response(response_text, output)
-            output.status = "Accepted"
+                    logger.info(
+                        f"Claude analysis complete (via integration): "
+                        f"{len(output.design_decisions)} decisions, "
+                        f"{result.get('tokens', {}).get('total', 0)} tokens, "
+                        f"source={result.get('source', 'unknown')}"
+                    )
+                    return output
 
-            logger.info(f"Claude analysis complete: {len(output.design_decisions)} decisions")
+            # Fallback to direct anthropic SDK
+            if self.client:
+                prompt = self._build_analysis_prompt(requirement)
+
+                message = self.client.messages.create(
+                    model="claude-opus-4-8",
+                    max_tokens=1500,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ]
+                )
+
+                response_text = message.content[0].text
+
+                # Parse response
+                output = self._parse_design_response(response_text, output)
+                output.status = "Accepted"
+
+                logger.info(f"Claude analysis complete (direct SDK): {len(output.design_decisions)} decisions")
+                return output
 
         except Exception as e:
             logger.warning(f"Claude analysis failed: {e}, using fallback")
-            output = self._analyze_with_mock(requirement, output)
 
+        # Fallback to mock
+        output = self._analyze_with_mock(requirement, output)
         return output
 
     def _analyze_with_mock(self, requirement: Requirement, output: DesignOutput) -> DesignOutput:
