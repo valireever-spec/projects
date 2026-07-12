@@ -20,6 +20,17 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# Import real integrations (Phase 1)
+try:
+    from filesys_integration import FilesystemAnalyzer, DirectorySnapshot
+    from git_integration import GitAnalyzer
+    from pytest_integration import PytestRunner
+    from coverage_integration import CoverageAnalyzer
+    HAS_INTEGRATIONS = True
+except ImportError:
+    HAS_INTEGRATIONS = False
+    logger.warning("Real integrations not available (using simulated mode)")
+
 
 class TaskType(Enum):
     """Explicit task classification."""
@@ -414,6 +425,164 @@ def main() -> None:
     summary = verification.summary()
     print(json.dumps(summary, indent=2))
     print("=" * 80)
+
+
+class ProjectAnalyzer:
+    """Real project analyzer using Phase 1 integrations."""
+
+    def __init__(self, project_root: str):
+        """Initialize project analyzer.
+
+        Args:
+            project_root: Path to project root
+        """
+        self.project_root = Path(project_root)
+
+        if not self.project_root.exists():
+            raise ValueError(f"Project root does not exist: {project_root}")
+
+        self.filesys = FilesystemAnalyzer(str(project_root))
+        try:
+            self.git = GitAnalyzer(str(project_root))
+        except ValueError:
+            self.git = None
+            logger.warning("Git analyzer not available (not a git repo)")
+
+        self.pytest_runner = PytestRunner(str(project_root))
+        self.coverage = CoverageAnalyzer(str(project_root))
+
+        logger.info(f"Initialized ProjectAnalyzer for {project_root}")
+
+    def capture_state(self) -> StateSnapshot:
+        """Capture current state of project using real integrations.
+
+        Returns:
+            StateSnapshot with real data
+        """
+        timestamp = datetime.now().isoformat()
+
+        # Capture filesystem
+        logger.info("Capturing filesystem state...")
+        dir_snapshot = self.filesys.capture_snapshot()
+
+        # Build state snapshot
+        snapshot = StateSnapshot(
+            timestamp=timestamp,
+            file_hashes=dir_snapshot.file_hashes,
+            total_files=dir_snapshot.total_files,
+            total_lines=dir_snapshot.total_lines,
+            coverage_percent=self._get_coverage()
+        )
+
+        # Add metrics
+        snapshot.metrics = {
+            'python_files': dir_snapshot.python_files,
+            'test_files': dir_snapshot.test_files,
+            'total_files': dir_snapshot.total_files,
+            'total_lines': dir_snapshot.total_lines,
+        }
+
+        # Get test results (sampled for performance)
+        logger.info("Collecting test results...")
+        test_results = self._get_test_results_sampled()
+        snapshot.test_results = test_results
+
+        # Count pass/fail
+        snapshot.tests_passing = sum(1 for r in test_results.values() if r.passed)
+        snapshot.tests_failing = sum(1 for r in test_results.values() if not r.passed)
+
+        logger.info(f"State captured: {snapshot.total_files} files, "
+                   f"{snapshot.tests_passing} tests passing, "
+                   f"{snapshot.coverage_percent:.1f}% coverage")
+
+        return snapshot
+
+    def _get_coverage(self) -> float:
+        """Get coverage percentage.
+
+        Returns:
+            Coverage percentage
+        """
+        try:
+            report = self.coverage.get_coverage()
+            return report.total_coverage_percent
+        except Exception as e:
+            logger.warning(f"Could not get coverage: {e}")
+            return 0.0
+
+    def _get_test_results_sampled(self, max_tests: int = 10) -> Dict[str, TestResult]:
+        """Get test results (sampled).
+
+        Args:
+            max_tests: Maximum number of tests to run
+
+        Returns:
+            Dictionary of test results
+        """
+        results = {}
+
+        try:
+            test_files = self.pytest_runner.discover_tests()[:max_tests]
+
+            for test_file in test_files:
+                try:
+                    result = self.pytest_runner.run_single_test(test_file)
+                    results[test_file] = TestResult(
+                        test_name=test_file,
+                        passed=result.passed,
+                        duration_seconds=0.0,
+                        error_message=result.error_message
+                    )
+                except Exception as e:
+                    logger.warning(f"Could not run test {test_file}: {e}")
+
+            return results
+
+        except Exception as e:
+            logger.warning(f"Could not get test results: {e}")
+            return {}
+
+    def compare_states(self, before: StateSnapshot, after: StateSnapshot) -> StateDiff:
+        """Compare two states using real filesystem hashes.
+
+        Args:
+            before: Earlier snapshot
+            after: Later snapshot
+
+        Returns:
+            StateDiff with actual file changes
+        """
+        diff = StateDiff(before=before, after=after)
+
+        before_hashes = before.file_hashes
+        after_hashes = after.file_hashes
+
+        before_paths = set(before_hashes.keys())
+        after_paths = set(after_hashes.keys())
+
+        diff.files_added = after_paths - before_paths
+        diff.files_deleted = before_paths - after_paths
+
+        diff.files_changed = {
+            path for path in before_paths & after_paths
+            if before_hashes[path] != after_hashes[path]
+        }
+
+        # Test diff
+        diff.tests_new_passing = {
+            name for name, result in after.test_results.items()
+            if result.passed and (name not in before.test_results or not before.test_results[name].passed)
+        }
+
+        diff.tests_new_failing = {
+            name for name, result in after.test_results.items()
+            if not result.passed and (name not in before.test_results or before.test_results[name].passed)
+        }
+
+        # Coverage delta
+        diff.coverage_delta = after.coverage_percent - before.coverage_percent
+
+        return diff
 
 
 if __name__ == "__main__":
