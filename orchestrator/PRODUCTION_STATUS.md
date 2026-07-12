@@ -6,6 +6,25 @@
 
 ---
 
+## Project Purpose
+
+The production-grade orchestrator is an **autonomous development automation engine** designed to orchestrate development of other projects (e.g., investing-platform, crypto-daytrading) using:
+
+- **Own Agents** — Designer, Implementer, Verifier agents for autonomous task execution
+- **Skill Library** — Integrates `/home/vali/projects/skill-library` (40+ reusable skills)
+- **Skill Creator** — Integrates `/home/vali/projects/skill-creator` for custom skill development
+- **Tracker** — Integrates `/home/vali/projects/tracker` for centralized requirement/gap tracking
+
+### Use Cases
+
+1. **Autonomous Project Development** — Auto-analyze, implement, verify features for target projects
+2. **Continuous Refactoring** — Automatically consolidate files, optimize dependencies, improve architecture
+3. **Infrastructure Testing** — Auto-provision test environments, run chaos/load/failover tests
+4. **Quality Assurance** — State tracking ensures "analyzed" ≠ "fixed", full regression detection
+5. **Audit & Compliance** — Complete change trail with before/after snapshots
+
+---
+
 ## Implementation Summary
 
 ### All 5 Layers Complete ✅
@@ -21,6 +40,75 @@
 | | Master Phase 1-3 | `orchestrator_master_phase123_complete.py` | 39K | ✅ Complete |
 
 **Total:** 2,784+ LOC production + comprehensive test suite
+
+---
+
+## Ecosystem Integration
+
+### Architecture: Orchestrator + Ecosystem
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ORCHESTRATOR (This Project)                                    │
+│  - Designer Agent (analyze requirements)                        │
+│  - Implementer Agent (execute with skills)                      │
+│  - Verifier Agent (test & verify)                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Integrations:                                                  │
+│                                                                 │
+│  /projects/SKILL-LIBRARY (40+ skills)                          │
+│  ├── Fast local skills (lint, format, refactor)                │
+│  ├── Complex skills (architecture analysis, security)          │
+│  └── Custom skills (project-specific)                          │
+│                           ↑                                     │
+│  /projects/SKILL-CREATOR (framework for custom skills)         │
+│  ├── Skill templates & scaffolding                             │
+│  ├── Validation & testing                                      │
+│  └── Auto-discovery & registration                             │
+│                                                                 │
+│  /projects/TRACKER (requirement & gap tracking)                │
+│  ├── File requirements as orchestrator works                   │
+│  ├── Track gaps & blockers                                     │
+│  ├── Link changes to requirements                              │
+│  └── Audit trail of all operations                             │
+│                                                                 │
+│  Target Projects:                                               │
+│  ├── /projects/investing-platform                              │
+│  ├── /projects/crypto-daytrading                               │
+│  ├── /projects/[other-projects]                                │
+│  └── ... (any project needing automation)                      │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Integration Points
+
+**1. Skill Library** (`/projects/skill-library`)
+- Orchestrator auto-discovers available skills
+- Implementer agent loads skills on-demand
+- Skills provide fast, reusable implementations
+- Examples: linting, formatting, type checking, refactoring
+
+**2. Skill Creator** (`/projects/skill-creator`)
+- Extend orchestrator capabilities with custom skills
+- Skill templates & validation framework
+- Auto-discovery & registration with orchestrator
+- Enables project-specific automation
+
+**3. Tracker** (`/projects/tracker`)
+- Orchestrator auto-files requirements as Designer analyzes
+- Tracks gaps and blockers discovered during development
+- Links changes to original requirements
+- Complete audit trail of all operations
+- Query-able history for compliance & debugging
+
+**4. Target Projects**
+- Orchestrator autonomously develops new features
+- Integrates with each project's CI/CD
+- Auto-creates PRs with changes
+- Provides before/after state snapshots
+- Gates merges on test coverage & SLO thresholds
 
 ---
 
@@ -193,7 +281,101 @@ python3 -m pytest tests/orchestrator/test_orchestrator_layer*.py -v
 
 ---
 
+## Using Orchestrator for Project Development
+
+### Workflow: Autonomous Project Development
+
+The orchestrator can be used to autonomously develop target projects (investing-platform, crypto-daytrading, etc.):
+
+```
+1. DESIGNER AGENT (Requirement Analysis)
+   ↓
+   - Analyzes new requirements
+   - Documents design decisions
+   - Files requirements in /projects/tracker
+   
+2. IMPLEMENTER AGENT (Skill-Based Execution)
+   ↓
+   - Loads skills from /projects/skill-library
+   - Can create custom skills with /projects/skill-creator
+   - Executes implementation using skills
+   - Generates code changes
+   
+3. VERIFIER AGENT (State Tracking & Validation)
+   ↓
+   - Captures state snapshots (Layer 1)
+   - Runs tests and verifies changes
+   - Tracks before/after differences
+   - Reports ANALYZED vs FIXED vs VERIFIED status
+   
+4. STATE & TRACKING (Layer 5)
+   ↓
+   - Logs all changes to /projects/tracker
+   - Provides audit trail
+   - Reports metrics and coverage
+   - Enables rollback if needed
+```
+
+### Example: Orchestrating investing-platform
+
+```python
+from orchestrator_master import MasterOrchestrator
+from orchestrator_layer1_state import StateSnapshot, TaskType
+
+# Initialize orchestrator
+orchestrator = MasterOrchestrator()
+
+# Configure for target project
+config = {
+    "project": "investing-platform",
+    "project_path": "/home/vali/projects/investing-platform",
+    "tracker_url": "http://localhost:8000",
+    "tracker_project_id": 123,
+    "skills_to_use": ["linter", "type-checker", "test-runner", "refactorer"],
+    "skill_library_path": "/home/vali/projects/skill-library"
+}
+
+# Run orchestration workflow
+result = orchestrator.orchestrate(
+    target_project=config,
+    requirements=["refactor ECO power management", "add Priza3 guards"],
+    use_skills=True,
+    use_tracker=True
+)
+
+# Result contains:
+# - result.designer_output (analyzed requirements)
+# - result.implementer_output (implemented changes)
+# - result.verifier_output (verification results)
+# - result.state_before (StateSnapshot before)
+# - result.state_after (StateSnapshot after)
+# - result.task_status (ANALYZED | FIXED | VERIFIED | DEPLOYED)
+```
+
+### Integration Points
+
+**1. Skills** (`/projects/skill-library`)
+- Orchestrator.Implementer agent loads and executes skills
+- Skills provide fast, specialized implementations
+- Can be extended via `/projects/skill-creator`
+
+**2. Tracker** (`/projects/tracker`)
+- Orchestrator auto-files requirements as Designer works
+- Logs gaps and blockers as Implementer discovers them
+- Creates audit trail of all changes
+- Tracks completion status for each requirement
+
+**3. State Tracking** (Layer 1)
+- Captures before/after snapshots
+- Differentiates ANALYZED vs FIXED vs VERIFIED
+- Prevents silent failures
+- Enables rollback
+
+---
+
 ## Architecture Overview
+
+### Core Orchestrator
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -244,6 +426,31 @@ python3 -m pytest tests/orchestrator/test_orchestrator_layer*.py -v
 │  - Result caching                                  │
 │                                                     │
 └─────────────────────────────────────────────────────┘
+```
+
+### With Ecosystem Integration
+
+```
+                  SKILL LIBRARY (/projects/skill-library)
+                  40+ reusable skills
+                           ↑
+        ORCHESTRATOR ←──────┴──────→ SKILL CREATOR
+          5 Layers              (/projects/skill-creator)
+        3 Agents                Custom skill framework
+       Designer
+       Implementer              
+       Verifier                 
+            ↓
+        TRACKER ← ← ← (requirements, gaps, audit trail)
+      (/projects/tracker)
+      Central requirement & change tracking
+            ↓
+     TARGET PROJECTS
+     - investing-platform
+     - crypto-daytrading
+     - [other projects]
+     
+Auto-orchestrates development using agents + skills + tracking
 ```
 
 ---
