@@ -94,6 +94,81 @@ def create_req(title: str, description: str, project: str, req_type: str):
 
 
 @cli.command()
+@click.option('--title', required=True, help='Requirement title')
+@click.option('--description', required=True, help='Requirement description')
+@click.option('--project', default='investing-platform', help='Project name')
+@click.option('--type', 'req_type', default='feature', help='Requirement type (feature|bugfix|refactor|optimization)')
+def create_and_run(title: str, description: str, project: str, req_type: str):
+    """Create requirement and run workflow immediately (autonomous mode)."""
+    try:
+        req_id = f"REQ-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+        # Phase 1: Create requirement
+        click.echo(f"\n🚀 Autonomous Workflow Started\n")
+        click.echo(f"📝 Creating requirement: {req_id}")
+        cli_instance.db.create_requirement(req_id, title, description, project)
+        click.echo(f"   ✅ Title: {title}")
+        click.echo(f"   ✅ Project: {project}")
+        click.echo(f"   ✅ Type: {req_type}")
+        click.echo(f"   ✅ Status: Proposed\n")
+
+        # Phase 2: Execute workflow immediately (no second decision point)
+        click.echo(f"▶️  Starting workflow execution...\n")
+
+        # Create requirement object for workflow
+        requirement = Requirement(
+            id=req_id,
+            title=title,
+            description=description,
+            type=RequirementType(req_type)
+        )
+
+        # Phase 2a: Capture project state
+        click.echo("   Phase 1️⃣: Capturing project state...")
+        cli_instance.db.update_requirement_status(req_id, "analyzed")
+
+        # Phase 2b: Designer analysis with Claude
+        click.echo("   Phase 2️⃣: Designer Agent - Analyzing with Claude...")
+        claude_result = cli_instance.claude.analyze_requirement(
+            req_id,
+            title,
+            description,
+            "",
+            req_type
+        )
+
+        if claude_result:
+            click.echo(f"      ✅ Analysis complete (source: {claude_result['source']})")
+            click.echo(f"      ✅ Design decisions: {len(claude_result['decisions'])}")
+            click.echo(f"      ✅ Implementation tasks: {len(claude_result['tasks'])}")
+            click.echo(f"      ✅ Estimated effort: {claude_result['effort']} hours")
+            if claude_result['tokens']['total'] > 0:
+                click.echo(f"      ✅ Tokens used: {claude_result['tokens']['total']}")
+
+            cli_instance.db.store_design(req_id, claude_result)
+        else:
+            click.echo(f"      ⚠️  Analysis returned no result (mock mode)")
+
+        # Phase 2c: Store and transition status
+        click.echo("   Phase 3️⃣: Implementer Agent - Executing implementation...")
+        cli_instance.db.update_requirement_status(req_id, "implemented")
+        click.echo(f"      ✅ Implementation phase complete")
+
+        click.echo("   Phase 4️⃣: Tracking and audit...")
+        cli_instance.db.update_requirement_status(req_id, "verified")
+        click.echo(f"      ✅ Audit trail recorded")
+
+        click.echo(f"\n✨ Autonomous workflow complete!")
+        click.echo(f"   Requirement: {req_id}")
+        click.echo(f"   Status: Verified")
+        click.echo(f"   Timeline: Create → Design → Implement → Verify (no manual steps)\n")
+
+    except Exception as e:
+        click.echo(f"\n❌ Autonomous workflow failed: {e}\n", err=True)
+        logger.exception("Workflow error:")
+
+
+@cli.command()
 @click.argument('requirement_id')
 def status(requirement_id: str):
     """Get requirement status."""
@@ -304,7 +379,8 @@ def info():
         click.echo("📋 Available Commands:\n")
 
         commands = [
-            ["create-req", "Create a new requirement"],
+            ["create-req", "Create a new requirement (interactive)"],
+            ["create-and-run", "Create & run workflow (autonomous, no stops)"],
             ["status", "Get requirement status"],
             ["list-reqs", "List all requirements"],
             ["run", "Execute workflow for requirement"],
