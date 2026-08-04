@@ -1,0 +1,1 @@
+String rhasspy_intent_lights "Rhasspy Intent Lights" { channel="mqtt:topic:mosquitto:rhasspy:intent_lights" }
