@@ -1,0 +1,746 @@
+#!/usr/bin/env python3
+"""
+Semnalul Ignorat — video generator.
+
+Input:  one or more JSON script files (see romanian_scripts/*.json)
+Output: vertical 1080x1920 .mp4 — Romanian AI voice + synced bottom-third captions
+        on AI-generated Ken Burns backgrounds with xfade scene transitions.
+        When given multiple JSON files, outputs one combined video.
+
+Usage:
+    python tools/make_video.py romanian_scripts/01_toaleta_apa.json
+    python tools/make_video.py romanian_scripts/*.json   # → output/combined.mp4
+"""
+import asyncio
+import json
+import os
+import re
+import subprocess
+import sys
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+import edge_tts
+import imageio_ffmpeg
+
+# Brand design tokens
+FG_ASS     = "&H00DAE5E9"   # #e9e5da — warm white
+ACCENT_ASS = "&H002B39C0"   # #c0392b — deep red
+MUTED_ASS  = "&H00776063"   # #636077 — muted grey
+BLACK_ASS  = "&H00000000"
+W, H = 1080, 1920
+CAPTION_MAX_WORDS = 5
+FONT = "DejaVu Sans"
+
+SRT_TS = re.compile(r"(\d{2}):(\d{2}):(\d{2}),(\d{3})")
+
+
+# ── Timing helpers ────────────────────────────────────────────────────────────
+
+def srt_ts_to_seconds(ts: str) -> float:
+    h, m, s, ms = SRT_TS.match(ts).groups()
+    return int(h) * 3600 + int(m) * 60 + int(s) + int(ms) / 1000.0
+
+
+def seconds_to_ass(t: float) -> str:
+    h = int(t // 3600)
+    m = int((t % 3600) // 60)
+    s = t % 60
+    return f"{h:d}:{m:02d}:{s:05.2f}"
+
+
+# ── Caption chunking ──────────────────────────────────────────────────────────
+
+BREAK_PUNCT = (",", ";", ":", ".", "!", "?", "—", "…")
+
+
+def parse_srt_words(srt: str) -> list:
+    words = []
+    for block in re.split(r"\n\s*\n", srt.strip()):
+        lines = [ln for ln in block.splitlines() if ln.strip()]
+        if len(lines) < 3:
+            continue
+        m = re.search(r"(\S+)\s*-->\s*(\S+)", lines[1])
+        if not m:
+            continue
+        start = srt_ts_to_seconds(m.group(1))
+        end   = srt_ts_to_seconds(m.group(2))
+        text  = " ".join(lines[2:]).strip()
+        words.append((start, end, text))
+    return words
+
+
+def chunk_captions(cues: list) -> list:
+    chunks = []
+    for start, end, text in cues:
+        toks = text.split()
+        if not toks:
+            continue
+        span = (end - start) / len(toks)
+        group: list[str] = []
+        for i, tok in enumerate(toks):
+            if not group:
+                gstart = start + i * span
+            group.append(tok)
+            end_of_phrase = tok.endswith(BREAK_PUNCT)
+            if len(group) >= CAPTION_MAX_WORDS or end_of_phrase or i == len(toks) - 1:
+                disp = " ".join(group).rstrip(".,;:!?—…")
+                if disp:
+                    chunks.append([gstart, start + (i + 1) * span, disp])
+                group = []
+    for i in range(len(chunks) - 1):
+        chunks[i][1] = chunks[i + 1][0]
+    return chunks
+
+
+# ── ASS subtitle builder ──────────────────────────────────────────────────────
+
+def ass_escape(text: str) -> str:
+    return text.replace("\\", "\\\\").replace("{", "(").replace("}", ")")
+
+
+HOOK_DUR    = 2.0
+END_DUR     = 4.0
+SAFE_TOP    = 170
+SAFE_BOTTOM = 300
+
+
+def build_ass(chunks: list, duration: float, channel: str,
+              source_text: str, show_source: bool,
+              hook_card: str, cta_question: str) -> str:
+    DARK_BOX = "&H440F0909"
+
+    styles = f"""[Script Info]
+ScriptType: v4.00+
+PlayResX: {W}
+PlayResY: {H}
+WrapStyle: 1
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Caption,{FONT},48,{FG_ASS},{FG_ASS},{BLACK_ASS},&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,750,1
+Style: Header,{FONT},38,{MUTED_ASS},{MUTED_ASS},{BLACK_ASS},&H00000000,0,0,0,0,100,100,3,0,1,2,0,8,60,60,{SAFE_TOP},1
+Style: Source,{FONT},34,{ACCENT_ASS},{ACCENT_ASS},{BLACK_ASS},&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,60,60,{SAFE_BOTTOM},1
+Style: HookCard,{FONT},82,{FG_ASS},{FG_ASS},{BLACK_ASS},{DARK_BOX},-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+Style: EndCard,{FONT},68,{ACCENT_ASS},{ACCENT_ASS},{BLACK_ASS},{DARK_BOX},-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+"""
+    end_ts       = seconds_to_ass(duration)
+    hook_end_ts  = seconds_to_ass(HOOK_DUR)
+    end_start_ts = seconds_to_ass(max(0.0, duration - END_DUR))
+
+    events = []
+
+    if hook_card:
+        hook_text = ass_escape(hook_card.upper()).replace("\n", "\\N")
+        events.append(
+            f"Dialogue: 1,0:00:00.00,{hook_end_ts},HookCard,,0,0,0,,{hook_text}"
+        )
+
+    events.append(
+        f"Dialogue: 0,0:00:00.00,{end_ts},Header,,0,0,0,,{ass_escape(channel.upper())}"
+    )
+    if show_source and source_text:
+        events.append(
+            f"Dialogue: 0,0:00:00.00,{end_ts},Source,,0,0,0,,{ass_escape(source_text)}"
+        )
+
+    for start, end, text in chunks:
+        display_start = max(start, HOOK_DUR) if hook_card else start
+        if display_start >= end:
+            continue
+        events.append(
+            f"Dialogue: 0,{seconds_to_ass(display_start)},{seconds_to_ass(end)},"
+            f"Caption,,0,0,0,,{ass_escape(text.upper())}"
+        )
+
+    end_text = ass_escape(channel.upper())
+    if cta_question:
+        end_text += r"\N" + ass_escape(cta_question)
+    events.append(
+        f"Dialogue: 1,{end_start_ts},{end_ts},EndCard,,0,0,0,,{end_text}"
+    )
+
+    return styles + "\n".join(events) + "\n"
+
+
+# ── Voice synthesis ───────────────────────────────────────────────────────────
+
+async def synth(text: str, voice: str, mp3_path: Path) -> str:
+    communicate = edge_tts.Communicate(text, voice)
+    submaker    = edge_tts.SubMaker()
+    with open(mp3_path, "wb") as f:
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                f.write(chunk["data"])
+            elif chunk["type"] in ("WordBoundary", "SentenceBoundary"):
+                submaker.feed(chunk)
+    return submaker.get_srt()
+
+
+# ── Duration helper ───────────────────────────────────────────────────────────
+
+def media_duration(ffmpeg_bin: str, path: Path) -> float:
+    out = subprocess.run(
+        [ffmpeg_bin, "-i", str(path)], capture_output=True, text=True
+    ).stderr
+    m = re.search(r"Duration: (\d+):(\d+):(\d+\.\d+)", out)
+    if not m:
+        return 0.0
+    h, mn, s = m.groups()
+    return int(h) * 3600 + int(mn) * 60 + float(s)
+
+
+# ── Local search term extraction ──────────────────────────────────────────────
+
+_RO_STOPWORDS = {
+    "și","în","din","de","la","cu","pe","că","să","nu","este","sunt","au",
+    "o","un","ale","al","a","ai","pentru","prin","mai","dar","sau","dacă",
+    "când","care","ce","cum","tot","toți","toate","această","acest","lor",
+    "lui","ei","el","ea","noi","voi","eu","tu","se","le","li","îi","îl",
+    "am","ești","fi","fost","face","despre","după","între","spre","până",
+    "fără","toată","mult","puțin","mare","mic","doar","chiar","încă",
+    "deja","acum","atunci","apoi","înainte","mereu","poate","trebuie",
+    "vrea","ști","zice","spune","ani","an","tot","iar","nici","ci","fie",
+    "din","este","suntem","avem","este","eram","unor","unui","unei",
+    "practic","conform","conform","această","aceasta","acesta","aceste",
+    "mult","puțin","toată","întreg","doar","chiar","exact","același","aceeași",
+}
+
+_RO_VISUAL: dict[str, tuple[str, bool]] = {
+    "apă":        ("water faucet tap running", False),
+    "toaletă":    ("toilet bathroom indoor", False),
+    "robinet":    ("faucet tap water running", False),
+    "apei":       ("water running sink", False),
+    "casă":       ("village rural house", True),
+    "casa":       ("village rural house", True),
+    "locuință":   ("old house rural interior", True),
+    "locuința":   ("old house rural interior", True),
+    "locuinței":  ("rural home interior", True),
+    "sat":        ("village rural countryside", True),
+    "sate":       ("village rural house", True),
+    "gospodării": ("rural household family", True),
+    "gospodărilor": ("rural household family", True),
+    "rural":      ("rural countryside village", True),
+    "copii":      ("children kids village", True),
+    "bătrâni":    ("elderly old people village", True),
+    "oameni":     ("people street village", True),
+    "familie":    ("family rural home", True),
+    "pensionari": ("elderly retired people", True),
+    "familii":    ("family rural home", True),
+    "sărăcie":    ("poverty poor village", True),
+    "infecții":   ("doctor patient medical", False),
+    "boli":       ("sick patient hospital", False),
+    "căldură":    ("heating radiator home winter", False),
+    "iarnă":      ("winter snow village", True),
+    "iarna":      ("winter snow house cold", True),
+    "frigul":     ("winter cold snow house", True),
+    "facturi":    ("energy bills expenses stress", False),
+    "mâncare":    ("family cooking food kitchen", False),
+    "pădure":     ("forest trees nature", True),
+    "păduri":     ("forest trees mountain", True),
+    "pădurile":   ("forest trees logging", True),
+    "copaci":     ("forest trees", True),
+    "tăieri":     ("logging deforestation forest", True),
+    "tăierile":   ("logging deforestation forest", True),
+    "tăiate":     ("deforestation logging cut", True),
+    "virgin":     ("old growth forest pristine", True),
+    "virgine":    ("old growth forest pristine", True),
+    "natură":     ("nature landscape scenic", True),
+    "câmp":       ("field countryside green", True),
+    "munte":      ("mountain landscape", True),
+    "munți":      ("mountain Carpathian landscape", True),
+    "curtea":     ("court justice building", False),
+    "comisia":    ("parliament government building", False),
+    "amenzile":   ("government official building", False),
+    "amenzi":     ("court law building", False),
+    "oraș":       ("city urban street", True),
+    "stradă":     ("street people urban", True),
+    "canalizare": ("water pipe infrastructure", False),
+}
+
+def _term_for_window(window_text: str, country: str, seen: set[str]) -> str | None:
+    from collections import Counter
+    words = re.findall(r"[a-zăâîșț]+", window_text.lower())
+    freq  = Counter(w for w in words if w not in _RO_STOPWORDS and len(w) > 3)
+    for word, _ in freq.most_common(20):
+        entry = _RO_VISUAL.get(word)
+        if not entry:
+            continue
+        concept, needs_country = entry
+        query = f"{country} {concept}" if needs_country and country else f"European {concept}"
+        if query not in seen:
+            return query
+    return None
+
+
+def extract_timed_terms(chunks: list, country: str, n_clips: int) -> list[str]:
+    if not chunks:
+        return []
+    total_dur = chunks[-1][1]
+    window    = total_dur / n_clips
+    seen:    set[str]  = set()
+    queries: list[str] = []
+    generic_pool = [
+        f"{country} village rural", f"{country} countryside landscape",
+        f"{country} people street", f"{country} old house",
+        f"{country} city urban",    f"{country} nature forest",
+        f"{country} rural life",    f"{country} landscape",
+    ] if country else ["countryside village", "nature landscape", "people street"]
+    for i in range(n_clips):
+        w_start = i * window
+        w_end   = (i + 1) * window
+        window_text = " ".join(
+            text for start, end, text in chunks if w_start <= start < w_end
+        )
+        q = _term_for_window(window_text, country, seen)
+        if not q:
+            for g in generic_pool:
+                if g not in seen:
+                    q = g
+                    break
+        if q:
+            seen.add(q)
+            queries.append(q)
+    return queries
+
+
+# ── AI image generation ───────────────────────────────────────────────────────
+
+FPS      = 25
+KB_SCALE = 1.40
+
+_ANGLES_A = [
+    "wide establishing shot, golden hour",
+    "medium shot, overcast dramatic sky",
+    "wide angle, muted tones",
+    "establishing shot, dusk light",
+]
+
+
+def _image_prompt(visual_term: str, idx: int = 0) -> str:
+    angle = _ANGLES_A[idx % 4]
+    return (
+        f"{visual_term}, {angle}, "
+        "cinematic documentary photography, dramatic natural lighting, "
+        "moody atmosphere, photorealistic, ultra detailed, "
+        "no text, no watermark, no logo"
+    )
+
+
+def _fetch_pollinations(prompt: str, dest: Path, seed: int) -> bool:
+    encoded = urllib.parse.quote(prompt)
+    url = (
+        f"https://image.pollinations.ai/prompt/{encoded}"
+        f"?width={W}&height={H}&nologo=true&seed={seed}"
+    )
+    req = urllib.request.Request(url, headers={"User-Agent": "TheIgnoredSignal/1.0"})
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(req, timeout=90) as resp, open(dest, "wb") as f:
+                f.write(resp.read())
+            return dest.stat().st_size > 10_000
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                wait = 15 * (attempt + 1)
+                print(f"    rate-limited — retrying in {wait}s...")
+                import time; time.sleep(wait)
+            else:
+                print(f"    error: {e}")
+                break
+        except Exception as e:
+            print(f"    error: {e}")
+            break
+    dest.unlink(missing_ok=True)
+    return False
+
+
+def get_ai_images(search_terms: list[str], out_dir: Path, slug: str) -> list[Path]:
+    """One image per visual term. Reuses existing pair-a cache (img_*_Na.jpg)."""
+    imgs: list[Path] = []
+    for i, term in enumerate(search_terms):
+        dest_a = out_dir / f"img_{slug}_{i}a.jpg"   # legacy pair cache
+        dest   = out_dir / f"img_{slug}_{i}.jpg"
+
+        if dest_a.exists() and dest_a.stat().st_size > 10_000:
+            imgs.append(dest_a)
+            print(f"  Cached: {dest_a.name}")
+            continue
+
+        if not (dest.exists() and dest.stat().st_size > 10_000):
+            print(f"  Generating [{i+1}/{len(search_terms)}]: {term!r}...")
+            ok = _fetch_pollinations(_image_prompt(term, i), dest, i * 137 + 42)
+            if ok:
+                print(f"    ok ({dest.stat().st_size // 1024} KB)")
+            else:
+                print(f"    failed — skipped")
+                continue
+
+        imgs.append(dest)
+    return imgs
+
+
+# ── Stat animation (matplotlib) ───────────────────────────────────────────────
+
+def make_stat_clip(stat: dict, clip_dur: float, out_path: Path, ffmpeg_bin: str) -> bool:
+    import matplotlib
+    matplotlib.use("Agg")
+    matplotlib.rcParams["animation.ffmpeg_path"] = ffmpeg_bin
+    import matplotlib.pyplot as plt
+    import matplotlib.animation as animation
+
+    BG    = "#09090f"
+    CARD  = "#0e0e18"
+    FG    = "#e9e5da"
+    MUTED = "#636077"
+
+    values  = stat["values"]
+    metric  = stat.get("metric", "")
+    source  = stat.get("source", "")
+    n_bars  = len(values)
+    max_val = max(v["value"] for v in values) * 1.25
+
+    total_frames  = int(clip_dur * FPS)
+    anim_frames   = int(total_frames * 0.55)
+
+    fig = plt.figure(figsize=(W / 100, H / 100), dpi=100, facecolor=BG)
+    ax  = fig.add_axes([0.12, 0.28, 0.76, 0.42], facecolor=CARD)
+
+    ax.set_xlim(-0.5, n_bars - 0.5)
+    ax.set_ylim(0, max_val)
+    ax.set_facecolor(CARD)
+    ax.tick_params(colors=MUTED, labelsize=22)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0f}%"))
+    ax.set_xticks(range(n_bars))
+    ax.set_xticklabels([v["label"] for v in values], color=FG, fontsize=26, fontweight="bold")
+    for spine in ax.spines.values():
+        spine.set_edgecolor("#1b1b2a")
+    ax.yaxis.label.set_color(MUTED)
+    ax.tick_params(axis="y", colors=MUTED)
+    ax.grid(axis="y", color="#1b1b2a", linewidth=0.8)
+
+    bars = ax.bar(
+        range(n_bars), [0] * n_bars,
+        color=[v["color"] for v in values],
+        width=0.55, zorder=3,
+    )
+    val_texts = [
+        ax.text(i, 0, "", ha="center", va="bottom", color=FG,
+                fontsize=30, fontweight="bold")
+        for i in range(n_bars)
+    ]
+
+    fig.text(0.5, 0.76, metric, ha="center", va="center",
+             color=FG, fontsize=28, fontweight="bold", wrap=True)
+    fig.text(0.5, 0.18, source, ha="center", va="center",
+             color=MUTED, fontsize=20)
+
+    def update(frame: int):
+        t = min(frame / anim_frames, 1.0) if anim_frames > 0 else 1.0
+        ease = 1 - (1 - t) ** 3
+        for j, (bar, entry) in enumerate(zip(bars, values)):
+            h = entry["value"] * ease
+            bar.set_height(h)
+            val_texts[j].set_position((j, h + max_val * 0.01))
+            val_texts[j].set_text(f"{h:.1f}%" if h > 0.5 else "")
+        return bars
+
+    ani = animation.FuncAnimation(
+        fig, update, frames=total_frames, interval=1000 / FPS, blit=True
+    )
+
+    tmp_mp4 = out_path.with_suffix(".tmp.mp4")
+    writer  = animation.FFMpegWriter(fps=FPS, codec="libx264",
+                                     extra_args=["-pix_fmt", "yuv420p", "-preset", "medium"])
+    ani.save(str(tmp_mp4), writer=writer, dpi=100)
+    plt.close(fig)
+    tmp_mp4.rename(out_path)
+    return out_path.exists()
+
+
+# ── Ken Burns + xfade filter graph ───────────────────────────────────────────
+
+_KB_IN  = "min(zoom+{r:.6f},1.3)"
+_KB_OUT = "if(eq(on,1),1.3,max(zoom-{r:.6f},1.0))"
+_KB_CTR = ("iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)")
+_KB_TOP = ("iw/2-(iw/zoom/2)", "if(gte(ih*0.12,ih-ih/zoom),ih-ih/zoom,ih*0.12)")
+_KB_BOT = ("iw/2-(iw/zoom/2)", "if(gte(ih*0.45,ih-ih/zoom),ih-ih/zoom,ih*0.45)")
+
+# Alternating Ken Burns styles: one per visual window
+_KB_STYLES = [
+    (_KB_IN,  _KB_CTR),
+    (_KB_IN,  _KB_TOP),
+    (_KB_OUT, _KB_CTR),
+    (_KB_OUT, _KB_BOT),
+]
+
+XFADE_DUR = 0.5   # seconds of crossfade between adjacent scenes
+
+
+def _kb(stream_idx: int, out_label: str, clip_dur: float,
+        z_expr: str, xy: tuple[str, str]) -> str:
+    """Ken Burns on one looped image → strict CFR output for xfade."""
+    n_frames = max(FPS, int(clip_dur * FPS))
+    rate     = 0.30 / n_frames
+    big_w    = int(W * KB_SCALE)
+    big_h    = int(H * KB_SCALE)
+    x_expr, y_expr = xy
+    return (
+        f"[{stream_idx}:v]"
+        f"scale={big_w}:{big_h}:force_original_aspect_ratio=increase,crop={big_w}:{big_h},"
+        f"zoompan=z='{z_expr.format(r=rate)}':x='{x_expr}':y='{y_expr}'"
+        f":d={n_frames}:s={W}x{H}:fps={FPS},"
+        f"fps={FPS},setpts=PTS-STARTPTS,"
+        f"eq=brightness=-0.05:saturation=0.9,"
+        f"format=yuv420p[{out_label}]"
+    )
+
+
+def build_filter_complex(
+    ass_arg: str,
+    imgs: list[Path],
+    stat_slots: dict[int, int],   # window_idx → ffmpeg stream index
+    narration_dur: float,
+) -> tuple[str, float]:
+    """
+    One Ken Burns clip per visual window.
+    xfade chain connects all scenes — offset_i = i * (clip_dur - XFADE_DUR).
+    clip_dur is computed so total output ≈ narration_dur.
+    """
+    n = len(imgs) + len(stat_slots)
+    if n == 0:
+        raise ValueError("no visual content")
+
+    # solve: n*clip_dur - (n-1)*XFADE_DUR = narration_dur
+    clip_dur = (narration_dur + (n - 1) * XFADE_DUR) / n
+
+    parts: list[str] = []
+    scene_labels: list[str] = []
+    img_stream = 0
+
+    for win_idx in range(n):
+        if win_idx in stat_slots:
+            s   = stat_slots[win_idx]
+            lbl = f"sc{win_idx}"
+            # pad/trim stat clip to exact clip_dur so xfade has enough content
+            parts.append(
+                f"[{s}:v]scale={W}:{H}:force_original_aspect_ratio=decrease,"
+                f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=#09090f,"
+                f"setpts=PTS-STARTPTS,fps={FPS},"
+                f"tpad=stop_mode=clone:stop_duration=2,"
+                f"trim=end={clip_dur:.3f},setpts=PTS-STARTPTS,"
+                f"format=yuv420p[{lbl}]"
+            )
+            scene_labels.append(lbl)
+        else:
+            style_idx = img_stream % len(_KB_STYLES)
+            z_expr, xy = _KB_STYLES[style_idx]
+            lbl = f"s{win_idx}"
+            parts.append(_kb(img_stream, lbl, clip_dur, z_expr, xy))
+            scene_labels.append(lbl)
+            img_stream += 1
+
+    # Chain xfades: for scene i (1-indexed), offset = i * (clip_dur - XFADE_DUR)
+    # This ensures each transition starts near the end of the accumulated output.
+    if n == 1:
+        final = scene_labels[0]
+    else:
+        current = scene_labels[0]
+        for i in range(1, n):
+            offset = i * (clip_dur - XFADE_DUR)
+            nxt    = f"xf{i}"
+            parts.append(
+                f"[{current}][{scene_labels[i]}]xfade=transition=fade"
+                f":duration={XFADE_DUR:.3f}:offset={offset:.3f}[{nxt}]"
+            )
+            current = nxt
+        final = current
+
+    parts.append(f"[{final}]subtitles='{ass_arg}'[v]")
+    return ";".join(parts), clip_dur
+
+
+def filter_gradient(ass_arg: str) -> str:
+    return "[0:v]format=yuv420p[bg];[bg]subtitles='" + ass_arg + "'[v]"
+
+
+# ── Per-script renderer ───────────────────────────────────────────────────────
+
+def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None:
+    data = json.loads(script_path.read_text(encoding="utf-8"))
+
+    narration      = data["narration"]
+    voice          = data.get("voice", "ro-RO-EmilNeural")
+    channel        = data.get("channel", "Semnalul Ignorat")
+    source_text    = data.get("source_onscreen", "")
+    show_source    = data.get("show_source", True)
+    slug           = data.get("slug", script_path.stem)
+    country        = data.get("country", "")
+    fallback_terms = data.get("video_search_terms", ["documentary city", "nature landscape", "people walking"])
+    cta_question   = data.get("cta_question", "")
+    hook_card      = data.get("hook_card", "")
+    if not hook_card and narration:
+        first_sentence = re.split(r"[.!?]", narration)[0].strip()
+        hook_card = first_sentence[:80]
+
+    mp3_path = out_dir / f"{slug}.mp3"
+    ass_path = out_dir / f"{slug}.ass"
+    mp4_path = out_dir / f"{slug}.mp4"
+
+    print(f"\n=== {script_path.name} ===")
+
+    # 1 — Voice
+    print(f"[1/4] Synthesizing voice ({voice})...")
+    srt = asyncio.run(synth(narration, voice, mp3_path))
+
+    # 2 — Captions
+    print("[2/4] Building captions...")
+    cues   = parse_srt_words(srt)
+    chunks = chunk_captions(cues)
+    dur    = media_duration(ffmpeg, mp3_path)
+    ass_path.write_text(
+        build_ass(chunks, dur, channel, source_text, show_source, hook_card, cta_question),
+        encoding="utf-8",
+    )
+    print(f"       {len(chunks)} caption chunks, {dur:.1f}s")
+
+    # 3 — Images + stat animations
+    n_wins    = max(6, min(12, int(dur / 5)))
+    stat_defs = data.get("stat_windows", [])
+
+    print(f"[3/4] Building {n_wins} visual windows...")
+    search_terms = extract_timed_terms(chunks, country, n_wins)
+    if not search_terms:
+        search_terms = (fallback_terms * ((n_wins // len(fallback_terms)) + 1))[:n_wins]
+
+    stat_clips: dict[int, Path] = {}
+    for sd in stat_defs:
+        win_idx  = sd["window_idx"]
+        out_clip = out_dir / f"stat_{slug}_{win_idx}.mp4"
+        if out_clip.exists() and out_clip.stat().st_size > 10_000:
+            print(f"  Stat [{win_idx}] cached: {out_clip.name}")
+            stat_clips[win_idx] = out_clip
+        else:
+            clip_dur_est = dur / n_wins
+            print(f"  Stat [{win_idx}] rendering: {sd.get('metric', '')!r}...")
+            if make_stat_clip(sd, clip_dur_est, out_clip, ffmpeg):
+                print(f"    ok")
+                stat_clips[win_idx] = out_clip
+            else:
+                print(f"    failed — will use image instead")
+
+    visual_terms = [t for i, t in enumerate(search_terms) if i not in stat_clips]
+    print(f"  Visual windows: {len(visual_terms)}")
+    for t in visual_terms:
+        print(f"    • {t}")
+    imgs = get_ai_images(visual_terms, out_dir, slug)
+    print(f"  {len(imgs)} image(s) ready")
+
+    # 4 — Render
+    print(f"[4/4] Rendering {W}×{H} @ {dur:.1f}s...")
+    ass_arg = str(ass_path.resolve()).replace("\\", "/").replace(":", "\\:")
+
+    if imgs or stat_clips:
+        img_inputs: list[str] = []
+        for img in imgs:
+            img_inputs += ["-loop", "1", "-r", str(FPS), "-t", "999", "-i", str(img)]
+
+        stat_stream_start = len(imgs)
+        stat_inputs: list[str] = []
+        stat_slots: dict[int, int] = {}
+        for offset_i, (win_idx, clip_path) in enumerate(sorted(stat_clips.items())):
+            stat_inputs += ["-i", str(clip_path)]
+            stat_slots[win_idx] = stat_stream_start + offset_i
+
+        audio_idx  = stat_stream_start + len(stat_clips)
+        filter_str, clip_dur = build_filter_complex(ass_arg, imgs, stat_slots, dur)
+
+        cmd = [
+            ffmpeg, "-y",
+            *img_inputs,
+            *stat_inputs,
+            "-i", str(mp3_path),
+            "-filter_complex", filter_str,
+            "-map", "[v]", "-map", f"{audio_idx}:a",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "26",
+            "-maxrate", "8M", "-bufsize", "16M", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k",
+            "-t", str(dur + 0.5),
+            str(mp4_path),
+        ]
+    else:
+        cmd = [
+            ffmpeg, "-y",
+            "-f", "lavfi", "-i",
+            f"gradients=s={W}x{H}:c0=0x0a0a14:c1=0x05050b"
+            f":nb_colors=2:speed=0.004:d={dur:.2f}:r=30",
+            "-i", str(mp3_path),
+            "-filter_complex", filter_gradient(ass_arg),
+            "-map", "[v]", "-map", "1:a",
+            "-c:v", "libx264", "-preset", "medium", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-shortest",
+            str(mp4_path),
+        ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print("ffmpeg error:\n" + result.stderr[-3000:])
+        return None
+
+    size_mb = mp4_path.stat().st_size / 1_048_576
+    print(f"  Done → {mp4_path}  ({size_mb:.1f} MB, {dur:.1f}s, "
+          f"{len(imgs)} KB scenes + {len(stat_clips)} stat animations)")
+    return mp4_path
+
+
+# ── Concat helper ─────────────────────────────────────────────────────────────
+
+def _concat_videos(mp4_paths: list[Path], out_path: Path, ffmpeg_bin: str) -> None:
+    list_path = out_path.parent / "_concat_list.txt"
+    list_path.write_text(
+        "\n".join(f"file '{p.resolve()}'" for p in mp4_paths),
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [ffmpeg_bin, "-y", "-f", "concat", "-safe", "0",
+         "-i", str(list_path), "-c", "copy", str(out_path)],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        size_mb = out_path.stat().st_size / 1_048_576
+        print(f"\nCombined → {out_path}  ({size_mb:.1f} MB, {len(mp4_paths)} scripts)")
+    else:
+        print(f"Concat failed:\n{result.stderr[-2000:]}")
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+def main() -> None:
+    if len(sys.argv) < 2:
+        print("Usage: python tools/make_video.py <script1.json> [script2.json ...]")
+        sys.exit(1)
+
+    out_dir = Path("output")
+    out_dir.mkdir(exist_ok=True)
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+
+    script_paths = [Path(p) for p in sys.argv[1:]]
+    mp4_paths: list[Path] = []
+
+    for sp in script_paths:
+        mp4 = _render_script(sp, out_dir, ffmpeg)
+        if mp4:
+            mp4_paths.append(mp4)
+
+    if len(mp4_paths) > 1:
+        _concat_videos(mp4_paths, out_dir / "combined.mp4", ffmpeg)
+    elif mp4_paths:
+        print(f"\nOutput → {mp4_paths[0]}")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,36 @@
+{
+  "slug": "02_saracie_energetica",
+  "headline": "Unul din șase români nu-și poate încălzi locuința. E scris într-un raport UE.",
+  "voice": "ro-RO-EmilNeural",
+  "channel": "Sub Radar",
+  "source_onscreen": "Eurostat, EU-SILC",
+  "country": "Romania",
+  "hook_card": "15% DIN ROMÂNI\nNU ÎȘI POT ÎNCĂLZI CASA IARNA",
+  "cta_question": "Știai asta? Spune-ne în comentarii ↓",
+  "verified": true,
+  "verification_note": "Eurostat EU-SILC: ~15% din populația RO nu-și poate încălzi adecvat locuința, mult peste media UE de ~9%. România e constant în top 3 UE la acest indicator.",
+  "narration": "Peste cincisprezece la sută dintre români nu-și pot ține casa caldă iarna. Nu e o părere — e o cifră oficială Eurostat. În fiecare an, Eurostat măsoară câți oameni din Uniunea Europeană nu-și permit să-și încălzească adecvat locuința. România e constant în capul listei, mult peste media europeană, care e în jur de nouă la sută. S-a raportat scurt când au ieșit datele, apoi povestea a dispărut din știri. Dar nu e despre confort. Frigul în casă înseamnă boli respiratorii, facturi neplătite, și oameni care aleg între mâncare și căldură. Afectează direct milioane de gospodării — copii, pensionari, familii care muncesc. E o problemă de sănătate publică, nu doar una de buget. Urmărește Sub Radar pentru mai multe povești trecute cu vederea.",
+  "stat_windows": [
+    {
+      "window_idx": 3,
+      "values": [
+        {"label": "România", "value": 15.3, "color": "#c0392b"},
+        {"label": "Media UE", "value": 9.3, "color": "#1a6bb5"}
+      ],
+      "metric": "% fără încălzire adecvată în locuință",
+      "source": "Eurostat EU-SILC"
+    }
+  ],
+  "video_search_terms": [
+    "Romania village winter snow cold",
+    "Romania countryside winter landscape",
+    "Romania poor house winter rural",
+    "Romania elderly people winter village",
+    "Romania family house interior cold",
+    "heating radiator home winter warm",
+    "winter snow cold house village",
+    "energy bills expenses stress",
+    "sick patient hospital respiratory",
+    "Romania children kids village winter"
+  ]
+}

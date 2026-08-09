@@ -1,0 +1,52 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 1
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Caption,DejaVu Sans,48,&H00DAE5E9,&H00DAE5E9,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,750,1
+Style: Header,DejaVu Sans,38,&H00776063,&H00776063,&H00000000,&H00000000,0,0,0,0,100,100,3,0,1,2,0,8,60,60,170,1
+Style: Source,DejaVu Sans,34,&H002B39C0,&H002B39C0,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,60,60,300,1
+Style: HookCard,DejaVu Sans,82,&H00DAE5E9,&H00DAE5E9,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,15% DIN ROMÂNI\NNU AU TOALETĂ CU APĂ ÎN CASĂ
+Dialogue: 0,0:00:00.00,0:00:52.32,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:52.32,Source,,0,0,0,,Eurostat, EU-SILC 2023
+Dialogue: 0,0:00:02.00,0:00:03.49,Caption,,0,0,0,,PONDERE DE OAMENI FĂRĂ TOALETĂ
+Dialogue: 0,0:00:03.49,0:00:05.18,Caption,,0,0,0,,CU APĂ ÎN CASĂ DIN
+Dialogue: 0,0:00:05.18,0:00:06.15,Caption,,0,0,0,,TOATĂ UNIUNEA EUROPEANĂ
+Dialogue: 0,0:00:06.15,0:00:07.96,Caption,,0,0,0,,DE DEPARTE
+Dialogue: 0,0:00:07.96,0:00:09.09,Caption,,0,0,0,,CONFORM DATELOR EUROSTAT
+Dialogue: 0,0:00:09.09,0:00:10.98,Caption,,0,0,0,,PESTE CINCISPREZECE LA SUTĂ DINTRE
+Dialogue: 0,0:00:10.98,0:00:12.86,Caption,,0,0,0,,ROMÂNI NU AU O TOALETĂ
+Dialogue: 0,0:00:12.86,0:00:14.75,Caption,,0,0,0,,CU APĂ ÎN INTERIORUL LOCUINȚEI
+Dialogue: 0,0:00:14.75,0:00:16.98,Caption,,0,0,0,,ESTE CEL MAI MARE PROCENT
+Dialogue: 0,0:00:16.98,0:00:18.76,Caption,,0,0,0,,DIN ÎNTREAGA UNIUNE EUROPEANĂ
+Dialogue: 0,0:00:18.76,0:00:19.26,Caption,,0,0,0,,PRACTIC
+Dialogue: 0,0:00:19.26,0:00:21.74,Caption,,0,0,0,,SUNTEM SINGURA ȚARĂ AFLATĂ LA
+Dialogue: 0,0:00:21.74,0:00:22.74,Caption,,0,0,0,,ACEST NIVEL
+Dialogue: 0,0:00:22.74,0:00:24.80,Caption,,0,0,0,,S-A SCRIS DESPRE ASTA CÂTEVA
+Dialogue: 0,0:00:24.80,0:00:25.21,Caption,,0,0,0,,ZILE
+Dialogue: 0,0:00:25.21,0:00:27.27,Caption,,0,0,0,,APOI SUBIECTUL A DISPĂRUT DIN
+Dialogue: 0,0:00:27.27,0:00:28.10,Caption,,0,0,0,,ATENȚIA PUBLICĂ
+Dialogue: 0,0:00:28.10,0:00:29.99,Caption,,0,0,0,,DAR CONTEAZĂ
+Dialogue: 0,0:00:29.99,0:00:31.92,Caption,,0,0,0,,VORBIM DESPRE DATE DIN 2023
+Dialogue: 0,0:00:31.92,0:00:33.86,Caption,,0,0,0,,NU DESPRE O POVESTE DE
+Dialogue: 0,0:00:33.86,0:00:35.41,Caption,,0,0,0,,ACUM TREIZECI DE ANI
+Dialogue: 0,0:00:35.41,0:00:37.38,Caption,,0,0,0,,FĂRĂ CANALIZARE ȘI APĂ SIGURĂ
+Dialogue: 0,0:00:37.38,0:00:38.96,Caption,,0,0,0,,CREȘTE RISCUL DE INFECȚII
+Dialogue: 0,0:00:38.96,0:00:40.94,Caption,,0,0,0,,MAI ALES PENTRU COPII ȘI
+Dialogue: 0,0:00:40.94,0:00:41.73,Caption,,0,0,0,,PENTRU BĂTRÂNI
+Dialogue: 0,0:00:41.73,0:00:43.88,Caption,,0,0,0,,IAR DIFERENȚA DINTRE ORAȘE ȘI
+Dialogue: 0,0:00:43.88,0:00:45.17,Caption,,0,0,0,,SATE RĂMÂNE URIAȘĂ
+Dialogue: 0,0:00:45.17,0:00:47.33,Caption,,0,0,0,,ÎN INTERIORUL ACELEIAȘI ȚĂRI DIN
+Dialogue: 0,0:00:47.33,0:00:48.19,Caption,,0,0,0,,UNIUNEA EUROPEANĂ
+Dialogue: 0,0:00:48.19,0:00:50.22,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:50.22,0:00:52.26,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
+Dialogue: 1,0:00:48.32,0:00:52.32,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
