@@ -1,0 +1,21 @@
+
+# Doorbell ring when closed
+- id: '1723324800001'
+  alias: Doorbell ring when closed
+  description: Ring Smart Hub KH100 doorbell when doorbell sensor is closed
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.doorbell_door
+    to: 'off'
+  actions:
+  - service: siren.turn_on
+    target:
+      entity_id: siren.smart_hub
+    data: {}
+  - delay:
+      seconds: 3
+  - service: siren.turn_off
+    target:
+      entity_id: siren.smart_hub
+    data: {}
+  mode: single
