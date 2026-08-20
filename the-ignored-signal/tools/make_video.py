@@ -453,6 +453,45 @@ def _fetch_pexels(term: str, dest: Path) -> bool:
     return False
 
 
+def _fetch_pexels_video(term: str, dest: Path) -> bool:
+    """Real motion b-roll from Pexels Videos (no attribution required).
+
+    Picks a portrait mp4 near 1080x1920 (kept light), skipping any clip already
+    used this run. Returns False when nothing suitable is found so the caller
+    falls back to a still image.
+    """
+    if not PEXELS_KEY:
+        return False
+    url = ("https://api.pexels.com/videos/search?"
+           f"query={urllib.parse.quote(term)}&orientation=portrait"
+           "&size=medium&per_page=10")
+    req = urllib.request.Request(
+        url, headers={"Authorization": PEXELS_KEY,
+                      "User-Agent": "TheIgnoredSignal/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            videos = json.loads(resp.read().decode()).get("videos", [])
+    except Exception as e:
+        print(f"    pexels video error: {e}")
+        return False
+    for v in videos:
+        files = [f for f in v.get("video_files", [])
+                 if f.get("file_type") == "video/mp4" and f.get("height")]
+        if not files:
+            continue
+        portrait = [f for f in files if f["height"] >= f.get("width", 0)] or files
+        # Prefer the file closest to 1080x1920 among >=1280 tall; else the tallest.
+        tall   = [f for f in portrait if f["height"] >= 1280]
+        choice = (min(tall, key=lambda f: abs(f["height"] - H)) if tall
+                  else max(portrait, key=lambda f: f["height"]))
+        if not _download(choice["link"], dest, timeout=180):
+            continue
+        if _img_hash(dest) in _USED_IMG_HASHES:
+            continue          # duplicate clip already used — try next
+        return True
+    return False
+
+
 _WIKI_OK = ("cc ", "cc0", "public domain", "no restrictions")
 
 
@@ -496,66 +535,64 @@ def _fetch_wikimedia(term: str, dest: Path) -> tuple[bool, str]:
     return False, ""
 
 
-def get_ai_images(search_terms: list[str], out_dir: Path, slug: str,
-                  country: str = "") -> list[Path]:
-    """One scene image per visual term.
+def get_scene_media(search_terms: list[str], out_dir: Path, slug: str,
+                    country: str = "") -> list[tuple[str, Path]]:
+    """One scene per visual term, returned as (kind, path) with kind in
+    {"video", "image"}.
 
-    Priority per slot: cached real photo → Pexels → Wikimedia (country-specific
-    terms only) → cached AI image → Pollinations generation. Real photos win so
-    the channel uses genuine footage; AI is the never-fail fallback. Wikimedia
-    attributions are written to <slug>_credits.txt (CC-BY requires crediting).
+    Priority per slot: cached clip → Pexels video → cached photo → Pexels photo
+    → Wikimedia (country-specific) → cached AI → Pollinations. Real motion wins,
+    then real stills, with AI as the never-fail fallback. No media repeats within
+    or across a run. Wikimedia attributions go to <slug>_credits.txt.
     """
-    imgs:    list[Path] = []
-    credits: list[str]  = []
+    media:   list[tuple[str, Path]] = []
+    credits: list[str]              = []
 
-    def accept(path: Path) -> None:
-        """Record the image as used (dedup) and add it to the scene list."""
+    def use(kind: str, path: Path) -> None:
+        """Record the media as used (dedup) and add it to the scene list."""
         _USED_IMG_HASHES.add(_img_hash(path))
-        imgs.append(path)
+        media.append((kind, path))
 
     for i, term in enumerate(search_terms):
+        clip   = out_dir / f"clip_{slug}_{i}.mp4"    # video b-roll cache
         photo  = out_dir / f"photo_{slug}_{i}.jpg"   # real-photo cache
         dest_a = out_dir / f"img_{slug}_{i}a.jpg"    # legacy AI pair cache
         dest   = out_dir / f"img_{slug}_{i}.jpg"     # AI cache
 
-        # 0 — already fetched a real photo for this slot (unless it's a dup)
-        if _is_fresh(photo):
-            accept(photo)
-            print(f"  Photo cached: {photo.name}")
-            continue
-
         print(f"  [{i+1}/{len(search_terms)}] {term!r}")
 
-        # 1 — Pexels (cleanest license: no attribution)
-        if _fetch_pexels(term, photo):
-            accept(photo)
-            print(f"    Pexels ✓ ({photo.stat().st_size // 1024} KB)")
-            continue
+        # 0 — cached video clip
+        if _is_fresh(clip):
+            use("video", clip); print(f"    clip cached: {clip.name}"); continue
+        # 1 — Pexels video (real motion b-roll)
+        if _fetch_pexels_video(term, clip):
+            use("video", clip)
+            print(f"    Pexels video ✓ ({clip.stat().st_size // 1024} KB)"); continue
 
-        # 2 — Wikimedia for authentic country-specific slots (needs credit)
+        # 2 — cached real photo
+        if _is_fresh(photo):
+            use("image", photo); print(f"    photo cached: {photo.name}"); continue
+        # 3 — Pexels photo
+        if _fetch_pexels(term, photo):
+            use("image", photo)
+            print(f"    Pexels photo ✓ ({photo.stat().st_size // 1024} KB)"); continue
+        # 4 — Wikimedia for authentic country-specific slots (needs credit)
         if USE_WIKIMEDIA and country and term.lower().startswith(country.lower()):
             ok, attribution = _fetch_wikimedia(term, photo)
             if ok:
-                accept(photo)
-                print(f"    Wikimedia ✓ — {attribution}")
-                credits.append(attribution)
-                continue
+                use("image", photo); credits.append(attribution)
+                print(f"    Wikimedia ✓ — {attribution}"); continue
 
-        # 3 — reuse an existing AI image if present (unless it's a dup)
+        # 5 — reuse an existing AI image if present (unless it's a dup)
         if _is_fresh(dest_a):
-            accept(dest_a)
-            print(f"    AI cached: {dest_a.name}")
-            continue
+            use("image", dest_a); print(f"    AI cached: {dest_a.name}"); continue
         if _is_fresh(dest):
-            accept(dest)
-            print(f"    AI cached: {dest.name}")
-            continue
+            use("image", dest); print(f"    AI cached: {dest.name}"); continue
 
-        # 4 — generate with Pollinations (never-fail fallback)
+        # 6 — generate with Pollinations (never-fail fallback)
         print(f"    generating (AI fallback)...")
         if _fetch_pollinations(_image_prompt(term, i), dest, i * 137 + 42):
-            accept(dest)
-            print(f"    AI ✓ ({dest.stat().st_size // 1024} KB)")
+            use("image", dest); print(f"    AI ✓ ({dest.stat().st_size // 1024} KB)")
         else:
             print(f"    failed — skipped")
 
@@ -567,7 +604,7 @@ def get_ai_images(search_terms: list[str], out_dir: Path, slug: str,
             encoding="utf-8",
         )
         print(f"  Wrote {len(credits)} image credit(s) → {cf.name}")
-    return imgs
+    return media
 
 
 # ── Stat animation (matplotlib) ───────────────────────────────────────────────
@@ -688,62 +725,72 @@ def _kb(stream_idx: int, out_label: str, clip_dur: float,
     )
 
 
+def _video_scene(stream_idx: int, out_label: str, clip_dur: float) -> str:
+    """Real video b-roll → fill 1080x1920, graded to match stills, CFR for xfade.
+    tpad clones the last frame so short clips still reach clip_dur."""
+    return (
+        f"[{stream_idx}:v]"
+        f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
+        f"setpts=PTS-STARTPTS,"
+        f"tpad=stop_mode=clone:stop_duration=2,"
+        f"trim=end={clip_dur:.3f},setpts=PTS-STARTPTS,"
+        f"eq=brightness=-0.05:saturation=0.9,"
+        f"fps={FPS},format=yuv420p[{out_label}]"
+    )
+
+
+def _stat_scene(stream_idx: int, out_label: str, clip_dur: float) -> str:
+    """Matplotlib stat clip → letterboxed onto the brand background, CFR."""
+    return (
+        f"[{stream_idx}:v]scale={W}:{H}:force_original_aspect_ratio=decrease,"
+        f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=#09090f,"
+        f"setpts=PTS-STARTPTS,"
+        f"tpad=stop_mode=clone:stop_duration=2,"
+        f"trim=end={clip_dur:.3f},setpts=PTS-STARTPTS,"
+        # fps last, after trim/setpts, so xfade sees a defined frame_rate
+        f"fps={FPS},format=yuv420p[{out_label}]"
+    )
+
+
 def build_filter_complex(
     ass_arg: str,
-    imgs: list[Path],
-    stat_slots: dict[int, int],   # window_idx → ffmpeg stream index
+    scenes: list[tuple[str, int]],   # ordered (kind, ffmpeg stream index) per window
     narration_dur: float,
 ) -> tuple[str, float]:
-    """
-    One Ken Burns clip per visual window.
-    xfade chain connects all scenes — offset_i = i * (clip_dur - XFADE_DUR).
-    clip_dur is computed so total output ≈ narration_dur.
-    """
-    n = len(imgs) + len(stat_slots)
+    """One scene per window — video b-roll, image Ken Burns, or stat clip —
+    joined by an xfade chain. clip_dur is solved so the crossfaded total ≈
+    narration_dur (offset_i = i * (clip_dur - XFADE_DUR))."""
+    n = len(scenes)
     if n == 0:
         raise ValueError("no visual content")
 
     # solve: n*clip_dur - (n-1)*XFADE_DUR = narration_dur
     clip_dur = (narration_dur + (n - 1) * XFADE_DUR) / n
 
-    parts: list[str] = []
-    scene_labels: list[str] = []
-    img_stream = 0
+    parts:  list[str] = []
+    labels: list[str] = []
+    kb_i = 0                       # Ken Burns style rotates across image scenes
+    for wi, (kind, sidx) in enumerate(scenes):
+        lbl = f"s{wi}"
+        if kind == "video":
+            parts.append(_video_scene(sidx, lbl, clip_dur))
+        elif kind == "stat":
+            parts.append(_stat_scene(sidx, lbl, clip_dur))
+        else:  # image
+            z_expr, xy = _KB_STYLES[kb_i % len(_KB_STYLES)]
+            kb_i += 1
+            parts.append(_kb(sidx, lbl, clip_dur, z_expr, xy))
+        labels.append(lbl)
 
-    for win_idx in range(n):
-        if win_idx in stat_slots:
-            s   = stat_slots[win_idx]
-            lbl = f"sc{win_idx}"
-            # pad/trim stat clip to exact clip_dur so xfade has enough content
-            parts.append(
-                f"[{s}:v]scale={W}:{H}:force_original_aspect_ratio=decrease,"
-                f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=#09090f,"
-                f"setpts=PTS-STARTPTS,"
-                f"tpad=stop_mode=clone:stop_duration=2,"
-                f"trim=end={clip_dur:.3f},setpts=PTS-STARTPTS,"
-                # fps last, after trim/setpts, so xfade sees a defined frame_rate
-                f"fps={FPS},format=yuv420p[{lbl}]"
-            )
-            scene_labels.append(lbl)
-        else:
-            style_idx = img_stream % len(_KB_STYLES)
-            z_expr, xy = _KB_STYLES[style_idx]
-            lbl = f"s{win_idx}"
-            parts.append(_kb(img_stream, lbl, clip_dur, z_expr, xy))
-            scene_labels.append(lbl)
-            img_stream += 1
-
-    # Chain xfades: for scene i (1-indexed), offset = i * (clip_dur - XFADE_DUR)
-    # This ensures each transition starts near the end of the accumulated output.
     if n == 1:
-        final = scene_labels[0]
+        final = labels[0]
     else:
-        current = scene_labels[0]
+        current = labels[0]
         for i in range(1, n):
             offset = i * (clip_dur - XFADE_DUR)
             nxt    = f"xf{i}"
             parts.append(
-                f"[{current}][{scene_labels[i]}]xfade=transition=fade"
+                f"[{current}][{labels[i]}]xfade=transition=fade"
                 f":duration={XFADE_DUR:.3f}:offset={offset:.3f}[{nxt}]"
             )
             current = nxt
@@ -826,32 +873,42 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
     print(f"  Visual windows: {len(visual_terms)}")
     for t in visual_terms:
         print(f"    • {t}")
-    imgs = get_ai_images(visual_terms, out_dir, slug, country)
-    print(f"  {len(imgs)} image(s) ready")
+    media = get_scene_media(visual_terms, out_dir, slug, country)
+    n_videos = sum(1 for k, _ in media if k == "video")
+    print(f"  {len(media)} scene(s) ready — {n_videos} video, "
+          f"{len(media) - n_videos} still")
 
     # 4 — Render
     print(f"[4/4] Rendering {W}×{H} @ {dur:.1f}s...")
     ass_arg = str(ass_path.resolve()).replace("\\", "/").replace(":", "\\:")
 
-    if imgs or stat_clips:
-        img_inputs: list[str] = []
-        for img in imgs:
-            img_inputs += ["-loop", "1", "-r", str(FPS), "-t", "999", "-i", str(img)]
+    if media or stat_clips:
+        # Interleave stat windows with fetched media in window order.
+        media_iter = iter(media)
+        n_windows  = len(media) + len(stat_clips)
+        scene_order: list[tuple[str, Path]] = []
+        for win_idx in range(n_windows):
+            if win_idx in stat_clips:
+                scene_order.append(("stat", stat_clips[win_idx]))
+            else:
+                scene_order.append(next(media_iter))
 
-        stat_stream_start = len(imgs)
-        stat_inputs: list[str] = []
-        stat_slots: dict[int, int] = {}
-        for offset_i, (win_idx, clip_path) in enumerate(sorted(stat_clips.items())):
-            stat_inputs += ["-i", str(clip_path)]
-            stat_slots[win_idx] = stat_stream_start + offset_i
+        # One ffmpeg input per scene, in order: stills are looped, clips are not.
+        inputs: list[str] = []
+        scenes: list[tuple[str, int]] = []
+        for idx, (kind, path) in enumerate(scene_order):
+            if kind == "image":
+                inputs += ["-loop", "1", "-r", str(FPS), "-t", "999", "-i", str(path)]
+            else:  # video or stat mp4
+                inputs += ["-i", str(path)]
+            scenes.append((kind, idx))
 
-        audio_idx  = stat_stream_start + len(stat_clips)
-        filter_str, clip_dur = build_filter_complex(ass_arg, imgs, stat_slots, dur)
+        audio_idx = len(scene_order)
+        filter_str, clip_dur = build_filter_complex(ass_arg, scenes, dur)
 
         cmd = [
             ffmpeg, "-y",
-            *img_inputs,
-            *stat_inputs,
+            *inputs,
             "-i", str(mp3_path),
             "-filter_complex", filter_str,
             "-map", "[v]", "-map", f"{audio_idx}:a",
@@ -882,7 +939,8 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
 
     size_mb = mp4_path.stat().st_size / 1_048_576
     print(f"  Done → {mp4_path}  ({size_mb:.1f} MB, {dur:.1f}s, "
-          f"{len(imgs)} KB scenes + {len(stat_clips)} stat animations)")
+          f"{n_videos} video + {len(media) - n_videos} still + "
+          f"{len(stat_clips)} stat scenes)")
     return mp4_path
 
 
