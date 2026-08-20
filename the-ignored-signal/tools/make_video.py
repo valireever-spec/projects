@@ -123,6 +123,9 @@ def ass_escape(text: str) -> str:
 
 HOOK_DUR    = 2.0
 END_DUR     = 4.0
+# TikTok's Creator Rewards Program only pays on videos longer than 60s, so pad
+# the outro (b-roll keeps rolling under a held CTA) up to this floor.
+MIN_DURATION = 62.0
 SAFE_TOP    = 170
 # Bottom-anchored MarginV (px up from bottom edge, PlayResY=1920).
 # Captions sit in the bottom third (~77% down) but clear of the bottom ~15%
@@ -133,7 +136,10 @@ SAFE_BOTTOM = 340
 
 def build_ass(chunks: list, duration: float, channel: str,
               source_text: str, show_source: bool,
-              hook_card: str, cta_question: str) -> str:
+              hook_card: str, cta_question: str,
+              narration_dur: float | None = None) -> str:
+    # duration = full video length (may exceed narration when padded for TikTok);
+    # narration_dur = when the voice ends, so the CTA card holds through the outro.
     DARK_BOX = "&H440F0909"
 
     styles = f"""[Script Info]
@@ -154,9 +160,12 @@ Style: EndCard,{FONT},68,{ACCENT_ASS},{ACCENT_ASS},{BLACK_ASS},{DARK_BOX},-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
+    narr_end     = narration_dur if narration_dur is not None else duration
     end_ts       = seconds_to_ass(duration)
     hook_end_ts  = seconds_to_ass(HOOK_DUR)
-    end_start_ts = seconds_to_ass(max(0.0, duration - END_DUR))
+    # CTA appears when narration ends (or the last END_DUR if not padded) and
+    # holds to the end, so the padded outro shows the call to action, not silence.
+    end_start_ts = seconds_to_ass(max(0.0, min(narr_end, duration - END_DUR)))
 
     events = []
 
@@ -706,8 +715,9 @@ XFADE_DUR = 0.5   # seconds of crossfade between adjacent scenes
 
 def _kb(stream_idx: int, out_label: str, clip_dur: float,
         z_expr: str, xy: tuple[str, str]) -> str:
-    """Ken Burns on one looped image → strict CFR output for xfade."""
-    n_frames = max(FPS, int(clip_dur * FPS))
+    """Ken Burns on one looped image → strict CFR output for xfade.
+    Runs XFADE_DUR longer than clip_dur so the xfade chain never starves."""
+    n_frames = max(FPS, int((clip_dur + XFADE_DUR) * FPS))
     rate     = 0.30 / n_frames
     big_w    = int(W * KB_SCALE)
     big_h    = int(H * KB_SCALE)
@@ -731,9 +741,13 @@ def _video_scene(stream_idx: int, out_label: str, clip_dur: float) -> str:
     return (
         f"[{stream_idx}:v]"
         f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
-        f"setpts=PTS-STARTPTS,"
-        f"tpad=stop_mode=clone:stop_duration=2,"
-        f"trim=end={clip_dur:.3f},setpts=PTS-STARTPTS,"
+        # Normalize odd/slow-mo source rates (some Pexels clips are 60-98 fps)
+        # to CFR before timing ops. NOTE: no setpts before tpad — a preceding
+        # setpts silently disables tpad's clone padding, collapsing the chain.
+        f"fps={FPS},"
+        f"tpad=stop_mode=clone:stop_duration=3,"
+        # +XFADE_DUR surplus so the xfade chain never starves on rounding
+        f"trim=end={clip_dur + XFADE_DUR:.3f},setpts=PTS-STARTPTS,"
         f"eq=brightness=-0.05:saturation=0.9,"
         f"fps={FPS},format=yuv420p[{out_label}]"
     )
@@ -744,9 +758,10 @@ def _stat_scene(stream_idx: int, out_label: str, clip_dur: float) -> str:
     return (
         f"[{stream_idx}:v]scale={W}:{H}:force_original_aspect_ratio=decrease,"
         f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=#09090f,"
-        f"setpts=PTS-STARTPTS,"
-        f"tpad=stop_mode=clone:stop_duration=2,"
-        f"trim=end={clip_dur:.3f},setpts=PTS-STARTPTS,"
+        # no setpts before tpad — it silently disables the clone padding
+        f"tpad=stop_mode=clone:stop_duration=3,"
+        # +XFADE_DUR surplus so the xfade chain never starves on rounding
+        f"trim=end={clip_dur + XFADE_DUR:.3f},setpts=PTS-STARTPTS,"
         # fps last, after trim/setpts, so xfade sees a defined frame_rate
         f"fps={FPS},format=yuv420p[{out_label}]"
     )
@@ -838,14 +853,17 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
     cues   = parse_srt_words(srt)
     chunks = chunk_captions(cues)
     dur    = media_duration(ffmpeg, mp3_path)
+    total  = max(dur, MIN_DURATION)   # pad short videos past TikTok's 60s floor
     ass_path.write_text(
-        build_ass(chunks, dur, channel, source_text, show_source, hook_card, cta_question),
+        build_ass(chunks, total, channel, source_text, show_source,
+                  hook_card, cta_question, narration_dur=dur),
         encoding="utf-8",
     )
-    print(f"       {len(chunks)} caption chunks, {dur:.1f}s")
+    pad_note = f" (+{total - dur:.1f}s outro)" if total > dur + 0.1 else ""
+    print(f"       {len(chunks)} caption chunks, {dur:.1f}s narration{pad_note}")
 
     # 3 — Images + stat animations
-    n_wins    = max(6, min(12, int(dur / 5)))
+    n_wins    = max(6, min(12, int(total / 5)))
     stat_defs = data.get("stat_windows", [])
 
     print(f"[3/4] Building {n_wins} visual windows...")
@@ -861,7 +879,7 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
             print(f"  Stat [{win_idx}] cached: {out_clip.name}")
             stat_clips[win_idx] = out_clip
         else:
-            clip_dur_est = dur / n_wins
+            clip_dur_est = total / n_wins
             print(f"  Stat [{win_idx}] rendering: {sd.get('metric', '')!r}...")
             if make_stat_clip(sd, clip_dur_est, out_clip, ffmpeg):
                 print(f"    ok")
@@ -879,7 +897,7 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
           f"{len(media) - n_videos} still")
 
     # 4 — Render
-    print(f"[4/4] Rendering {W}×{H} @ {dur:.1f}s...")
+    print(f"[4/4] Rendering {W}×{H} @ {total:.1f}s...")
     ass_arg = str(ass_path.resolve()).replace("\\", "/").replace(":", "\\:")
 
     if media or stat_clips:
@@ -904,7 +922,10 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
             scenes.append((kind, idx))
 
         audio_idx = len(scene_order)
-        filter_str, clip_dur = build_filter_complex(ass_arg, scenes, dur)
+        filter_str, clip_dur = build_filter_complex(ass_arg, scenes, total)
+        # When padded, fade the narration out and fill the outro with silence.
+        afilter = (f"afade=t=out:st={max(0.0, dur - 0.4):.2f}:d=0.4,apad"
+                   if total > dur + 0.1 else "anull")
 
         cmd = [
             ffmpeg, "-y",
@@ -912,10 +933,11 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
             "-i", str(mp3_path),
             "-filter_complex", filter_str,
             "-map", "[v]", "-map", f"{audio_idx}:a",
+            "-af", afilter,
             "-c:v", "libx264", "-preset", "medium", "-crf", "26",
             "-maxrate", "8M", "-bufsize", "16M", "-pix_fmt", "yuv420p",
             "-c:a", "aac", "-b:a", "192k",
-            "-t", str(dur + 0.5),
+            "-t", str(total + 0.3),
             str(mp4_path),
         ]
     else:
@@ -923,12 +945,14 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
             ffmpeg, "-y",
             "-f", "lavfi", "-i",
             f"gradients=s={W}x{H}:c0=0x0a0a14:c1=0x05050b"
-            f":nb_colors=2:speed=0.004:d={dur:.2f}:r=30",
+            f":nb_colors=2:speed=0.004:d={total:.2f}:r=30",
             "-i", str(mp3_path),
             "-filter_complex", filter_gradient(ass_arg),
             "-map", "[v]", "-map", "1:a",
+            "-af", "apad",
             "-c:v", "libx264", "-preset", "medium", "-pix_fmt", "yuv420p",
-            "-c:a", "aac", "-b:a", "192k", "-shortest",
+            "-c:a", "aac", "-b:a", "192k",
+            "-t", str(total),
             str(mp4_path),
         ]
 
@@ -938,7 +962,7 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
         return None
 
     size_mb = mp4_path.stat().st_size / 1_048_576
-    print(f"  Done → {mp4_path}  ({size_mb:.1f} MB, {dur:.1f}s, "
+    print(f"  Done → {mp4_path}  ({size_mb:.1f} MB, {total:.1f}s, "
           f"{n_videos} video + {len(media) - n_videos} still + "
           f"{len(stat_clips)} stat scenes)")
     return mp4_path

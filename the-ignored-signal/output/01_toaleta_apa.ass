@@ -16,8 +16,8 @@ Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,15% DIN ROMÂNI\NNU AU TOALETĂ CU APĂ ÎN CASĂ
-Dialogue: 0,0:00:00.00,0:00:52.32,Header,,0,0,0,,SUB RADAR
-Dialogue: 0,0:00:00.00,0:00:52.32,Source,,0,0,0,,Eurostat, EU-SILC 2023
+Dialogue: 0,0:00:00.00,0:01:02.00,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:01:02.00,Source,,0,0,0,,Eurostat, EU-SILC 2023
 Dialogue: 0,0:00:02.00,0:00:03.49,Caption,,0,0,0,,PONDERE DE OAMENI FĂRĂ TOALETĂ
 Dialogue: 0,0:00:03.49,0:00:05.18,Caption,,0,0,0,,CU APĂ ÎN CASĂ DIN
 Dialogue: 0,0:00:05.18,0:00:06.15,Caption,,0,0,0,,TOATĂ UNIUNEA EUROPEANĂ
@@ -49,4 +49,4 @@ Dialogue: 0,0:00:45.17,0:00:47.33,Caption,,0,0,0,,ÎN INTERIORUL ACELEIAȘI ȚĂ
 Dialogue: 0,0:00:47.33,0:00:48.19,Caption,,0,0,0,,UNIUNEA EUROPEANĂ
 Dialogue: 0,0:00:48.19,0:00:50.22,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
 Dialogue: 0,0:00:50.22,0:00:52.26,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
-Dialogue: 1,0:00:48.32,0:00:52.32,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
+Dialogue: 1,0:00:52.32,0:01:02.00,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓

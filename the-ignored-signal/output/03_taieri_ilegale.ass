@@ -16,8 +16,8 @@ Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,ROMÂNIA, DATĂ ÎN JUDECATĂ\NPENTRU TĂIERI ILEGALE DE PĂDURE
-Dialogue: 0,0:00:00.00,0:00:47.18,Header,,0,0,0,,SUB RADAR
-Dialogue: 0,0:00:00.00,0:00:47.18,Source,,0,0,0,,Comisia Europeană — infringement
+Dialogue: 0,0:00:00.00,0:01:02.00,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:01:02.00,Source,,0,0,0,,Comisia Europeană — infringement
 Dialogue: 0,0:00:02.00,0:00:02.15,Caption,,0,0,0,,COMISIA EUROPEANĂ A DAT ROMÂNIA
 Dialogue: 0,0:00:02.15,0:00:04.20,Caption,,0,0,0,,ÎN JUDECATĂ LA CURTEA DE
 Dialogue: 0,0:00:04.20,0:00:05.79,Caption,,0,0,0,,JUSTIȚIE A UNIUNII EUROPENE
@@ -47,4 +47,4 @@ Dialogue: 0,0:00:39.58,0:00:41.31,Caption,,0,0,0,,IAR DACĂ VIN AMENZI
 Dialogue: 0,0:00:41.31,0:00:43.04,Caption,,0,0,0,,LE PLĂTIM TOT NOI
 Dialogue: 0,0:00:43.04,0:00:45.08,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
 Dialogue: 0,0:00:45.08,0:00:47.12,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
-Dialogue: 1,0:00:43.18,0:00:47.18,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
+Dialogue: 1,0:00:47.18,0:01:02.00,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
