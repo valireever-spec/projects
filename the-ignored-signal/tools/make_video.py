@@ -12,6 +12,7 @@ Usage:
     python tools/make_video.py romanian_scripts/*.json   # → output/combined.mp4
 """
 import asyncio
+import hashlib
 import json
 import os
 import re
@@ -345,6 +346,21 @@ KB_SCALE = 1.40
 PEXELS_KEY    = os.environ.get("PEXELS_API_KEY", "").strip()
 USE_WIKIMEDIA = True
 
+# Per-run registry of image content hashes already used, so no scene photo
+# repeats within a video or across videos rendered in the same invocation.
+_USED_IMG_HASHES: set[str] = set()
+
+
+def _img_hash(path: Path) -> str:
+    return hashlib.md5(path.read_bytes()).hexdigest()
+
+
+def _is_fresh(path: Path) -> bool:
+    """True if the file exists, is non-trivial, and not already used this run."""
+    return (path.exists() and path.stat().st_size > 10_000
+            and _img_hash(path) not in _USED_IMG_HASHES)
+
+
 _ANGLES_A = [
     "wide establishing shot, golden hour",
     "medium shot, overcast dramatic sky",
@@ -407,8 +423,12 @@ def _download(url: str, dest: Path, timeout: int = 90,
         return False
 
 
-def _fetch_pexels(term: str, dest: Path, pick: int = 0) -> bool:
-    """Real, commercially-licensed photo from Pexels (no attribution required)."""
+def _fetch_pexels(term: str, dest: Path) -> bool:
+    """Real, commercially-licensed photo from Pexels (no attribution required).
+
+    Walks the result list and accepts the first photo not already used this
+    run, so distinct scenes never share an image.
+    """
     if not PEXELS_KEY:
         return False
     url = ("https://api.pexels.com/v1/search?"
@@ -423,10 +443,14 @@ def _fetch_pexels(term: str, dest: Path, pick: int = 0) -> bool:
     except Exception as e:
         print(f"    pexels error: {e}")
         return False
-    if not photos:
-        return False
-    src = photos[pick % len(photos)]["src"]
-    return _download(src.get("original") or src.get("large2x"), dest)
+    for photo in photos:
+        src = photo["src"]
+        if not _download(src.get("original") or src.get("large2x"), dest):
+            continue
+        if _img_hash(dest) in _USED_IMG_HASHES:
+            continue          # duplicate of an image already used — try next
+        return True
+    return False
 
 
 _WIKI_OK = ("cc ", "cc0", "public domain", "no restrictions")
@@ -464,6 +488,8 @@ def _fetch_wikimedia(term: str, dest: Path) -> tuple[bool, str]:
         time.sleep(0.4)   # be gentle with the upload CDN
         if not thumb or not _download(thumb, dest, ua=WIKI_UA):
             continue
+        if _img_hash(dest) in _USED_IMG_HASHES:
+            continue          # duplicate of an image already used — try next
         author = _clean_html(em.get("Artist", {}).get("value", "")) or "Wikimedia Commons"
         title  = p.get("title", "").replace("File:", "")
         return True, f'"{title}" by {author} — {lic} (Wikimedia Commons)'
@@ -481,49 +507,55 @@ def get_ai_images(search_terms: list[str], out_dir: Path, slug: str,
     """
     imgs:    list[Path] = []
     credits: list[str]  = []
+
+    def accept(path: Path) -> None:
+        """Record the image as used (dedup) and add it to the scene list."""
+        _USED_IMG_HASHES.add(_img_hash(path))
+        imgs.append(path)
+
     for i, term in enumerate(search_terms):
         photo  = out_dir / f"photo_{slug}_{i}.jpg"   # real-photo cache
         dest_a = out_dir / f"img_{slug}_{i}a.jpg"    # legacy AI pair cache
         dest   = out_dir / f"img_{slug}_{i}.jpg"     # AI cache
 
-        # 0 — already fetched a real photo for this slot
-        if photo.exists() and photo.stat().st_size > 10_000:
-            imgs.append(photo)
+        # 0 — already fetched a real photo for this slot (unless it's a dup)
+        if _is_fresh(photo):
+            accept(photo)
             print(f"  Photo cached: {photo.name}")
             continue
 
         print(f"  [{i+1}/{len(search_terms)}] {term!r}")
 
         # 1 — Pexels (cleanest license: no attribution)
-        if _fetch_pexels(term, photo, pick=i):
+        if _fetch_pexels(term, photo):
+            accept(photo)
             print(f"    Pexels ✓ ({photo.stat().st_size // 1024} KB)")
-            imgs.append(photo)
             continue
 
         # 2 — Wikimedia for authentic country-specific slots (needs credit)
         if USE_WIKIMEDIA and country and term.lower().startswith(country.lower()):
             ok, attribution = _fetch_wikimedia(term, photo)
             if ok:
+                accept(photo)
                 print(f"    Wikimedia ✓ — {attribution}")
                 credits.append(attribution)
-                imgs.append(photo)
                 continue
 
-        # 3 — reuse an existing AI image if present
-        if dest_a.exists() and dest_a.stat().st_size > 10_000:
-            imgs.append(dest_a)
+        # 3 — reuse an existing AI image if present (unless it's a dup)
+        if _is_fresh(dest_a):
+            accept(dest_a)
             print(f"    AI cached: {dest_a.name}")
             continue
-        if dest.exists() and dest.stat().st_size > 10_000:
-            imgs.append(dest)
+        if _is_fresh(dest):
+            accept(dest)
             print(f"    AI cached: {dest.name}")
             continue
 
         # 4 — generate with Pollinations (never-fail fallback)
         print(f"    generating (AI fallback)...")
         if _fetch_pollinations(_image_prompt(term, i), dest, i * 137 + 42):
+            accept(dest)
             print(f"    AI ✓ ({dest.stat().st_size // 1024} KB)")
-            imgs.append(dest)
         else:
             print(f"    failed — skipped")
 
