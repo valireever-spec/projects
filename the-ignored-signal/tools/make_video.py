@@ -819,6 +819,121 @@ def filter_gradient(ass_arg: str) -> str:
     return "[0:v]format=yuv420p[bg];[bg]subtitles='" + ass_arg + "'[v]"
 
 
+# ── Upload package (title / description / hashtags / thumbnail) ───────────────
+
+AI_DISCLOSURE_RO = ("Narațiune cu voce generată de AI. Imaginile și clipurile "
+                    "sunt ilustrative (surse: Pexels, Wikimedia Commons).")
+AI_DISCLOSURE_EN = ("AI-generated voice-over. Footage is illustrative "
+                    "(Pexels, Wikimedia Commons).")
+
+
+def _hashtags(data: dict, platform: str) -> list[str]:
+    channel = data.get("channel", "Sub Radar")
+    tags = ["#" + re.sub(r"\s+", "", channel)]
+    if data.get("country"):
+        tags.append("#" + data["country"])
+    tags += ["#" + t.lstrip("#") for t in data.get("hashtags", [])]
+    tags += (["#Shorts", "#stiri", "#news"] if platform == "youtube"
+             else ["#fyp", "#foryou", "#stiri"])
+    seen, out = set(), []
+    for t in tags:
+        if len(t) > 1 and t.lower() not in seen:
+            seen.add(t.lower()); out.append(t)
+    return out[:15]
+
+
+def _read_credits(out_dir: Path, slug: str) -> list[str]:
+    cf = out_dir / f"{slug}_credits.txt"
+    if not cf.exists():
+        return []
+    return [ln[2:].strip() for ln in cf.read_text(encoding="utf-8").splitlines()
+            if ln.startswith("- ")]
+
+
+def make_thumbnail(mp4_path: Path, out_path: Path, ffmpeg: str) -> bool:
+    """Grab the styled hook-card frame (~1.2s) as a ready-branded thumbnail."""
+    r = subprocess.run(
+        [ffmpeg, "-y", "-loglevel", "error", "-ss", "1.2", "-i", str(mp4_path),
+         "-frames:v", "1", "-q:v", "3", str(out_path)],
+        capture_output=True, text=True,
+    )
+    return r.returncode == 0 and out_path.exists()
+
+
+def write_upload_package(data: dict, out_dir: Path, slug: str,
+                         total: float, ffmpeg: str, mp4_path: Path) -> Path:
+    """Emit a per-video upload sheet (title, description, hashtags, disclosure)
+    for YouTube Shorts + TikTok, plus a branded thumbnail."""
+    headline  = data.get("headline", slug)
+    channel   = data.get("channel", "Sub Radar")
+    hook      = data.get("hook_card", "").replace("\n", " ").strip() or headline
+    source_os = data.get("source_onscreen", "")
+    ver_note  = data.get("verification_note", "")
+    sources   = data.get("sources", [])
+
+    yt_tags = _hashtags(data, "youtube")
+    tt_tags = _hashtags(data, "tiktok")
+
+    src_lines = ([f"- {source_os}"] if source_os else []) + [f"- {s}" for s in sources]
+    if not src_lines:
+        src_lines = ["- (adaugă sursele aici)"]
+    cred_lines = ["- Video & foto: Pexels (Pexels License — fără atribuire necesară)"]
+    cred_lines += [f"- {c}" for c in _read_credits(out_dir, slug)]
+
+    yt_title = headline if len(headline) <= 90 else headline[:87] + "..."
+    ver_line = f"✅ {ver_note}" if ver_note else ""
+    nl = "\n"
+
+    md = f"""# Upload package — {slug}
+
+**Channel:** {channel}  ·  **Durată:** {total:.0f}s  ·  **Verificat:** {data.get("verified", False)}
+**Thumbnail:** {slug}_thumb.jpg
+
+---
+
+## ▶️ YouTube Shorts
+
+**Titlu:**
+{yt_title} #Shorts
+
+**Descriere:**
+{hook}
+
+📌 Surse:
+{nl.join(src_lines)}
+{ver_line}
+
+🎬 Credite:
+{nl.join(cred_lines)}
+
+⚠️ {AI_DISCLOSURE_RO}
+⚠️ {AI_DISCLOSURE_EN}
+
+{" ".join(yt_tags)}
+
+**Tags (câmpul Tags, fără #):** {", ".join(t.lstrip("#") for t in yt_tags)}
+
+> La publicare setează 'Altered content = Yes' (voce AI).
+
+---
+
+## 🎵 TikTok
+
+**Caption:**
+{hook} {" ".join(tt_tags)}
+
+⚠️ {AI_DISCLOSURE_RO}
+
+> Bifează 'AI-generated content' în setările clipului.
+"""
+    pkg = out_dir / f"{slug}_upload.md"
+    pkg.write_text(md, encoding="utf-8")
+    thumb = out_dir / f"{slug}_thumb.jpg"
+    ok = make_thumbnail(mp4_path, thumb, ffmpeg)
+    print(f"  Upload package → {pkg.name}" + (f" + {thumb.name}" if ok else ""))
+    return pkg
+
+
 # ── Per-script renderer ───────────────────────────────────────────────────────
 
 def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None:
@@ -965,6 +1080,8 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
     print(f"  Done → {mp4_path}  ({size_mb:.1f} MB, {total:.1f}s, "
           f"{n_videos} video + {len(media) - n_videos} still + "
           f"{len(stat_clips)} stat scenes)")
+
+    write_upload_package(data, out_dir, slug, total, ffmpeg, mp4_path)
     return mp4_path
 
 
