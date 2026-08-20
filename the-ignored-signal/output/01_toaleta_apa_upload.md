@@ -15,6 +15,9 @@ România — cea mai mare pondere din UE fără toaletă cu apă în casă #Shor
 
 📌 Surse:
 - Eurostat, EU-SILC 2023
+- [PRIMARĂ] Eurostat, EU-SILC — Populație fără toaletă cu apă în interiorul locuinței (cod ilc_mdho05 / sdg_06_10), 2023 → ec.europa.eu/eurostat
+- [SECUNDARĂ] Eurostat, Statistics Explained — Living conditions in Europe: housing → ec.europa.eu/eurostat/statistics-explained
+- [TERȚIARĂ] Institutul Național de Statistică (INS) — condiții de locuire / recensământ → insse.ro
 ✅ Eurostat: 15.4% din populația RO fără toaletă cu apă în interior (date 2023), cea mai mare pondere din UE, de departe. Confirmat prin căutare web 2026-07.
 
 🎬 Credite:

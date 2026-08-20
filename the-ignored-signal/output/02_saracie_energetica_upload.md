@@ -15,6 +15,9 @@ Unul din șase români nu-și poate încălzi locuința. E scris într-un raport
 
 📌 Surse:
 - Eurostat, EU-SILC
+- [PRIMARĂ] Eurostat, EU-SILC — Inability to keep home adequately warm (cod ilc_mdes01), 2023 → ec.europa.eu/eurostat
+- [SECUNDARĂ] EU Energy Poverty Advisory Hub (EPAH), Comisia Europeană → energy-poverty.ec.europa.eu
+- [TERȚIARĂ] Eurostat, Statistics Explained — Energy poverty in the EU → ec.europa.eu/eurostat/statistics-explained
 ✅ Eurostat EU-SILC: ~15% din populația RO nu-și poate încălzi adecvat locuința, mult peste media UE de ~9%. România e constant în top 3 UE la acest indicator.
 
 🎬 Credite:

@@ -9,6 +9,11 @@
   "cta_question": "Știai asta? Spune-ne în comentarii ↓",
   "verified": true,
   "verification_note": "Eurostat: 15.4% din populația RO fără toaletă cu apă în interior (date 2023), cea mai mare pondere din UE, de departe. Confirmat prin căutare web 2026-07.",
+  "sources": [
+    "[PRIMARĂ] Eurostat, EU-SILC — Populație fără toaletă cu apă în interiorul locuinței (cod ilc_mdho05 / sdg_06_10), 2023 → ec.europa.eu/eurostat",
+    "[SECUNDARĂ] Eurostat, Statistics Explained — Living conditions in Europe: housing → ec.europa.eu/eurostat/statistics-explained",
+    "[TERȚIARĂ] Institutul Național de Statistică (INS) — condiții de locuire / recensământ → insse.ro"
+  ],
   "narration": "România are cea mai mare pondere de oameni fără toaletă cu apă în casă din toată Uniunea Europeană. De departe. Conform datelor Eurostat, peste cincisprezece la sută dintre români nu au o toaletă cu apă în interiorul locuinței. Este cel mai mare procent din întreaga Uniune Europeană. Practic, suntem singura țară aflată la acest nivel. S-a scris despre asta câteva zile, apoi subiectul a dispărut din atenția publică. Dar contează. Vorbim despre date din 2023, nu despre o poveste de acum treizeci de ani. Fără canalizare și apă sigură, crește riscul de infecții, mai ales pentru copii și pentru bătrâni. Iar diferența dintre orașe și sate rămâne uriașă, în interiorul aceleiași țări din Uniunea Europeană. Urmărește Sub Radar pentru mai multe povești trecute cu vederea.",
   "stat_windows": [
     {

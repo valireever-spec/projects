@@ -9,6 +9,11 @@
   "cta_question": "Știai asta? Spune-ne în comentarii ↓",
   "verified": true,
   "verification_note": "Eurostat EU-SILC: ~15% din populația RO nu-și poate încălzi adecvat locuința, mult peste media UE de ~9%. România e constant în top 3 UE la acest indicator.",
+  "sources": [
+    "[PRIMARĂ] Eurostat, EU-SILC — Inability to keep home adequately warm (cod ilc_mdes01), 2023 → ec.europa.eu/eurostat",
+    "[SECUNDARĂ] EU Energy Poverty Advisory Hub (EPAH), Comisia Europeană → energy-poverty.ec.europa.eu",
+    "[TERȚIARĂ] Eurostat, Statistics Explained — Energy poverty in the EU → ec.europa.eu/eurostat/statistics-explained"
+  ],
   "narration": "Peste cincisprezece la sută dintre români nu-și pot ține casa caldă iarna. Nu e o părere — e o cifră oficială Eurostat. În fiecare an, Eurostat măsoară câți oameni din Uniunea Europeană nu-și permit să-și încălzească adecvat locuința. România e constant în capul listei, mult peste media europeană, care e în jur de nouă la sută. S-a raportat scurt când au ieșit datele, apoi povestea a dispărut din știri. Dar nu e despre confort. Frigul în casă înseamnă boli respiratorii, facturi neplătite, și oameni care aleg între mâncare și căldură. Afectează direct milioane de gospodării — copii, pensionari, familii care muncesc. E o problemă de sănătate publică, nu doar una de buget. Urmărește Sub Radar pentru mai multe povești trecute cu vederea.",
   "stat_windows": [
     {
