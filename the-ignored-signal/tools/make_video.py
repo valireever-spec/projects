@@ -24,6 +24,26 @@ from pathlib import Path
 import edge_tts
 import imageio_ffmpeg
 
+
+def _load_dotenv(path: str = ".env") -> None:
+    """Populate os.environ from a .env file (no external dependency).
+
+    Run from the project root, where the tool already resolves output/ etc.
+    Existing environment variables take precedence over the file.
+    """
+    p = Path(path)
+    if not p.exists():
+        return
+    for line in p.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        os.environ.setdefault(key.strip(), val.strip())
+
+
+_load_dotenv()
+
 # Brand design tokens
 FG_ASS     = "&H00DAE5E9"   # #e9e5da — warm white
 ACCENT_ASS = "&H002B39C0"   # #c0392b — deep red
@@ -103,7 +123,11 @@ def ass_escape(text: str) -> str:
 HOOK_DUR    = 2.0
 END_DUR     = 4.0
 SAFE_TOP    = 170
-SAFE_BOTTOM = 300
+# Bottom-anchored MarginV (px up from bottom edge, PlayResY=1920).
+# Captions sit in the bottom third (~77% down) but clear of the bottom ~15%
+# platform UI safe zone; source sits just below the captions.
+CAP_MARGIN  = 430
+SAFE_BOTTOM = 340
 
 
 def build_ass(chunks: list, duration: float, channel: str,
@@ -120,7 +144,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Caption,{FONT},48,{FG_ASS},{FG_ASS},{BLACK_ASS},&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,750,1
+Style: Caption,{FONT},48,{FG_ASS},{FG_ASS},{BLACK_ASS},&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,{CAP_MARGIN},1
 Style: Header,{FONT},38,{MUTED_ASS},{MUTED_ASS},{BLACK_ASS},&H00000000,0,0,0,0,100,100,3,0,1,2,0,8,60,60,{SAFE_TOP},1
 Style: Source,{FONT},34,{ACCENT_ASS},{ACCENT_ASS},{BLACK_ASS},&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,60,60,{SAFE_BOTTOM},1
 Style: HookCard,{FONT},82,{FG_ASS},{FG_ASS},{BLACK_ASS},{DARK_BOX},-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
@@ -309,10 +333,17 @@ def extract_timed_terms(chunks: list, country: str, n_clips: int) -> list[str]:
     return queries
 
 
-# ── AI image generation ───────────────────────────────────────────────────────
+# ── Image sourcing: real photos (Pexels + Wikimedia) → AI fallback ────────────
 
 FPS      = 25
 KB_SCALE = 1.40
+
+# Real-photo sources. Pexels needs a free key (PEXELS_API_KEY in .env) and its
+# license requires no attribution. Wikimedia is keyless, but its CC-BY images
+# need a credit line (written to <slug>_credits.txt). AI is the never-fail
+# fallback so a render never breaks for lack of an image.
+PEXELS_KEY    = os.environ.get("PEXELS_API_KEY", "").strip()
+USE_WIKIMEDIA = True
 
 _ANGLES_A = [
     "wide establishing shot, golden hour",
@@ -359,28 +390,151 @@ def _fetch_pollinations(prompt: str, dest: Path, seed: int) -> bool:
     return False
 
 
-def get_ai_images(search_terms: list[str], out_dir: Path, slug: str) -> list[Path]:
-    """One image per visual term. Reuses existing pair-a cache (img_*_Na.jpg)."""
-    imgs: list[Path] = []
-    for i, term in enumerate(search_terms):
-        dest_a = out_dir / f"img_{slug}_{i}a.jpg"   # legacy pair cache
-        dest   = out_dir / f"img_{slug}_{i}.jpg"
+# Wikimedia's policy requires a descriptive UA with contact info, else 429s.
+WIKI_UA = "TheIgnoredSignal/1.0 (news-video-tool; contact ilie_vali@yahoo.com)"
 
-        if dest_a.exists() and dest_a.stat().st_size > 10_000:
-            imgs.append(dest_a)
-            print(f"  Cached: {dest_a.name}")
+
+def _download(url: str, dest: Path, timeout: int = 90,
+              ua: str = "TheIgnoredSignal/1.0") -> bool:
+    req = urllib.request.Request(url, headers={"User-Agent": ua})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp, open(dest, "wb") as f:
+            f.write(resp.read())
+        return dest.stat().st_size > 10_000
+    except Exception as e:
+        print(f"    download error: {e}")
+        dest.unlink(missing_ok=True)
+        return False
+
+
+def _fetch_pexels(term: str, dest: Path, pick: int = 0) -> bool:
+    """Real, commercially-licensed photo from Pexels (no attribution required)."""
+    if not PEXELS_KEY:
+        return False
+    url = ("https://api.pexels.com/v1/search?"
+           f"query={urllib.parse.quote(term)}&orientation=portrait"
+           "&size=large&per_page=15")
+    req = urllib.request.Request(
+        url, headers={"Authorization": PEXELS_KEY,
+                      "User-Agent": "TheIgnoredSignal/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            photos = json.loads(resp.read().decode()).get("photos", [])
+    except Exception as e:
+        print(f"    pexels error: {e}")
+        return False
+    if not photos:
+        return False
+    src = photos[pick % len(photos)]["src"]
+    return _download(src.get("original") or src.get("large2x"), dest)
+
+
+_WIKI_OK = ("cc ", "cc0", "public domain", "no restrictions")
+
+
+def _clean_html(s: str) -> str:
+    return re.sub(r"<[^>]+>", "", s).strip()
+
+
+def _fetch_wikimedia(term: str, dest: Path) -> tuple[bool, str]:
+    """Authentic Commons photo. Returns (ok, attribution) — CC-BY needs credit."""
+    url = ("https://commons.wikimedia.org/w/api.php?action=query"
+           "&generator=search&gsrnamespace=6&gsrlimit=10"
+           f"&gsrsearch={urllib.parse.quote(term)}"
+           "&prop=imageinfo&iiprop=url|extmetadata|mime|size"
+           f"&iiurlwidth={W}&format=json")
+    req = urllib.request.Request(url, headers={"User-Agent": WIKI_UA})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            pages = json.loads(resp.read().decode()).get("query", {}).get("pages", {})
+    except Exception as e:
+        print(f"    wikimedia error: {e}")
+        return False, ""
+    import time
+    # Preserve Commons' search-relevance ranking (index), not file size.
+    for p in sorted(pages.values(), key=lambda p: p.get("index", 1e9)):
+        ii = p.get("imageinfo", [{}])[0]
+        if ii.get("mime") != "image/jpeg" or ii.get("width", 0) < W:
+            continue
+        em  = ii.get("extmetadata", {})
+        lic = em.get("LicenseShortName", {}).get("value", "")
+        if not any(tok in lic.lower() for tok in _WIKI_OK):
+            continue
+        thumb = ii.get("thumburl")
+        time.sleep(0.4)   # be gentle with the upload CDN
+        if not thumb or not _download(thumb, dest, ua=WIKI_UA):
+            continue
+        author = _clean_html(em.get("Artist", {}).get("value", "")) or "Wikimedia Commons"
+        title  = p.get("title", "").replace("File:", "")
+        return True, f'"{title}" by {author} — {lic} (Wikimedia Commons)'
+    return False, ""
+
+
+def get_ai_images(search_terms: list[str], out_dir: Path, slug: str,
+                  country: str = "") -> list[Path]:
+    """One scene image per visual term.
+
+    Priority per slot: cached real photo → Pexels → Wikimedia (country-specific
+    terms only) → cached AI image → Pollinations generation. Real photos win so
+    the channel uses genuine footage; AI is the never-fail fallback. Wikimedia
+    attributions are written to <slug>_credits.txt (CC-BY requires crediting).
+    """
+    imgs:    list[Path] = []
+    credits: list[str]  = []
+    for i, term in enumerate(search_terms):
+        photo  = out_dir / f"photo_{slug}_{i}.jpg"   # real-photo cache
+        dest_a = out_dir / f"img_{slug}_{i}a.jpg"    # legacy AI pair cache
+        dest   = out_dir / f"img_{slug}_{i}.jpg"     # AI cache
+
+        # 0 — already fetched a real photo for this slot
+        if photo.exists() and photo.stat().st_size > 10_000:
+            imgs.append(photo)
+            print(f"  Photo cached: {photo.name}")
             continue
 
-        if not (dest.exists() and dest.stat().st_size > 10_000):
-            print(f"  Generating [{i+1}/{len(search_terms)}]: {term!r}...")
-            ok = _fetch_pollinations(_image_prompt(term, i), dest, i * 137 + 42)
+        print(f"  [{i+1}/{len(search_terms)}] {term!r}")
+
+        # 1 — Pexels (cleanest license: no attribution)
+        if _fetch_pexels(term, photo, pick=i):
+            print(f"    Pexels ✓ ({photo.stat().st_size // 1024} KB)")
+            imgs.append(photo)
+            continue
+
+        # 2 — Wikimedia for authentic country-specific slots (needs credit)
+        if USE_WIKIMEDIA and country and term.lower().startswith(country.lower()):
+            ok, attribution = _fetch_wikimedia(term, photo)
             if ok:
-                print(f"    ok ({dest.stat().st_size // 1024} KB)")
-            else:
-                print(f"    failed — skipped")
+                print(f"    Wikimedia ✓ — {attribution}")
+                credits.append(attribution)
+                imgs.append(photo)
                 continue
 
-        imgs.append(dest)
+        # 3 — reuse an existing AI image if present
+        if dest_a.exists() and dest_a.stat().st_size > 10_000:
+            imgs.append(dest_a)
+            print(f"    AI cached: {dest_a.name}")
+            continue
+        if dest.exists() and dest.stat().st_size > 10_000:
+            imgs.append(dest)
+            print(f"    AI cached: {dest.name}")
+            continue
+
+        # 4 — generate with Pollinations (never-fail fallback)
+        print(f"    generating (AI fallback)...")
+        if _fetch_pollinations(_image_prompt(term, i), dest, i * 137 + 42):
+            print(f"    AI ✓ ({dest.stat().st_size // 1024} KB)")
+            imgs.append(dest)
+        else:
+            print(f"    failed — skipped")
+
+    if credits:
+        cf = out_dir / f"{slug}_credits.txt"
+        cf.write_text(
+            "Image credits (Wikimedia Commons — include in video description):\n"
+            + "\n".join(f"- {c}" for c in credits) + "\n",
+            encoding="utf-8",
+        )
+        print(f"  Wrote {len(credits)} image credit(s) → {cf.name}")
     return imgs
 
 
@@ -494,9 +648,11 @@ def _kb(stream_idx: int, out_label: str, clip_dur: float,
         f"scale={big_w}:{big_h}:force_original_aspect_ratio=increase,crop={big_w}:{big_h},"
         f"zoompan=z='{z_expr.format(r=rate)}':x='{x_expr}':y='{y_expr}'"
         f":d={n_frames}:s={W}x{H}:fps={FPS},"
-        f"fps={FPS},setpts=PTS-STARTPTS,"
+        f"setpts=PTS-STARTPTS,"
         f"eq=brightness=-0.05:saturation=0.9,"
-        f"format=yuv420p[{out_label}]"
+        # fps must be the LAST rate-setting filter: setpts/eq reset frame_rate
+        # to 1/0 (undefined), which xfade rejects with "constant frame rate" error.
+        f"fps={FPS},format=yuv420p[{out_label}]"
     )
 
 
@@ -530,10 +686,11 @@ def build_filter_complex(
             parts.append(
                 f"[{s}:v]scale={W}:{H}:force_original_aspect_ratio=decrease,"
                 f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=#09090f,"
-                f"setpts=PTS-STARTPTS,fps={FPS},"
+                f"setpts=PTS-STARTPTS,"
                 f"tpad=stop_mode=clone:stop_duration=2,"
                 f"trim=end={clip_dur:.3f},setpts=PTS-STARTPTS,"
-                f"format=yuv420p[{lbl}]"
+                # fps last, after trim/setpts, so xfade sees a defined frame_rate
+                f"fps={FPS},format=yuv420p[{lbl}]"
             )
             scene_labels.append(lbl)
         else:
@@ -637,7 +794,7 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
     print(f"  Visual windows: {len(visual_terms)}")
     for t in visual_terms:
         print(f"    • {t}")
-    imgs = get_ai_images(visual_terms, out_dir, slug)
+    imgs = get_ai_images(visual_terms, out_dir, slug, country)
     print(f"  {len(imgs)} image(s) ready")
 
     # 4 — Render
