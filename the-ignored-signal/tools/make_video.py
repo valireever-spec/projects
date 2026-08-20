@@ -934,12 +934,79 @@ def write_upload_package(data: dict, out_dir: Path, slug: str,
     return pkg
 
 
+# ── Pre-publish validation ────────────────────────────────────────────────────
+
+# Russia/hybrid-war stories trigger enhanced verification (>=3 sources, 24h hold).
+RUSSIA_FLAG_KEYWORDS = (
+    "russia", "rusia", "ukraine", "ucraina", "belarus", "nato", "kremlin",
+    "putin", "wagner", "fsb", "svr", "disinformation", "dezinformare",
+    "hybrid war", "razboi hibrid", "război hibrid", "election interference",
+)
+
+VERIFY_MARKER = re.compile(r"\[VERIFIC[ĂA][^\]]*\]", re.IGNORECASE)
+
+
+def validate_script(data: dict) -> list[tuple[str, str]]:
+    """Editorial gate before a script becomes a publish-ready video.
+    Returns (level, message) pairs; level is 'error' (blocks) or 'warn'."""
+    issues: list[tuple[str, str]] = []
+    text = " ".join(str(data.get(k, "")) for k in (
+        "headline", "hook_card", "narration", "source_onscreen",
+        "verification_note", "cta_question", "category"))
+
+    markers = VERIFY_MARKER.findall(text)
+    if markers:
+        issues.append(("error", f"{len(markers)} unresolved verify marker(s), "
+                                f"e.g. {markers[0]}"))
+    if data.get("verified") is not True:
+        issues.append(("error", "verified is not true — nothing publishes unverified"))
+    if not str(data.get("source_onscreen", "")).strip():
+        issues.append(("error", "missing source_onscreen — sources must show on screen"))
+    if not str(data.get("narration", "")).strip():
+        issues.append(("error", "missing narration"))
+
+    n_sources = (1 if str(data.get("source_onscreen", "")).strip() else 0) \
+        + len(data.get("sources", []))
+    if n_sources < 2:
+        issues.append(("warn", f"only {n_sources} source(s); editorial minimum is 2 "
+                               f"(add a sources[] list)"))
+
+    if any(k in text.lower() for k in RUSSIA_FLAG_KEYWORDS):
+        if n_sources < 3:
+            issues.append(("error", f"Russia-flagged story needs >=3 sources; "
+                                    f"found {n_sources}"))
+        issues.append(("warn", "Russia flag: >=2 sources must be official/institutional "
+                               "and hold 24h before publishing"))
+    return issues
+
+
+def _report_validation(name: str, issues: list[tuple[str, str]]) -> bool:
+    """Print validation results; return True when there are no errors."""
+    errors = [m for lvl, m in issues if lvl == "error"]
+    warns  = [m for lvl, m in issues if lvl == "warn"]
+    if not issues:
+        print(f"  ✓ validation passed")
+        return True
+    print(f"  {'✗' if errors else '⚠'} {len(errors)} error(s), {len(warns)} warning(s)")
+    for m in errors:
+        print(f"      ERROR: {m}")
+    for m in warns:
+        print(f"      warn:  {m}")
+    return not errors
+
+
 # ── Per-script renderer ───────────────────────────────────────────────────────
 
-def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None:
+def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
+                   force: bool = False) -> Path | None:
     data = json.loads(script_path.read_text(encoding="utf-8"))
 
-    narration      = data["narration"]
+    print(f"\n=== {script_path.name} ===")
+    if not _report_validation(script_path.name, validate_script(data)) and not force:
+        print("  SKIPPED — fix the errors above, or re-run with --force")
+        return None
+
+    narration      = data.get("narration", "")
     voice          = data.get("voice", "ro-RO-EmilNeural")
     channel        = data.get("channel", "Semnalul Ignorat")
     source_text    = data.get("source_onscreen", "")
@@ -956,8 +1023,6 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str) -> Path | None
     mp3_path = out_dir / f"{slug}.mp3"
     ass_path = out_dir / f"{slug}.ass"
     mp4_path = out_dir / f"{slug}.mp4"
-
-    print(f"\n=== {script_path.name} ===")
 
     # 1 — Voice
     print(f"[1/4] Synthesizing voice ({voice})...")
@@ -1108,19 +1173,37 @@ def _concat_videos(mp4_paths: list[Path], out_path: Path, ffmpeg_bin: str) -> No
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    if len(sys.argv) < 2:
-        print("Usage: python tools/make_video.py <script1.json> [script2.json ...]")
+    args         = sys.argv[1:]
+    force        = "--force" in args
+    check_only   = "--check" in args
+    script_paths = [Path(a) for a in args if not a.startswith("--")]
+    if not script_paths:
+        print("Usage: python tools/make_video.py [--check] [--force] "
+              "<script1.json> [script2.json ...]")
         sys.exit(1)
+
+    # Validation-only mode: report and exit non-zero if any script has errors.
+    if check_only:
+        all_ok = True
+        for sp in script_paths:
+            print(f"=== {sp.name} ===")
+            try:
+                data = json.loads(sp.read_text(encoding="utf-8"))
+            except Exception as e:
+                print(f"  ✗ cannot read: {e}")
+                all_ok = False
+                continue
+            all_ok = _report_validation(sp.name, validate_script(data)) and all_ok
+        print(f"\n{'All scripts valid ✓' if all_ok else 'Validation FAILED ✗'}")
+        sys.exit(0 if all_ok else 1)
 
     out_dir = Path("output")
     out_dir.mkdir(exist_ok=True)
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
 
-    script_paths = [Path(p) for p in sys.argv[1:]]
     mp4_paths: list[Path] = []
-
     for sp in script_paths:
-        mp4 = _render_script(sp, out_dir, ffmpeg)
+        mp4 = _render_script(sp, out_dir, ffmpeg, force=force)
         if mp4:
             mp4_paths.append(mp4)
 
