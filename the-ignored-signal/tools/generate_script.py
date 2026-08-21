@@ -2,25 +2,32 @@
 """
 Semnalul Ignorat / Sub Radar — script generator (the discovery → script bridge).
 
-Takes a story brief (a headline/topic, optionally a few source URLs) and uses
-Claude with web search to research it, verify the figures against real primary
-sources, and draft a `romanian_scripts/<slug>.json` in the exact schema the
-renderer (tools/make_video.py) consumes. The draft is then run through the same
-`validate_script` editorial gate the renderer uses, so what comes out is either
-publish-ready or flagged with the exact gaps.
+Takes a story brief (a headline/topic, optionally a few source URLs) and drafts a
+`romanian_scripts/<slug>.json` in the exact schema the renderer (make_video.py)
+consumes, then runs it through the same `validate_script` editorial gate — so the
+output is either publish-ready or flagged with the exact gaps.
 
-Requires ANTHROPIC_API_KEY (in the environment or in .env).
+Two backends:
+  * ollama (default, FREE) — a local model via Ollama. No API key, no web search,
+    so drafts come out verified=false with [VERIFICĂ] markers for you to check.
+  * Claude API (paid) — opus/sonnet/haiku, with web search to verify figures
+    against real sources. Needs ANTHROPIC_API_KEY in .env.
 
 Usage:
+    # free local (needs `ollama serve` + `ollama pull qwen2.5:7b`)
     python tools/generate_script.py "România are cea mai scumpă energie din UE"
-    python tools/generate_script.py "topic" --source https://ec.europa.eu/... --slug 04_energie
-    python tools/generate_script.py "topic" --lang ro --category "Economic Stories"
+    python tools/generate_script.py "topic" --model ollama:qwen2.5:14b
+    # paid, verified
+    python tools/generate_script.py "topic" --model sonnet --source https://ec.europa.eu/...
 """
 import argparse
 import json
+import os
 import re
 import sys
 import unicodedata
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 # Reuse the renderer's .env loader + validation gate so the loop stays closed.
@@ -36,6 +43,8 @@ MODEL_ALIASES = {
     "sonnet": "claude-sonnet-4-6",   # ~2x cheaper   ($3 / $15)
     "haiku":  "claude-haiku-4-5",    # cheapest      ($1 / $5)
 }
+# Free local backend via Ollama (no API key, no web search → drafts for review).
+DEFAULT_OLLAMA_MODEL = "qwen2.5:7b"
 
 # Per-language voice + channel (edge-tts neural voices). ro matches the shipped
 # scripts (channel "Sub Radar"); the others enable the planned expansion.
@@ -123,32 +132,28 @@ def _next_index(out_dir: Path) -> str:
     return f"{(max(nums) + 1) if nums else 1:02d}"
 
 
-def _extract_json(content: list) -> dict:
-    """Concatenate the model's text blocks and parse the JSON object out of it."""
-    text = "\n".join(b.text for b in content if getattr(b, "type", None) == "text")
-    text = text.replace("```json", "```").split("```")[1] if "```" in text else text
+def _parse_json(text: str) -> dict:
+    """Pull the JSON object out of a model's text response (tolerates fences)."""
+    if "```" in text:
+        text = text.replace("```json", "```").split("```")[1]
     start, end = text.find("{"), text.rfind("}")
     if start == -1 or end == -1:
         raise ValueError(f"no JSON object in model response:\n{text[:500]}")
     return json.loads(text[start:end + 1])
 
 
-def generate(topic: str, lang: str, country: str, category: str,
-             sources: list[str], model: str = DEFAULT_MODEL) -> dict:
+def resolve_model(spec: str) -> tuple[str, str]:
+    """Map a --model value to (backend, model_id). 'ollama' / 'ollama:<name>'
+    selects the free local backend; everything else is the paid Claude API."""
+    if spec == "ollama":
+        return "ollama", DEFAULT_OLLAMA_MODEL
+    if spec.startswith("ollama:"):
+        return "ollama", spec.split(":", 1)[1]
+    return "anthropic", MODEL_ALIASES.get(spec, spec)
+
+
+def _generate_anthropic(user_prompt: str, model: str) -> dict:
     client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY
-    lang_name = LANGUAGES[lang]["name"]
-
-    brief = [f"Story / topic: {topic}",
-             f"Target language: {lang_name} ({lang})",
-             f"Country focus: {country or 'Europe'}"]
-    if category:
-        brief.append(f"Category: {category}")
-    if sources:
-        brief.append("Starting source leads (verify + expand via web search):")
-        brief += [f"- {s}" for s in sources]
-    brief.append("\nResearch this now with web_search, then return the JSON script.")
-    user_prompt = "\n".join(brief)
-
     # Haiku 4.5 lacks adaptive thinking and dynamic-filter web search — degrade
     # gracefully so the cheapest tier still works.
     limited = "haiku" in model
@@ -170,7 +175,58 @@ def generate(topic: str, lang: str, country: str, category: str,
             messages.append({"role": "assistant", "content": resp.content})
             continue
         break
-    return _extract_json(resp.content)
+    text = "\n".join(b.text for b in resp.content if getattr(b, "type", None) == "text")
+    return _parse_json(text)
+
+
+def _generate_ollama(user_prompt: str, model: str) -> dict:
+    """Free local backend. Needs `ollama serve` running and the model pulled."""
+    url = os.environ.get("OLLAMA_URL", "http://localhost:11434").rstrip("/")
+    body = json.dumps({
+        "model": model,
+        "messages": [{"role": "system", "content": SYSTEM},
+                     {"role": "user", "content": user_prompt}],
+        "stream": False,
+        "format": "json",              # Ollama structured-output mode → valid JSON
+        "options": {"temperature": 0.6, "num_ctx": 8192},
+    }).encode()
+    req = urllib.request.Request(url + "/api/chat", data=body,
+                                 headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=600) as r:
+            data = json.loads(r.read().decode())
+    except urllib.error.URLError as e:
+        raise SystemExit(
+            f"Cannot reach Ollama at {url}. Start it and pull the model:\n"
+            f"    ollama serve            (usually already running)\n"
+            f"    ollama pull {model}\n  ({e})")
+    if data.get("error"):
+        raise SystemExit(f"Ollama error: {data['error']}  (try: ollama pull {model})")
+    return _parse_json(data.get("message", {}).get("content", ""))
+
+
+def generate(topic: str, lang: str, country: str, category: str,
+             sources: list[str], backend: str, model: str) -> dict:
+    lang_name = LANGUAGES[lang]["name"]
+    brief = [f"Story / topic: {topic}",
+             f"Target language: {lang_name} ({lang})",
+             f"Country focus: {country or 'Europe'}"]
+    if category:
+        brief.append(f"Category: {category}")
+    if sources:
+        brief.append("Starting source leads:")
+        brief += [f"- {s}" for s in sources]
+
+    if backend == "ollama":
+        # No web search locally — draft honestly and defer verification to a human.
+        brief.append("\nYou do NOT have web search. Draft from your own knowledge, "
+                     'set "verified": false, and put [VERIFICĂ] right after every '
+                     "specific number, percentage, or date so a human can verify it. "
+                     "Then return the JSON script.")
+        return _generate_ollama("\n".join(brief), model)
+
+    brief.append("\nResearch this now with web_search, then return the JSON script.")
+    return _generate_anthropic("\n".join(brief), model)
 
 
 def main() -> None:
@@ -184,25 +240,26 @@ def main() -> None:
     ap.add_argument("--slug", default="", help="output slug (default: auto NN_<topic>)")
     ap.add_argument("--out-dir", default="romanian_scripts", help="output directory")
     ap.add_argument("--channel", default="", help="override channel name")
-    ap.add_argument("--model", default="opus",
-                    help="opus (default, most capable) | sonnet (~2x cheaper) | "
-                         "haiku (cheapest) | any full model id")
+    ap.add_argument("--model", default="ollama",
+                    help="ollama (default, FREE local via Ollama) | ollama:<name> "
+                         "| opus | sonnet | haiku (paid Claude API) | any full model id")
     args = ap.parse_args()
-    model = MODEL_ALIASES.get(args.model, args.model)
+    backend, model = resolve_model(args.model)
 
     _load_dotenv()
-    import os
-    if not os.environ.get("ANTHROPIC_API_KEY", "").strip():
-        print("ERROR: ANTHROPIC_API_KEY is not set (add it to .env or the environment).")
+    if backend == "anthropic" and not os.environ.get("ANTHROPIC_API_KEY", "").strip():
+        print("ERROR: ANTHROPIC_API_KEY is not set. Add it to .env for the paid "
+              "Claude backend, or use --model ollama for the free local one.")
         sys.exit(2)
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(exist_ok=True)
 
-    print(f"Researching + drafting ({model} + web search): {args.topic!r} [{args.lang}]...")
+    tag = "web search" if backend == "anthropic" else "local, no web search — draft for review"
+    print(f"Drafting ({model}, {tag}): {args.topic!r} [{args.lang}]...")
     try:
         data = generate(args.topic, args.lang, args.country, args.category,
-                        args.sources, model=model)
+                        args.sources, backend, model)
     except anthropic.APIError as e:
         print(f"Claude API error: {e}")
         sys.exit(1)
