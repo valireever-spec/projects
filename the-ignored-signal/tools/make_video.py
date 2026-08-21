@@ -1026,7 +1026,7 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
 
     narration      = data.get("narration", "")
     voice          = data.get("voice", "ro-RO-EmilNeural")
-    channel        = data.get("channel", "Semnalul Ignorat")
+    channel        = data.get("channel", "Sub Radar")
     source_text    = data.get("source_onscreen", "")
     show_source    = data.get("show_source", True)
     slug           = data.get("slug", script_path.stem)

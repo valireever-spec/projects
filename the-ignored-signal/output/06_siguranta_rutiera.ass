@@ -16,8 +16,8 @@ Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,ROMÂNIA, PE ULTIMUL LOC ÎN UE\NLA SIGURANȚA RUTIERĂ
-Dialogue: 0,0:00:00.00,0:00:53.04,Header,,0,0,0,,SUB RADAR
-Dialogue: 0,0:00:00.00,0:00:53.04,Source,,0,0,0,,Eurostat / Comisia Europeană — 2023
+Dialogue: 0,0:00:00.00,0:00:53.35,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:53.35,Source,,0,0,0,,Eurostat / Comisia Europeană — 2023
 Dialogue: 0,0:00:02.00,0:00:03.53,Caption,,0,0,0,,MULTE MORȚI PE ȘOSELE DIN
 Dialogue: 0,0:00:03.53,0:00:04.56,Caption,,0,0,0,,TOATĂ UNIUNEA EUROPEANĂ
 Dialogue: 0,0:00:04.56,0:00:05.93,Caption,,0,0,0,,RAPORTAT LA POPULAȚIE 
@@ -53,6 +53,6 @@ Dialogue: 0,0:00:43.77,0:00:45.47,Caption,,0,0,0,,MULTE DINTRE ACESTE MORȚI S-A
 Dialogue: 0,0:00:45.47,0:00:46.49,Caption,,0,0,0,,PUTEA PREVENI 
 Dialogue: 0,0:00:46.49,0:00:48.19,Caption,,0,0,0,,CU DRUMURI MAI SIGURE ȘI
 Dialogue: 0,0:00:48.19,0:00:49.21,Caption,,0,0,0,,CU REGULI APLICATE
-Dialogue: 0,0:00:49.21,0:00:51.56,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
-Dialogue: 0,0:00:51.56,0:00:52.98,Caption,,0,0,0,,MULTE SEMNALE IGNORATE
-Dialogue: 1,0:00:49.04,0:00:53.04,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
+Dialogue: 0,0:00:49.21,0:00:51.26,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:51.26,0:00:53.30,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
+Dialogue: 1,0:00:49.35,0:00:53.35,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
