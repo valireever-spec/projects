@@ -16,38 +16,31 @@ Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,15% DIN ROMÂNI\NNU ÎȘI POT ÎNCĂLZI CASA IARNA
-Dialogue: 0,0:00:00.00,0:00:51.38,Header,,0,0,0,,SUB RADAR
-Dialogue: 0,0:00:00.00,0:00:51.38,Source,,0,0,0,,Eurostat, EU-SILC
-Dialogue: 0,0:00:02.00,0:00:03.87,Caption,,0,0,0,,ROMÂNI NU-ȘI POT ȚINE CASA
-Dialogue: 0,0:00:03.87,0:00:04.58,Caption,,0,0,0,,CALDĂ IARNA
-Dialogue: 0,0:00:04.58,0:00:06.65,Caption,,0,0,0,,NU E O PĂRERE 
-Dialogue: 0,0:00:06.65,0:00:08.72,Caption,,0,0,0,,E O CIFRĂ OFICIALĂ EUROSTAT
-Dialogue: 0,0:00:08.72,0:00:10.02,Caption,,0,0,0,,ÎN FIECARE AN
-Dialogue: 0,0:00:10.02,0:00:12.19,Caption,,0,0,0,,EUROSTAT MĂSOARĂ CÂȚI OAMENI DIN
-Dialogue: 0,0:00:12.19,0:00:14.35,Caption,,0,0,0,,UNIUNEA EUROPEANĂ NU-ȘI PERMIT SĂ-ȘI
-Dialogue: 0,0:00:14.35,0:00:15.65,Caption,,0,0,0,,ÎNCĂLZEASCĂ ADECVAT LOCUINȚA
-Dialogue: 0,0:00:15.65,0:00:17.45,Caption,,0,0,0,,ROMÂNIA E CONSTANT ÎN CAPUL
-Dialogue: 0,0:00:17.45,0:00:17.81,Caption,,0,0,0,,LISTEI
-Dialogue: 0,0:00:17.81,0:00:19.25,Caption,,0,0,0,,MULT PESTE MEDIA EUROPEANĂ
-Dialogue: 0,0:00:19.25,0:00:21.06,Caption,,0,0,0,,CARE E ÎN JUR DE
-Dialogue: 0,0:00:21.06,0:00:22.14,Caption,,0,0,0,,NOUĂ LA SUTĂ
-Dialogue: 0,0:00:22.14,0:00:24.13,Caption,,0,0,0,,S-A RAPORTAT SCURT CÂND AU
-Dialogue: 0,0:00:24.13,0:00:24.93,Caption,,0,0,0,,IEȘIT DATELE
-Dialogue: 0,0:00:24.93,0:00:26.93,Caption,,0,0,0,,APOI POVESTEA A DISPĂRUT DIN
-Dialogue: 0,0:00:26.93,0:00:27.32,Caption,,0,0,0,,ȘTIRI
-Dialogue: 0,0:00:27.32,0:00:29.66,Caption,,0,0,0,,DAR NU E DESPRE CONFORT
-Dialogue: 0,0:00:29.66,0:00:31.83,Caption,,0,0,0,,FRIGUL ÎN CASĂ ÎNSEAMNĂ BOLI
-Dialogue: 0,0:00:31.83,0:00:32.27,Caption,,0,0,0,,RESPIRATORII
-Dialogue: 0,0:00:32.27,0:00:33.14,Caption,,0,0,0,,FACTURI NEPLĂTITE
-Dialogue: 0,0:00:33.14,0:00:35.31,Caption,,0,0,0,,ȘI OAMENI CARE ALEG ÎNTRE
-Dialogue: 0,0:00:35.31,0:00:36.61,Caption,,0,0,0,,MÂNCARE ȘI CĂLDURĂ
-Dialogue: 0,0:00:36.61,0:00:40.10,Caption,,0,0,0,,AFECTEAZĂ DIRECT MILIOANE DE GOSPODĂRII
-Dialogue: 0,0:00:40.10,0:00:40.68,Caption,,0,0,0,,COPII
-Dialogue: 0,0:00:40.68,0:00:41.27,Caption,,0,0,0,,PENSIONARI
-Dialogue: 0,0:00:41.27,0:00:43.01,Caption,,0,0,0,,FAMILII CARE MUNCESC
-Dialogue: 0,0:00:43.01,0:00:44.93,Caption,,0,0,0,,E O PROBLEMĂ DE SĂNĂTATE
-Dialogue: 0,0:00:44.93,0:00:45.31,Caption,,0,0,0,,PUBLICĂ
-Dialogue: 0,0:00:45.31,0:00:47.23,Caption,,0,0,0,,NU DOAR UNA DE BUGET
-Dialogue: 0,0:00:47.23,0:00:49.27,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
-Dialogue: 0,0:00:49.27,0:00:51.31,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
-Dialogue: 1,0:00:47.38,0:00:51.38,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
+Dialogue: 0,0:00:00.00,0:00:54.38,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:54.38,Source,,0,0,0,,Eurostat, EU-SILC
+Dialogue: 0,0:00:02.00,0:00:03.72,Caption,,0,0,0,,ROMÂNI NU ÎȘI POT ÎNCĂLZI
+Dialogue: 0,0:00:03.72,0:00:05.84,Caption,,0,0,0,,ADECVAT LOCUINȚA PE TIMP DE IARNĂ
+Dialogue: 0,0:00:05.84,0:00:08.55,Caption,,0,0,0,,DATELE PROVIN DE LA EUROSTAT
+Dialogue: 0,0:00:08.55,0:00:11.26,Caption,,0,0,0,,CARE EVALUEAZĂ ANUAL SĂRĂCIA ENERGETICĂ
+Dialogue: 0,0:00:11.26,0:00:12.88,Caption,,0,0,0,,ÎN UNIUNEA EUROPEANĂ
+Dialogue: 0,0:00:12.88,0:00:15.29,Caption,,0,0,0,,ROMÂNIA SE SITUEAZĂ CONSTANT ÎN
+Dialogue: 0,0:00:15.29,0:00:16.25,Caption,,0,0,0,,FRUNTEA CLASAMENTULUI
+Dialogue: 0,0:00:16.25,0:00:18.65,Caption,,0,0,0,,CU MULT PESTE MEDIA EUROPEANĂ
+Dialogue: 0,0:00:18.65,0:00:21.06,Caption,,0,0,0,,DE APROXIMATIV NOUĂ LA SUTĂ
+Dialogue: 0,0:00:21.06,0:00:23.22,Caption,,0,0,0,,SUBIECTUL A FOST RELATAT PE
+Dialogue: 0,0:00:23.22,0:00:24.95,Caption,,0,0,0,,SCURT LA PUBLICAREA DATELOR
+Dialogue: 0,0:00:24.95,0:00:27.54,Caption,,0,0,0,,APOI A IEȘIT DIN ATENȚIA PUBLICĂ
+Dialogue: 0,0:00:27.54,0:00:29.66,Caption,,0,0,0,,CONSECINȚELE DEPĂȘESC LIPSA DE CONFORT
+Dialogue: 0,0:00:29.66,0:00:31.78,Caption,,0,0,0,,FRIGUL DIN LOCUINȚĂ ESTE ASOCIAT
+Dialogue: 0,0:00:31.78,0:00:33.06,Caption,,0,0,0,,CU AFECȚIUNI RESPIRATORII
+Dialogue: 0,0:00:33.06,0:00:35.18,Caption,,0,0,0,,CU FACTURI NEACHITATE ȘI CU
+Dialogue: 0,0:00:35.18,0:00:37.30,Caption,,0,0,0,,FAMILII NEVOITE SĂ ALEAGĂ ÎNTRE
+Dialogue: 0,0:00:37.30,0:00:38.57,Caption,,0,0,0,,HRANĂ ȘI CĂLDURĂ
+Dialogue: 0,0:00:38.57,0:00:41.49,Caption,,0,0,0,,FENOMENUL AFECTEAZĂ MILIOANE DE GOSPODĂRII
+Dialogue: 0,0:00:41.49,0:00:42.66,Caption,,0,0,0,,— COPII
+Dialogue: 0,0:00:42.66,0:00:45.00,Caption,,0,0,0,,PENSIONARI ȘI FAMILII ACTIVE
+Dialogue: 0,0:00:45.00,0:00:47.17,Caption,,0,0,0,,ESTE, ÎN PRIMUL RÂND
+Dialogue: 0,0:00:47.17,0:00:49.89,Caption,,0,0,0,,O PROBLEMĂ DE SĂNĂTATE PUBLICĂ
+Dialogue: 0,0:00:49.89,0:00:52.11,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:52.11,0:00:54.33,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
+Dialogue: 1,0:00:50.38,0:00:54.38,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓

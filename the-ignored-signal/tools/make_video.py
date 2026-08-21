@@ -53,6 +53,7 @@ BLACK_ASS  = "&H00000000"
 W, H = 1080, 1920
 CAPTION_MAX_WORDS = 5
 FONT = "DejaVu Sans"
+VOICE_RATE = "-8%"   # slightly slower for a measured, journalistic delivery
 
 SRT_TS = re.compile(r"(\d{2}):(\d{2}):(\d{2}),(\d{3})")
 
@@ -100,12 +101,19 @@ def chunk_captions(cues: list) -> list:
             continue
         span = (end - start) / len(toks)
         group: list[str] = []
+        gstart = start
         for i, tok in enumerate(toks):
             if not group:
                 gstart = start + i * span
             group.append(tok)
             end_of_phrase = tok.endswith(BREAK_PUNCT)
-            if len(group) >= CAPTION_MAX_WORDS or end_of_phrase or i == len(toks) - 1:
+            remaining = len(toks) - i - 1
+            # Break on a phrase end, at the word cap, or the last word — but never
+            # strand a lone trailing word (absorb it, up to CAPTION_MAX_WORDS + 1)
+            # so phrases don't snap mid-line like "…CAPUL" / "LISTEI".
+            if (i == len(toks) - 1
+                    or (end_of_phrase and len(group) >= 2)
+                    or (len(group) >= CAPTION_MAX_WORDS and remaining >= 2)):
                 disp = " ".join(group).rstrip(".,;:!?—…")
                 if disp:
                     chunks.append([gstart, start + (i + 1) * span, disp])
@@ -204,8 +212,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 # ── Voice synthesis ───────────────────────────────────────────────────────────
 
-async def synth(text: str, voice: str, mp3_path: Path) -> str:
-    communicate = edge_tts.Communicate(text, voice)
+async def synth(text: str, voice: str, mp3_path: Path, rate: str = VOICE_RATE) -> str:
+    communicate = edge_tts.Communicate(text, voice, rate=rate)
     submaker    = edge_tts.SubMaker()
     with open(mp3_path, "wb") as f:
         async for chunk in communicate.stream():
@@ -829,7 +837,8 @@ def build_filter_complex(
             current = nxt
         final = current
 
-    parts.append(f"[{final}]subtitles='{ass_arg}'[v]")
+    fade_st = max(0.0, narration_dur - 0.5)   # gentle fade-out so it doesn't cut abruptly
+    parts.append(f"[{final}]subtitles='{ass_arg}',fade=t=out:st={fade_st:.2f}:d=0.5[v]")
     return ";".join(parts), clip_dur
 
 
@@ -1124,8 +1133,8 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
         audio_idx = len(scene_order)
         filter_str, clip_dur = build_filter_complex(ass_arg, scenes, total)
         # When padded, fade the narration out and fill the outro with silence.
-        afilter = (f"afade=t=out:st={max(0.0, dur - 0.4):.2f}:d=0.4,apad"
-                   if total > dur + 0.1 else "anull")
+        _afo    = f"afade=t=out:st={max(0.0, dur - 0.4):.2f}:d=0.4"   # no abrupt cut
+        afilter = _afo + (",apad" if total > dur + 0.1 else "")
 
         cmd = [
             ffmpeg, "-y",

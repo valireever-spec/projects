@@ -66,8 +66,9 @@ that a video renderer will consume.
 EDITORIAL RULES (non-negotiable):
 - Framing: NOT "the press hid this from you". Instead: "it was reported briefly, \
   then dropped out of the news — here are the sources, judge for yourself."
-- Tone: a trusted friend who read the report and explains it. No opinion, no \
-  speculation, no sensationalism. Every claim must be sourced.
+- Tone: a professional news journalist — formal, measured, authoritative and \
+  neutral. No conversational fillers ("nu e o părere", "dar contează", "vorbim \
+  despre"), no opinion, no speculation, no sensationalism. Every claim sourced.
 - Sourcing: find at least 2 INDEPENDENT legitimate sources, at least one a \
   primary/institutional source (EU/Eurostat/national statistics office, a court, \
   a government body, a peer-reviewed study, UN/NATO/Council of Europe, or a named \

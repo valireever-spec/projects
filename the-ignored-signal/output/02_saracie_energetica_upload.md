@@ -1,6 +1,6 @@
 # Upload package — 02_saracie_energetica
 
-**Channel:** Sub Radar  ·  **Durată:** 51s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 54s  ·  **Verificat:** True
 **Thumbnail:** 02_saracie_energetica_thumb.jpg
 
 ---
