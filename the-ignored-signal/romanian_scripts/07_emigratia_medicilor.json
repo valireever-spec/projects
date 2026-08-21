@@ -1,0 +1,31 @@
+{
+  "slug": "07_emigratia_medicilor",
+  "headline": "Zeci de mii de medici au plecat din România de la aderarea la UE. Spitalele duc lipsă de doctori.",
+  "voice": "ro-RO-EmilNeural",
+  "channel": "Sub Radar",
+  "source_onscreen": "OECD / Colegiul Medicilor",
+  "country": "Romania",
+  "hook_card": "ZECI DE MII DE MEDICI\nAU PLECAT DIN ROMÂNIA",
+  "cta_question": "Știai asta? Spune-ne în comentarii ↓",
+  "verified": false,
+  "verification_note": "DRAFT — de verificat: numărul de medici care au emigrat din România de la aderarea la UE (2007) și datele privind deficitul de personal, prin OECD Health at a Glance / International Migration of Health Workers, Eurostat (medici la mia de locuitori) și Colegiul Medicilor din România. Faptul de bază — emigrare masivă a medicilor și deficit, mai ales în mediul rural — este documentat; cifra exactă trebuie confirmată.",
+  "narration": "De la aderarea la Uniunea Europeană, zeci de mii de medici au plecat din România ca să lucreze în alte țări. [VERIFICĂ cifra] Nu e o impresie — o arată datele oficiale și cele ale Colegiului Medicilor. Statul a plătit formarea lor — ani de facultate și de rezidențiat — și apoi i-a pierdut în favoarea altor sisteme de sănătate. Rezultatul se vede în spitale: secții fără personal suficient și, mai ales la sate și în orașele mici, oameni care fac zeci de kilometri până la cel mai apropiat medic. S-a scris despre asta periodic, apoi subiectul a ieșit din atenția publică. Dar contează. Lipsa medicilor înseamnă diagnostice întârziate și vieți puse în pericol. Sursele sunt pe ecran. Urmărește Sub Radar pentru mai multe semnale ignorate.",
+  "sources": [
+    "[PRIMARĂ] OECD — Health at a Glance / International Migration of Health Workers → oecd.org",
+    "[PRIMARĂ] Eurostat — medici practicanți la mia de locuitori → ec.europa.eu/eurostat",
+    "[SECUNDARĂ] Colegiul Medicilor din România — date privind emigrarea medicilor → cmr.ro"
+  ],
+  "stat_windows": [],
+  "video_search_terms": [
+    "Romania hospital empty corridor",
+    "doctor walking hospital hallway",
+    "airport departure travel luggage",
+    "Romania rural clinic building",
+    "medical staff hospital Europe",
+    "doctor stethoscope patient exam",
+    "Romania small town street",
+    "empty hospital waiting room",
+    "surgeon operating room team",
+    "European medical university building"
+  ]
+}

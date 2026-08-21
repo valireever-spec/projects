@@ -1,0 +1,41 @@
+{
+  "slug": "05_analfabetism_functional",
+  "headline": "Aproape jumătate dintre elevii români de cincisprezece ani sunt analfabeți funcțional. E scris într-un raport internațional.",
+  "voice": "ro-RO-EmilNeural",
+  "channel": "Sub Radar",
+  "source_onscreen": "OECD — PISA 2022",
+  "country": "Romania",
+  "hook_card": "PESTE 40% DINTRE ELEVII ROMÂNI\nSUNT ANALFABEȚI FUNCȚIONAL",
+  "cta_question": "Știai asta? Spune-ne în comentarii ↓",
+  "verified": false,
+  "verification_note": "DRAFT — de verificat: procentul exact al elevilor sub nivelul minim la citire (PISA 2022) și media UE, prin raportul OECD PISA 2022 (oecd.org/pisa) și Education and Training Monitor al Comisiei Europene. Faptul de bază — România mult peste media UE la analfabetism funcțional în rândul elevilor de 15 ani — este bine documentat; cifrele exacte trebuie confirmate.",
+  "narration": "Aproape jumătate dintre elevii români de cincisprezece ani sunt analfabeți funcțional. Nu e o exagerare — reiese din testele internaționale PISA, coordonate de OECD. Analfabetism funcțional înseamnă că un tânăr poate citi cuvintele, dar nu înțelege un text simplu — o instrucțiune, un contract, un articol. Conform ultimelor date, peste patruzeci la sută dintre elevii de cincisprezece ani sunt în această situație. [VERIFICĂ cifra] Este mult peste media Uniunii Europene. [VERIFICĂ media UE] S-a scris despre asta când au ieșit rezultatele, apoi subiectul a dispărut din atenție. Dar contează. Un copil care nu înțelege ce citește pornește în viață cu un handicap uriaș — la școală, la muncă, în fața oricărui formular. Sursele sunt pe ecran. Urmărește Sub Radar pentru mai multe semnale ignorate.",
+  "sources": [
+    "[PRIMARĂ] OECD — PISA 2022 Results, rezultate România (citire, elevi de 15 ani) → oecd.org/pisa",
+    "[SECUNDARĂ] Comisia Europeană — Education and Training Monitor: Romania → education.ec.europa.eu",
+    "[TERȚIARĂ] World Bank — Learning Poverty / Human Capital, România → worldbank.org"
+  ],
+  "stat_windows": [
+    {
+      "window_idx": 3,
+      "values": [
+        {"label": "România", "value": 42.0, "color": "#c0392b"},
+        {"label": "Media UE", "value": 26.0, "color": "#1a6bb5"}
+      ],
+      "metric": "% elevi de 15 ani sub nivelul minim la citire [VERIFICĂ]",
+      "source": "OECD PISA 2022"
+    }
+  ],
+  "video_search_terms": [
+    "Romania school classroom students",
+    "Romania children reading book",
+    "empty classroom desks",
+    "student writing exam test",
+    "Romania rural school building",
+    "teenager studying difficult homework",
+    "library books education",
+    "Romania village children",
+    "teacher classroom lesson Europe",
+    "European education ministry building"
+  ]
+}

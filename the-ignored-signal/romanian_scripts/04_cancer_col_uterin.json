@@ -1,0 +1,41 @@
+{
+  "slug": "04_cancer_col_uterin",
+  "headline": "România are cea mai mare mortalitate prin cancer de col uterin din UE — o boală în mare parte prevenibilă.",
+  "voice": "ro-RO-EmilNeural",
+  "channel": "Sub Radar",
+  "source_onscreen": "ECIS / IARC — date UE",
+  "country": "Romania",
+  "hook_card": "ROMÂNIA, PE PRIMUL LOC ÎN UE\nLA DECESE PRIN CANCER DE COL UTERIN",
+  "cta_question": "Știai asta? Spune-ne în comentarii ↓",
+  "verified": false,
+  "verification_note": "DRAFT — de verificat înainte de publicare: cifra exactă a deceselor pe an, raportul față de media UE și valorile din stat_window, prin European Cancer Information System (ecis.jrc.ec.europa.eu) și GLOBOCAN/IARC (gco.iarc.fr). Faptul de bază — România pe primul loc în UE la mortalitatea prin cancer de col uterin — este bine documentat; cifrele precise trebuie confirmate.",
+  "narration": "România are cea mai mare rată de mortalitate prin cancer de col uterin din toată Uniunea Europeană. Nu e o părere — reiese din datele oficiale europene. În fiecare an, mii de românce sunt diagnosticate, și peste o mie cinci sute mor. [VERIFICĂ cifra] Rata de deces e de câteva ori mai mare decât media europeană. [VERIFICĂ raportul] Și partea grea e asta: cancerul de col uterin e, în mare parte, prevenibil — prin vaccinare împotriva HPV și prin testare periodică. În alte țări din Uniune, mortalitatea a scăzut constant. La noi, acoperirea cu vaccin și cu screening a rămas mult în urmă. S-a scris despre asta când au ieșit rapoartele, apoi subiectul a dispărut din atenție. Dar contează. Vorbim despre vieți care s-ar putea salva. Sursele sunt pe ecran. Urmărește Sub Radar pentru mai multe semnale ignorate.",
+  "sources": [
+    "[PRIMARĂ] European Cancer Information System (ECIS), Comisia Europeană / JRC — mortalitate cancer de col uterin pe țări → ecis.jrc.ec.europa.eu",
+    "[PRIMARĂ] IARC / WHO — Global Cancer Observatory (GLOBOCAN), profil România → gco.iarc.fr",
+    "[SECUNDARĂ] OECD / Comisia Europeană — State of Health in the EU: Romania Country Health Profile → health.ec.europa.eu"
+  ],
+  "stat_windows": [
+    {
+      "window_idx": 3,
+      "values": [
+        {"label": "România", "value": 14.2, "color": "#c0392b"},
+        {"label": "Media UE", "value": 3.6, "color": "#1a6bb5"}
+      ],
+      "metric": "Mortalitate cancer col uterin (la 100.000 femei) [VERIFICĂ]",
+      "source": "ECIS / IARC"
+    }
+  ],
+  "video_search_terms": [
+    "Romania hospital doctor patient",
+    "Romania women health clinic",
+    "vaccine syringe medical closeup",
+    "doctor consultation patient serious",
+    "Romania rural village women elderly",
+    "hospital corridor healthcare Europe",
+    "medical laboratory blood test",
+    "Romania city street people",
+    "nurse caring for patient",
+    "European health ministry building"
+  ]
+}

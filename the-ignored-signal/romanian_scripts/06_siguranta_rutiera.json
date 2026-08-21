@@ -1,0 +1,41 @@
+{
+  "slug": "06_siguranta_rutiera",
+  "headline": "România are cel mai mare număr de morți pe șosele din UE, raportat la populație.",
+  "voice": "ro-RO-EmilNeural",
+  "channel": "Sub Radar",
+  "source_onscreen": "Comisia Europeană — siguranță rutieră",
+  "country": "Romania",
+  "hook_card": "ROMÂNIA, PE ULTIMUL LOC ÎN UE\nLA SIGURANȚA RUTIERĂ",
+  "cta_question": "Știai asta? Spune-ne în comentarii ↓",
+  "verified": false,
+  "verification_note": "DRAFT — de verificat: rata exactă a deceselor rutiere la un milion de locuitori pentru România și media UE, plus numărul de decese pe an, prin statisticile de siguranță rutieră ale Comisiei Europene (baza CARE, transport.ec.europa.eu) și Eurostat. Faptul de bază — România pe primul loc în UE la mortalitate rutieră raportat la populație — este documentat constant; cifrele exacte trebuie confirmate pentru anul folosit.",
+  "narration": "România are cel mai mare număr de morți pe șosele din toată Uniunea Europeană, raportat la populație. Nu e o părere — reiese din statisticile oficiale ale Comisiei Europene. Rata de decese pe drumurile din România este de aproape două ori mai mare decât media europeană. [VERIFICĂ raportul] În fiecare an mor mii de oameni — șoferi, pietoni, bicicliști. [VERIFICĂ cifra] În timp ce în alte țări numărul scade an de an, la noi rămâne blocat sus. S-a raportat scurt când au ieșit cifrele, apoi povestea a dispărut din știri. Dar contează. În spatele fiecărui număr e un om și o familie. Multe dintre aceste morți s-ar putea preveni — cu drumuri mai sigure și cu reguli aplicate. Sursele sunt pe ecran. Urmărește Sub Radar pentru mai multe semnale ignorate.",
+  "sources": [
+    "[PRIMARĂ] Comisia Europeană — statistici siguranță rutieră (baza de date CARE) → transport.ec.europa.eu",
+    "[PRIMARĂ] Eurostat — victime ale accidentelor rutiere → ec.europa.eu/eurostat",
+    "[SECUNDARĂ] European Transport Safety Council (ETSC) — Road Safety PIN report → etsc.eu"
+  ],
+  "stat_windows": [
+    {
+      "window_idx": 3,
+      "values": [
+        {"label": "România", "value": 86.0, "color": "#c0392b"},
+        {"label": "Media UE", "value": 46.0, "color": "#1a6bb5"}
+      ],
+      "metric": "Decese rutiere la un milion de locuitori [VERIFICĂ]",
+      "source": "Comisia Europeană (CARE)"
+    }
+  ],
+  "video_search_terms": [
+    "Romania road highway traffic",
+    "car accident road safety",
+    "Romania rural road driving",
+    "pedestrian crossing street",
+    "traffic cars highway Europe",
+    "Romania countryside road landscape",
+    "damaged car crash barrier",
+    "people crossing street city",
+    "ambulance emergency road night",
+    "European transport ministry building"
+  ]
+}
