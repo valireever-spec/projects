@@ -312,7 +312,15 @@ def _term_for_window(window_text: str, country: str, seen: set[str]) -> str | No
     return None
 
 
-def extract_timed_terms(chunks: list, country: str, n_clips: int) -> list[str]:
+def extract_timed_terms(chunks: list, country: str, n_clips: int,
+                        topic_terms: list[str] | None = None) -> list[str]:
+    # Curated, on-topic terms from the script's video_search_terms take priority
+    # so every scene stays on the story's subject. The _RO_VISUAL narration map
+    # below is only a fallback for scripts that provide no curated terms.
+    topic_terms = [t for t in (topic_terms or []) if t]
+    if topic_terms:
+        return [topic_terms[i % len(topic_terms)] for i in range(n_clips)]
+
     if not chunks:
         return []
     total_dur = chunks[-1][1]
@@ -1048,7 +1056,7 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
     stat_defs = data.get("stat_windows", [])
 
     print(f"[3/4] Building {n_wins} visual windows...")
-    search_terms = extract_timed_terms(chunks, country, n_wins)
+    search_terms = extract_timed_terms(chunks, country, n_wins, fallback_terms)
     if not search_terms:
         search_terms = (fallback_terms * ((n_wins // len(fallback_terms)) + 1))[:n_wins]
 
