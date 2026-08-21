@@ -577,36 +577,45 @@ def get_scene_media(search_terms: list[str], out_dir: Path, slug: str,
         dest   = out_dir / f"img_{slug}_{i}.jpg"     # AI cache
 
         print(f"  [{i+1}/{len(search_terms)}] {term!r}")
+        # A term naming the country is a PLACE shot — use a real, geotagged
+        # Romania photo (Wikimedia) so we never show a US/Italian street.
+        # Generic concept terms (hospital, children, traffic) use Pexels video.
+        is_place = bool(country) and country.lower() in term.lower()
 
-        # 0 — cached video clip
-        if _is_fresh(clip):
-            use("video", clip); print(f"    clip cached: {clip.name}"); continue
-        # 1 — Pexels video (real motion b-roll)
-        if _fetch_pexels_video(term, clip):
-            use("video", clip)
-            print(f"    Pexels video ✓ ({clip.stat().st_size // 1024} KB)"); continue
+        # 0 — reuse cached media (the kind this slot should be, first)
+        cached = ((("image", photo), ("video", clip)) if is_place
+                  else (("video", clip), ("image", photo)))
+        reused = False
+        for k, p in cached:
+            if _is_fresh(p):
+                use(k, p); print(f"    cached: {p.name}"); reused = True; break
+        if reused:
+            continue
 
-        # 2 — cached real photo
-        if _is_fresh(photo):
-            use("image", photo); print(f"    photo cached: {photo.name}"); continue
-        # 3 — Pexels photo
-        if _fetch_pexels(term, photo):
-            use("image", photo)
-            print(f"    Pexels photo ✓ ({photo.stat().st_size // 1024} KB)"); continue
-        # 4 — Wikimedia for authentic country-specific slots (needs credit)
-        if USE_WIKIMEDIA and country and term.lower().startswith(country.lower()):
+        if is_place and USE_WIKIMEDIA:
             ok, attribution = _fetch_wikimedia(term, photo)
             if ok:
                 use("image", photo); credits.append(attribution)
                 print(f"    Wikimedia ✓ — {attribution}"); continue
 
-        # 5 — reuse an existing AI image if present (unless it's a dup)
+        # Motion b-roll (concept terms, or place fallback if Wikimedia had nothing)
+        if _fetch_pexels_video(term, clip):
+            use("video", clip)
+            print(f"    Pexels video ✓ ({clip.stat().st_size // 1024} KB)"); continue
+        if _fetch_pexels(term, photo):
+            use("image", photo)
+            print(f"    Pexels photo ✓ ({photo.stat().st_size // 1024} KB)"); continue
+        if USE_WIKIMEDIA and not is_place and country:
+            ok, attribution = _fetch_wikimedia(term, photo)
+            if ok:
+                use("image", photo); credits.append(attribution)
+                print(f"    Wikimedia ✓ — {attribution}"); continue
+
+        # reuse an existing AI image, else generate (never-fail fallback)
         if _is_fresh(dest_a):
             use("image", dest_a); print(f"    AI cached: {dest_a.name}"); continue
         if _is_fresh(dest):
             use("image", dest); print(f"    AI cached: {dest.name}"); continue
-
-        # 6 — generate with Pollinations (never-fail fallback)
         print(f"    generating (AI fallback)...")
         if _fetch_pollinations(_image_prompt(term, i), dest, i * 137 + 42):
             use("image", dest); print(f"    AI ✓ ({dest.stat().st_size // 1024} KB)")
@@ -1007,7 +1016,7 @@ def _report_validation(name: str, issues: list[tuple[str, str]]) -> bool:
 # ── Per-script renderer ───────────────────────────────────────────────────────
 
 def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
-                   force: bool = False) -> Path | None:
+                   force: bool = False, tight: bool = False) -> Path | None:
     data = json.loads(script_path.read_text(encoding="utf-8"))
 
     print(f"\n=== {script_path.name} ===")
@@ -1031,7 +1040,7 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
 
     mp3_path = out_dir / f"{slug}.mp3"
     ass_path = out_dir / f"{slug}.ass"
-    mp4_path = out_dir / f"{slug}.mp4"
+    mp4_path = out_dir / f"{slug}{'_tight' if tight else ''}.mp4"
 
     # 1 — Voice
     print(f"[1/4] Synthesizing voice ({voice})...")
@@ -1042,7 +1051,9 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
     cues   = parse_srt_words(srt)
     chunks = chunk_captions(cues)
     dur    = media_duration(ffmpeg, mp3_path)
-    total  = max(dur, MIN_DURATION)   # pad short videos past TikTok's 60s floor
+    # Tight cut: end right on the CTA (no silent outro) for retention on Shorts/
+    # Reels/FB. Full cut: pad past TikTok's 60s monetization floor.
+    total  = dur if tight else max(dur, MIN_DURATION)
     ass_path.write_text(
         build_ass(chunks, total, channel, source_text, show_source,
                   hook_card, cta_question, narration_dur=dur),
@@ -1185,9 +1196,10 @@ def main() -> None:
     args         = sys.argv[1:]
     force        = "--force" in args
     check_only   = "--check" in args
+    tight        = "--tight" in args   # no outro padding → better retention (Shorts/Reels)
     script_paths = [Path(a) for a in args if not a.startswith("--")]
     if not script_paths:
-        print("Usage: python tools/make_video.py [--check] [--force] "
+        print("Usage: python tools/make_video.py [--check] [--force] [--tight] "
               "<script1.json> [script2.json ...]")
         sys.exit(1)
 
@@ -1212,12 +1224,12 @@ def main() -> None:
 
     mp4_paths: list[Path] = []
     for sp in script_paths:
-        mp4 = _render_script(sp, out_dir, ffmpeg, force=force)
+        mp4 = _render_script(sp, out_dir, ffmpeg, force=force, tight=tight)
         if mp4:
             mp4_paths.append(mp4)
 
     if len(mp4_paths) > 1:
-        _concat_videos(mp4_paths, out_dir / "combined.mp4", ffmpeg)
+        _concat_videos(mp4_paths, out_dir / f"combined{'_tight' if tight else ''}.mp4", ffmpeg)
     elif mp4_paths:
         print(f"\nOutput → {mp4_paths[0]}")
 
