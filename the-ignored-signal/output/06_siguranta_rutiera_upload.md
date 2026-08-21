@@ -1,6 +1,6 @@
 # Upload package — 06_siguranta_rutiera
 
-**Channel:** Sub Radar  ·  **Durată:** 62s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 55s  ·  **Verificat:** True
 **Thumbnail:** 06_siguranta_rutiera_thumb.jpg
 
 ---
@@ -22,6 +22,12 @@ ROMÂNIA, PE ULTIMUL LOC ÎN UE LA SIGURANȚA RUTIERĂ
 
 🎬 Credite:
 - Video & foto: Pexels (Pexels License — fără atribuire necesară)
+- "Bucharest after the rain.JPG" by Pudelek (Marcin Szala) — CC BY-SA 3.0 (Wikimedia Commons)
+- "Romania Transfagarasan.jpg" by Dariusz Grosa — CC0 (Wikimedia Commons)
+- "Bucharest in the evening.jpg" by Costin Halmagyi — CC0 (Wikimedia Commons)
+- "Giurgiu - traffic circle.jpg" by Tiia Monto — CC BY-SA 4.0 (Wikimedia Commons)
+- "Bucharest Traffic (128813657).jpeg" by Rhys Sherring — CC BY 3.0 (Wikimedia Commons)
+- "Transfăgărășan (2023-08-28 2).jpg" by Olgierd Rudak — CC BY-SA 4.0 (Wikimedia Commons)
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
 ⚠️ AI-generated voice-over. Footage is illustrative (Pexels, Wikimedia Commons).
