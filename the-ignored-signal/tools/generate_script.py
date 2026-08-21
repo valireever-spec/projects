@@ -86,6 +86,8 @@ WRITING RULES for the narration (spoken text):
   matters → a short close inviting the viewer to follow.
 - Spell numbers out as WORDS for text-to-speech (e.g. "cincisprezece la sută", \
   not "15%"). Never use symbols like %, €. No markdown, no emojis, no line breaks.
+- Do NOT claim the sources are on screen (never write "sursele sunt pe ecran" or \
+  anything similar) — end with a simple invitation to follow, nothing more.
 
 Return ONLY a JSON object (no prose, no markdown fences) with these fields:
 {
