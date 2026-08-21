@@ -1,6 +1,6 @@
 # Upload package — 09_depopulare
 
-**Channel:** Sub Radar  ·  **Durată:** 62s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 54s  ·  **Verificat:** True
 **Thumbnail:** 09_depopulare_thumb.jpg
 
 ---

@@ -16,8 +16,8 @@ Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,ROMÂNIA, PE ULTIMUL LOC ÎN UE\NLA COMPETENȚE DIGITALE
-Dialogue: 0,0:00:00.00,0:01:02.00,Header,,0,0,0,,SUB RADAR
-Dialogue: 0,0:00:00.00,0:01:02.00,Source,,0,0,0,,Eurostat — competențe digitale 2023
+Dialogue: 0,0:00:00.00,0:00:48.36,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:48.36,Source,,0,0,0,,Eurostat — competențe digitale 2023
 Dialogue: 0,0:00:02.00,0:00:02.03,Caption,,0,0,0,,DOAR APROXIMATIV UNUL DIN PATRU
 Dialogue: 0,0:00:02.03,0:00:03.97,Caption,,0,0,0,,ROMÂNI ARE COMPETENȚE DIGITALE DE
 Dialogue: 0,0:00:03.97,0:00:04.74,Caption,,0,0,0,,BAZĂ 
@@ -50,8 +50,7 @@ Dialogue: 0,0:00:36.96,0:00:38.88,Caption,,0,0,0,,S-A SCRIS DESPRE ASTA CÂND
 Dialogue: 0,0:00:38.88,0:00:40.03,Caption,,0,0,0,,AU IEȘIT CIFRELE
 Dialogue: 0,0:00:40.03,0:00:41.94,Caption,,0,0,0,,APOI SUBIECTUL A DISPĂRUT DIN
 Dialogue: 0,0:00:41.94,0:00:42.33,Caption,,0,0,0,,ATENȚIE
-Dialogue: 0,0:00:42.33,0:00:44.23,Caption,,0,0,0,,DAR CONTEAZĂ
-Dialogue: 0,0:00:44.23,0:00:46.48,Caption,,0,0,0,,SURSELE SUNT PE ECRAN
-Dialogue: 0,0:00:46.48,0:00:48.83,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
-Dialogue: 0,0:00:48.83,0:00:50.24,Caption,,0,0,0,,MULTE SEMNALE IGNORATE
-Dialogue: 1,0:00:50.30,0:01:02.00,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
+Dialogue: 0,0:00:42.33,0:00:44.21,Caption,,0,0,0,,DAR CONTEAZĂ
+Dialogue: 0,0:00:44.21,0:00:46.26,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:46.26,0:00:48.30,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
+Dialogue: 1,0:00:44.36,0:00:48.36,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓

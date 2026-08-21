@@ -1,6 +1,6 @@
 # Upload package — 01_toaleta_apa
 
-**Channel:** Sub Radar  ·  **Durată:** 62s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 52s  ·  **Verificat:** True
 **Thumbnail:** 01_toaleta_apa_thumb.jpg
 
 ---
@@ -22,6 +22,7 @@ România — cea mai mare pondere din UE fără toaletă cu apă în casă #Shor
 
 🎬 Credite:
 - Video & foto: Pexels (Pexels License — fără atribuire necesară)
+- "Botiza 2009 02.JPG" by Joadl — CC BY-SA 3.0 (Wikimedia Commons)
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
 ⚠️ AI-generated voice-over. Footage is illustrative (Pexels, Wikimedia Commons).

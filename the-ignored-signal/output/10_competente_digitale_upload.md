@@ -1,6 +1,6 @@
 # Upload package — 10_competente_digitale
 
-**Channel:** Sub Radar  ·  **Durată:** 62s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 48s  ·  **Verificat:** True
 **Thumbnail:** 10_competente_digitale_thumb.jpg
 
 ---

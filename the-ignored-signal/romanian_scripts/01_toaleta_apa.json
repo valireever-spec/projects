@@ -19,23 +19,31 @@
     {
       "window_idx": 3,
       "values": [
-        {"label": "România", "value": 15.4, "color": "#c0392b"},
-        {"label": "Media UE", "value": 3.1, "color": "#1a6bb5"}
+        {
+          "label": "România",
+          "value": 15.4,
+          "color": "#c0392b"
+        },
+        {
+          "label": "Media UE",
+          "value": 3.1,
+          "color": "#1a6bb5"
+        }
       ],
       "metric": "% populație fără toaletă cu apă în locuință",
       "source": "Eurostat EU-SILC 2023"
     }
   ],
   "video_search_terms": [
-    "Romania village rural house",
-    "Romania countryside landscape",
-    "Romania poor village old house",
-    "Romania people street village",
-    "Romania rural life elderly",
-    "water tap faucet running kitchen",
-    "bathroom toilet indoor plumbing",
-    "clean water sink washing hands",
-    "Romania forest nature",
-    "Romania city people urban"
+    "Romania village Maramures rural",
+    "Romania rural house countryside",
+    "Romania old wooden village house",
+    "water tap dripping close up",
+    "Romania village well countryside",
+    "hands washing under running water",
+    "water bucket well rural close up",
+    "child hands water close up",
+    "rusty water pipe close up",
+    "empty glass pouring water close up"
   ]
 }

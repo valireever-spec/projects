@@ -19,8 +19,16 @@
     {
       "window_idx": 3,
       "values": [
-        {"label": "România", "value": 33.8, "color": "#c0392b"},
-        {"label": "Media UE", "value": 24.2, "color": "#1a6bb5"}
+        {
+          "label": "România",
+          "value": 33.8,
+          "color": "#c0392b"
+        },
+        {
+          "label": "Media UE",
+          "value": 24.2,
+          "color": "#1a6bb5"
+        }
       ],
       "metric": "% copii la risc de sărăcie sau excluziune (2024)",
       "unit": "%",
@@ -28,15 +36,15 @@
     }
   ],
   "video_search_terms": [
-    "Romania poor child rural village",
-    "Romania village children playing",
-    "child poverty Europe modest home",
-    "Romania rural family house",
-    "children walking to school Romania",
-    "worn shoes child poverty",
-    "Romania countryside poverty",
-    "kids playing dirt road village",
-    "empty modest child bedroom",
-    "European social policy building"
+    "Romania village Maramures rural",
+    "worn old child shoes close up",
+    "child hands close up poor",
+    "modest bare room interior",
+    "Romania rural village children",
+    "child playing dirt ground poor",
+    "old bread on wooden table",
+    "child looking out window",
+    "empty plate table close up",
+    "Romania rural poor house countryside"
   ]
 }

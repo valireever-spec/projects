@@ -16,8 +16,8 @@ Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,UNUL DIN TREI COPII DIN ROMÂNIA\NE LA RISC DE SĂRĂCIE
-Dialogue: 0,0:00:00.00,0:01:02.00,Header,,0,0,0,,SUB RADAR
-Dialogue: 0,0:00:00.00,0:01:02.00,Source,,0,0,0,,Eurostat — AROPE 2024
+Dialogue: 0,0:00:00.00,0:00:50.62,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:50.62,Source,,0,0,0,,Eurostat — AROPE 2024
 Dialogue: 0,0:00:02.00,0:00:03.81,Caption,,0,0,0,,ROMÂNIA TRĂIEȘTE LA RISC DE
 Dialogue: 0,0:00:03.81,0:00:05.24,Caption,,0,0,0,,SĂRĂCIE SAU EXCLUZIUNE SOCIALĂ
 Dialogue: 0,0:00:05.24,0:00:07.53,Caption,,0,0,0,,NU E O IMPRESIE 
@@ -49,7 +49,6 @@ Dialogue: 0,0:00:40.19,0:00:40.58,Caption,,0,0,0,,ATENȚIE
 Dialogue: 0,0:00:40.58,0:00:42.46,Caption,,0,0,0,,DAR CONTEAZĂ
 Dialogue: 0,0:00:42.46,0:00:44.69,Caption,,0,0,0,,SĂRĂCIA DIN COPILĂRIE LASĂ URME
 Dialogue: 0,0:00:44.69,0:00:46.48,Caption,,0,0,0,,PE TOT RESTUL VIEȚII
-Dialogue: 0,0:00:46.48,0:00:48.73,Caption,,0,0,0,,SURSELE SUNT PE ECRAN
-Dialogue: 0,0:00:48.73,0:00:51.07,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
-Dialogue: 0,0:00:51.07,0:00:52.48,Caption,,0,0,0,,MULTE SEMNALE IGNORATE
-Dialogue: 1,0:00:52.54,0:01:02.00,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
+Dialogue: 0,0:00:46.48,0:00:48.52,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:48.52,0:00:50.56,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
+Dialogue: 1,0:00:46.62,0:00:50.62,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓

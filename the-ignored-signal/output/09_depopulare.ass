@@ -16,8 +16,8 @@ Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,PESTE 3 MILIOANE DE ROMÂNI\NAU PLECAT DE LA ADERAREA LA UE
-Dialogue: 0,0:00:00.00,0:01:02.00,Header,,0,0,0,,SUB RADAR
-Dialogue: 0,0:00:00.00,0:01:02.00,Source,,0,0,0,,Eurostat / OECD
+Dialogue: 0,0:00:00.00,0:00:53.90,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:53.90,Source,,0,0,0,,Eurostat / OECD
 Dialogue: 0,0:00:02.00,0:00:02.18,Caption,,0,0,0,,EUROPEANĂ
 Dialogue: 0,0:00:02.18,0:00:03.56,Caption,,0,0,0,,ÎN DOUĂ MII ȘAPTE
 Dialogue: 0,0:00:03.56,0:00:05.29,Caption,,0,0,0,,PESTE TREI MILIOANE DE ROMÂNI
@@ -47,10 +47,9 @@ Dialogue: 0,0:00:38.88,0:00:41.06,Caption,,0,0,0,,APOI POVESTEA A DISPĂRUT DIN
 Dialogue: 0,0:00:41.06,0:00:41.94,Caption,,0,0,0,,ATENȚIA PUBLICĂ
 Dialogue: 0,0:00:41.94,0:00:43.83,Caption,,0,0,0,,DAR CONTEAZĂ
 Dialogue: 0,0:00:43.83,0:00:45.80,Caption,,0,0,0,,MAI PUȚINI OAMENI ÎNSEAMNĂ SATE
-Dialogue: 0,0:00:45.80,0:00:46.19,Caption,,0,0,0,,GOLITE
-Dialogue: 0,0:00:46.19,0:00:48.16,Caption,,0,0,0,,ȘCOLI ÎNCHISE ȘI TOT MAI
-Dialogue: 0,0:00:48.16,0:00:49.74,Caption,,0,0,0,,PUȚINI CARE SUSȚIN PENSIILE
-Dialogue: 0,0:00:49.74,0:00:51.99,Caption,,0,0,0,,SURSELE SUNT PE ECRAN
-Dialogue: 0,0:00:51.99,0:00:54.33,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
-Dialogue: 0,0:00:54.33,0:00:55.74,Caption,,0,0,0,,MULTE SEMNALE IGNORATE
-Dialogue: 1,0:00:55.80,0:01:02.00,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
+Dialogue: 0,0:00:45.80,0:00:46.20,Caption,,0,0,0,,GOLITE
+Dialogue: 0,0:00:46.20,0:00:48.18,Caption,,0,0,0,,ȘCOLI ÎNCHISE ȘI TOT MAI
+Dialogue: 0,0:00:48.18,0:00:49.76,Caption,,0,0,0,,PUȚINI CARE SUSȚIN PENSIILE
+Dialogue: 0,0:00:49.76,0:00:51.81,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:51.81,0:00:53.85,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
+Dialogue: 1,0:00:49.90,0:00:53.90,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓

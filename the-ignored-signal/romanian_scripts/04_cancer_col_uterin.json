@@ -19,8 +19,16 @@
     {
       "window_idx": 3,
       "values": [
-        {"label": "România", "value": 16.9, "color": "#c0392b"},
-        {"label": "Media UE", "value": 5.6, "color": "#1a6bb5"}
+        {
+          "label": "România",
+          "value": 16.9,
+          "color": "#c0392b"
+        },
+        {
+          "label": "Media UE",
+          "value": 5.6,
+          "color": "#1a6bb5"
+        }
       ],
       "metric": "Mortalitate cancer col uterin (la 100.000 femei)",
       "unit": "",
@@ -28,15 +36,15 @@
     }
   ],
   "video_search_terms": [
-    "Romania hospital doctor patient",
-    "Romania women health clinic",
-    "vaccine syringe medical closeup",
-    "doctor consultation patient serious",
-    "Romania rural village women elderly",
-    "hospital corridor healthcare Europe",
-    "medical laboratory blood test",
-    "Romania city street people",
-    "nurse caring for patient",
-    "European health ministry building"
+    "Romania Bucharest hospital building",
+    "doctor patient consultation clinic",
+    "syringe vaccine injection close up",
+    "nurse hands patient care close up",
+    "Romania Cluj university building",
+    "medical laboratory microscope close up",
+    "hospital corridor empty",
+    "stethoscope doctor hands close up",
+    "woman patient waiting room",
+    "Romania village elderly woman"
   ]
 }

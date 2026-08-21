@@ -1,6 +1,6 @@
 # Upload package — 02_saracie_energetica
 
-**Channel:** Sub Radar  ·  **Durată:** 62s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 51s  ·  **Verificat:** True
 **Thumbnail:** 02_saracie_energetica_thumb.jpg
 
 ---
@@ -22,6 +22,8 @@ Unul din șase români nu-și poate încălzi locuința. E scris într-un raport
 
 🎬 Credite:
 - Video & foto: Pexels (Pexels License — fără atribuire necesară)
+- "Winter in my village - panoramio.jpg" by István Szőllősi — CC BY 3.0 (Wikimedia Commons)
+- "Snow in the Carpathian Mountains (MODIS 2015-05-01).jpg" by Jeff Schmaltz, MODIS Land Rapid Response Team, NASA GSFC — Public domain (Wikimedia Commons)
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
 ⚠️ AI-generated voice-over. Footage is illustrative (Pexels, Wikimedia Commons).

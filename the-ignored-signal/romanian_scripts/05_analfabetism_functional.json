@@ -19,23 +19,31 @@
     {
       "window_idx": 3,
       "values": [
-        {"label": "România", "value": 42.0, "color": "#c0392b"},
-        {"label": "Media OCDE", "value": 26.0, "color": "#1a6bb5"}
+        {
+          "label": "România",
+          "value": 42.0,
+          "color": "#c0392b"
+        },
+        {
+          "label": "Media OCDE",
+          "value": 26.0,
+          "color": "#1a6bb5"
+        }
       ],
       "metric": "% elevi de 15 ani sub nivelul minim la citire",
       "source": "OECD — PISA 2022"
     }
   ],
   "video_search_terms": [
-    "Romania school classroom students",
-    "Romania children reading book",
-    "empty classroom desks",
-    "student writing exam test",
-    "Romania rural school building",
-    "teenager studying difficult homework",
-    "library books education",
-    "Romania village children",
-    "teacher classroom lesson Europe",
-    "European education ministry building"
+    "Romania village school building",
+    "empty classroom desks chairs",
+    "child reading book close up",
+    "student writing exam paper close up",
+    "Romania rural school children",
+    "open book pages text close up",
+    "child hands pencil writing",
+    "library bookshelf old books",
+    "empty school hallway",
+    "Romania Bucharest school building"
   ]
 }

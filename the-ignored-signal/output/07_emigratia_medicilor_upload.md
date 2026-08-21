@@ -1,6 +1,6 @@
 # Upload package — 07_emigratia_medicilor
 
-**Channel:** Sub Radar  ·  **Durată:** 62s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 53s  ·  **Verificat:** True
 **Thumbnail:** 07_emigratia_medicilor_thumb.jpg
 
 ---
@@ -22,6 +22,8 @@ Aproape paisprezece mii de medici au plecat din România între 2009 și 2015. S
 
 🎬 Credite:
 - Video & foto: Pexels (Pexels License — fără atribuire necesară)
+- "Bucharest - pneumophysiology hospital & clinic near Stefan Cel Mare metrou 01.jpg" by Joe Mabel — CC BY 3.0 (Wikimedia Commons)
+- "Băicoi, Romania (26.07.2022).01.jpg" by Nenea hartia — CC BY-SA 4.0 (Wikimedia Commons)
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
 ⚠️ AI-generated voice-over. Footage is illustrative (Pexels, Wikimedia Commons).

@@ -1,6 +1,6 @@
 # Upload package — 04_cancer_col_uterin
 
-**Channel:** Sub Radar  ·  **Durată:** 62s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 54s  ·  **Verificat:** True
 **Thumbnail:** 04_cancer_col_uterin_thumb.jpg
 
 ---
@@ -22,6 +22,8 @@ ROMÂNIA, PE PRIMUL LOC ÎN UE LA DECESE PRIN CANCER DE COL UTERIN
 
 🎬 Credite:
 - Video & foto: Pexels (Pexels License — fără atribuire necesară)
+- "Old photo of the Romanian Court of Audit Building in Bucharest.jpg" by Unknown authorUnknown author — Public domain (Wikimedia Commons)
+- "Cluj-Napoca University of Babes-Bolyai.JPG" by Roamata — Public domain (Wikimedia Commons)
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
 ⚠️ AI-generated voice-over. Footage is illustrative (Pexels, Wikimedia Commons).

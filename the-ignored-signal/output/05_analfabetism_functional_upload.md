@@ -1,6 +1,6 @@
 # Upload package — 05_analfabetism_functional
 
-**Channel:** Sub Radar  ·  **Durată:** 62s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 56s  ·  **Verificat:** True
 **Thumbnail:** 05_analfabetism_functional_thumb.jpg
 
 ---
@@ -22,6 +22,9 @@ PESTE 40% DINTRE ELEVII ROMÂNI NU ÎNȚELEG CE CITESC
 
 🎬 Credite:
 - Video & foto: Pexels (Pexels License — fără atribuire necesară)
+- "Auendorf (Gura Raului)-school-01ASD.jpg" by Asurnipal — CC BY-SA 4.0 (Wikimedia Commons)
+- "Bucharest - detail of a school building on Splaiul Independentiei 02.jpg" by Joe Mabel — CC BY 3.0 (Wikimedia Commons)
+- "Auendorf (Gura Raului)-Church-school-center-01ASD.jpg" by Asurnipal — CC BY-SA 4.0 (Wikimedia Commons)
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
 ⚠️ AI-generated voice-over. Footage is illustrative (Pexels, Wikimedia Commons).

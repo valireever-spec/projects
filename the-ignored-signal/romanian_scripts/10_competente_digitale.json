@@ -19,8 +19,16 @@
     {
       "window_idx": 3,
       "values": [
-        {"label": "România", "value": 27.7, "color": "#c0392b"},
-        {"label": "Media UE", "value": 55.6, "color": "#1a6bb5"}
+        {
+          "label": "România",
+          "value": 27.7,
+          "color": "#c0392b"
+        },
+        {
+          "label": "Media UE",
+          "value": 55.6,
+          "color": "#1a6bb5"
+        }
       ],
       "metric": "% adulți cu competențe digitale de bază (2023)",
       "unit": "%",
@@ -28,15 +36,15 @@
     }
   ],
   "video_search_terms": [
-    "elderly person confused smartphone",
-    "Romania rural elderly technology",
+    "elderly hands smartphone confused",
+    "Romania village elderly rural",
     "old woman using phone difficulty",
-    "computer keyboard hands closeup",
-    "Romania village elderly people",
-    "online form laptop frustration",
-    "senior learning computer help",
-    "Romania small town street",
-    "hands holding smartphone screen",
-    "European digital economy building"
+    "hands typing laptop keyboard close up",
+    "Romania rural house countryside",
+    "senior person learning computer",
+    "online form laptop screen close up",
+    "wrinkled elderly hands phone",
+    "smartphone screen apps close up",
+    "Romania small town street people"
   ]
 }

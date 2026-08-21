@@ -1,6 +1,6 @@
 # Upload package — 03_taieri_ilegale
 
-**Channel:** Sub Radar  ·  **Durată:** 62s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 47s  ·  **Verificat:** True
 **Thumbnail:** 03_taieri_ilegale_thumb.jpg
 
 ---
@@ -22,6 +22,8 @@ ROMÂNIA, DATĂ ÎN JUDECATĂ PENTRU TĂIERI ILEGALE DE PĂDURE
 
 🎬 Credite:
 - Video & foto: Pexels (Pexels License — fără atribuire necesară)
+- "Carpathian Mountains (Unsplash alpqdm9yhb4).jpg" by Lee Key lee_key — CC0 (Wikimedia Commons)
+- "Alone in the unspoilt wilderness (Unsplash).jpg" by David Marcu davidmarcu — CC0 (Wikimedia Commons)
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
 ⚠️ AI-generated voice-over. Footage is illustrative (Pexels, Wikimedia Commons).

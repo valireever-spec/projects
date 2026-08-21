@@ -19,23 +19,31 @@
     {
       "window_idx": 3,
       "values": [
-        {"label": "România", "value": 15.3, "color": "#c0392b"},
-        {"label": "Media UE", "value": 9.3, "color": "#1a6bb5"}
+        {
+          "label": "România",
+          "value": 15.3,
+          "color": "#c0392b"
+        },
+        {
+          "label": "Media UE",
+          "value": 9.3,
+          "color": "#1a6bb5"
+        }
       ],
       "metric": "% fără încălzire adecvată în locuință",
       "source": "Eurostat EU-SILC"
     }
   ],
   "video_search_terms": [
-    "Romania village winter snow cold",
-    "Romania countryside winter landscape",
-    "Romania poor house winter rural",
-    "Romania elderly people winter village",
-    "Romania family house interior cold",
-    "heating radiator home winter warm",
-    "winter snow cold house village",
-    "energy bills expenses stress",
-    "sick patient hospital respiratory",
-    "Romania children kids village winter"
+    "Romania village winter snow",
+    "Romania rural house winter countryside",
+    "Romania Carpathian mountains winter",
+    "radiator heating close up",
+    "Romania village Maramures winter",
+    "cold hands wrapped blanket close up",
+    "frost ice on window close up",
+    "elderly hands warming fire",
+    "energy bill paper hand close up",
+    "candle light dark cold room"
   ]
 }
