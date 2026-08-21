@@ -1,0 +1,31 @@
+{
+  "slug": "09_depopulare",
+  "headline": "Peste trei milioane de români au plecat din țară de la aderarea la UE — una dintre cele mai mari scăderi de populație din Europa.",
+  "voice": "ro-RO-EmilNeural",
+  "channel": "Sub Radar",
+  "source_onscreen": "Eurostat / OECD",
+  "country": "Romania",
+  "hook_card": "PESTE 3 MILIOANE DE ROMÂNI\nAU PLECAT DE LA ADERAREA LA UE",
+  "cta_question": "Știai asta? Spune-ne în comentarii ↓",
+  "verified": true,
+  "verification_note": "Verificat 2026-08: circa 3,4 milioane de români au emigrat de la aderarea la UE (2007) — aproximativ 17% din populație (OECD, Emerging Europe). Populația a scăzut de la ~22,4 milioane (2000) la ~19,5 milioane (2018), migrația fiind responsabilă de peste 75% din scădere (World Bank). Se adaugă spor natural negativ (mor mai mulți decât se nasc). Este una dintre cele mai rapide scăderi de populație din Europa pe timp de pace.",
+  "narration": "De la aderarea la Uniunea Europeană, în două mii șapte, peste trei milioane de români au plecat din țară. Nu e o estimare aruncată la întâmplare — o arată datele Eurostat și ale OECD. Înseamnă aproape unul din șase locuitori. Populația a scăzut de la peste douăzeci și două de milioane, în anul două mii, spre nouăsprezece milioane și jumătate — iar plecările au produs peste trei sferturi din această scădere. La asta se adaugă faptul că mor mai mulți oameni decât se nasc. Rezultatul e una dintre cele mai rapide scăderi de populație din Europa, pe timp de pace. S-a scris despre asta periodic, apoi povestea a dispărut din atenția publică. Dar contează. Mai puțini oameni înseamnă sate golite, școli închise și tot mai puțini care susțin pensiile. Sursele sunt pe ecran. Urmărește Sub Radar pentru mai multe semnale ignorate.",
+  "sources": [
+    "[PRIMARĂ] OECD — Talent Abroad: A Review of Romanian Emigrants → oecd.org",
+    "[PRIMARĂ] World Bank — Romania Systematic Country Diagnostic: Migration (2018) → documents.worldbank.org",
+    "[SECUNDARĂ] Emerging Europe — ~3,4 milioane de români plecați de la aderare (~17% din populație) → emerging-europe.com"
+  ],
+  "stat_windows": [],
+  "video_search_terms": [
+    "Romania abandoned village house",
+    "Romania rural depopulation empty",
+    "airport departure travelers luggage",
+    "empty street small town Romania",
+    "abandoned house countryside overgrown",
+    "elderly person alone village Romania",
+    "closed rural school building",
+    "Romania train station platform",
+    "empty village playground",
+    "European countryside aerial fields"
+  ]
+}

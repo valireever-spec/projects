@@ -1,0 +1,42 @@
+{
+  "slug": "08_saracia_copiilor",
+  "headline": "Unul din trei copii din România e la risc de sărăcie — printre cele mai ridicate rate din UE.",
+  "voice": "ro-RO-EmilNeural",
+  "channel": "Sub Radar",
+  "source_onscreen": "Eurostat — AROPE 2024",
+  "country": "Romania",
+  "hook_card": "UNUL DIN TREI COPII DIN ROMÂNIA\nE LA RISC DE SĂRĂCIE",
+  "cta_question": "Știai asta? Spune-ne în comentarii ↓",
+  "verified": true,
+  "verification_note": "Verificat 2026-08 prin Eurostat (date 2024): rata copiilor la risc de sărăcie sau excluziune socială (AROPE) în România este 33,8% — a treia cea mai mare din UE, după Bulgaria (35,1%) și Spania (34,6%) — față de media UE de 24,2%. Aproximativ 1,25 milioane de copii. La sate riscul urcă la 41,7%; la copiii cu părinți cu educație scăzută, 75,8%. NB: nu este „cea mai mare din UE\", ci printre cele mai mari.",
+  "narration": "Unul din trei copii din România trăiește la risc de sărăcie sau excluziune socială. Nu e o impresie — reiese din datele oficiale Eurostat. Vorbim despre aproximativ un milion două sute cincizeci de mii de copii. Rata — peste treizeci și trei la sută — e printre cele mai mari din Uniunea Europeană, mult peste media de douăzeci și patru la sută. Și e și mai dur la sate, unde riscul urcă spre patruzeci și doi la sută. Cel mai mult contează educația părinților: acolo unde părinții au școală puțină, aproape trei sferturi dintre copii sunt în risc. S-a scris despre asta când au ieșit cifrele, apoi subiectul a dispărut din atenție. Dar contează. Sărăcia din copilărie lasă urme pe tot restul vieții. Sursele sunt pe ecran. Urmărește Sub Radar pentru mai multe semnale ignorate.",
+  "sources": [
+    "[PRIMARĂ] Eurostat — Children at risk of poverty or social exclusion, date 2024 (RO 33,8%, media UE 24,2%) → ec.europa.eu/eurostat",
+    "[SECUNDARĂ] Romania Insider — un copil din trei din România trăiește în sărăcie (raport 2025) → romania-insider.com",
+    "[TERȚIARĂ] Child Protection Hub / ChildHub — date Eurostat privind sărăcia copiilor → childhub.org"
+  ],
+  "stat_windows": [
+    {
+      "window_idx": 3,
+      "values": [
+        {"label": "România", "value": 33.8, "color": "#c0392b"},
+        {"label": "Media UE", "value": 24.2, "color": "#1a6bb5"}
+      ],
+      "metric": "% copii la risc de sărăcie sau excluziune (2024)",
+      "unit": "%",
+      "source": "Eurostat"
+    }
+  ],
+  "video_search_terms": [
+    "Romania poor child rural village",
+    "Romania village children playing",
+    "child poverty Europe modest home",
+    "Romania rural family house",
+    "children walking to school Romania",
+    "worn shoes child poverty",
+    "Romania countryside poverty",
+    "kids playing dirt road village",
+    "empty modest child bedroom",
+    "European social policy building"
+  ]
+}

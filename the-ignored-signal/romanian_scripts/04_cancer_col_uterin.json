@@ -23,6 +23,7 @@
         {"label": "Media UE", "value": 5.6, "color": "#1a6bb5"}
       ],
       "metric": "Mortalitate cancer col uterin (la 100.000 femei)",
+      "unit": "",
       "source": "OECD / CE — Country Cancer Profile 2023"
     }
   ],

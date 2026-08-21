@@ -633,6 +633,7 @@ def make_stat_clip(stat: dict, clip_dur: float, out_path: Path, ffmpeg_bin: str)
     values  = stat["values"]
     metric  = stat.get("metric", "")
     source  = stat.get("source", "")
+    unit    = stat.get("unit", "%")   # "" for absolute rates (per 100k, per million)
     n_bars  = len(values)
     max_val = max(v["value"] for v in values) * 1.25
 
@@ -646,7 +647,7 @@ def make_stat_clip(stat: dict, clip_dur: float, out_path: Path, ffmpeg_bin: str)
     ax.set_ylim(0, max_val)
     ax.set_facecolor(CARD)
     ax.tick_params(colors=MUTED, labelsize=22)
-    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0f}%"))
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0f}{unit}"))
     ax.set_xticks(range(n_bars))
     ax.set_xticklabels([v["label"] for v in values], color=FG, fontsize=26, fontweight="bold")
     for spine in ax.spines.values():
@@ -678,7 +679,7 @@ def make_stat_clip(stat: dict, clip_dur: float, out_path: Path, ffmpeg_bin: str)
             h = entry["value"] * ease
             bar.set_height(h)
             val_texts[j].set_position((j, h + max_val * 0.01))
-            val_texts[j].set_text(f"{h:.1f}%" if h > 0.5 else "")
+            val_texts[j].set_text(f"{h:.1f}{unit}" if h > 0.5 else "")
         return bars
 
     ani = animation.FuncAnimation(
