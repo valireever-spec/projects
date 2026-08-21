@@ -6,22 +6,15 @@ the copy-paste assets below are ready.
 
 ---
 
-## 0. Naming decision (do this first)
+## 0. Scope & name — DECIDED
 
-Your rendered Romanian videos are branded **"Sub Radar"** (the on-screen header).
-The original brief used localized names (*Semnalul Ignorat / The Ignored Signal /
-…*). Pick one line and stay consistent:
+**Current focus: the Romanian channel only.** Brand **Sub Radar**, handle
+**`@SubRadarRO`** (backups if taken: `@SubRadar.RO`, `@SubRadarRomania`).
 
-- **Option A — one brand, translated (recommended, matches the videos):**
-  Sub Radar → Sous les Radars → Unterm Radar → Sotto i Radar → Under the Radar
-- **Option B — the brief's localized names:**
-  Semnalul Ignorat / Le Signal Ignoré / Das Überhörte Signal / Il Segnale
-  Ignorato / The Ignored Signal
+Multilingual expansion (FR/DE/IT/EN) is **deferred** — the handle table and the
+non-RO About texts below are kept for later; **ignore them for now.**
 
-The runbook below assumes **Option A**, Romanian channel first (the one you have
-7 finished videos for). Swap names if you choose B.
-
-### Handles & names (Option A)
+### Handles & names (for later expansion)
 
 | Lang | Channel name | @handle | Backup handles |
 |------|--------------|---------|----------------|
