@@ -3,27 +3,27 @@
   "headline": "România are cea mai mare mortalitate prin cancer de col uterin din UE — o boală în mare parte prevenibilă.",
   "voice": "ro-RO-EmilNeural",
   "channel": "Sub Radar",
-  "source_onscreen": "ECIS / IARC — date UE",
+  "source_onscreen": "OECD / CE — Country Cancer Profile",
   "country": "Romania",
   "hook_card": "ROMÂNIA, PE PRIMUL LOC ÎN UE\nLA DECESE PRIN CANCER DE COL UTERIN",
   "cta_question": "Știai asta? Spune-ne în comentarii ↓",
-  "verified": false,
-  "verification_note": "DRAFT — de verificat înainte de publicare: cifra exactă a deceselor pe an, raportul față de media UE și valorile din stat_window, prin European Cancer Information System (ecis.jrc.ec.europa.eu) și GLOBOCAN/IARC (gco.iarc.fr). Faptul de bază — România pe primul loc în UE la mortalitatea prin cancer de col uterin — este bine documentat; cifrele precise trebuie confirmate.",
-  "narration": "România are cea mai mare rată de mortalitate prin cancer de col uterin din toată Uniunea Europeană. Nu e o părere — reiese din datele oficiale europene. În fiecare an, mii de românce sunt diagnosticate, și peste o mie cinci sute mor. [VERIFICĂ cifra] Rata de deces e de câteva ori mai mare decât media europeană. [VERIFICĂ raportul] Și partea grea e asta: cancerul de col uterin e, în mare parte, prevenibil — prin vaccinare împotriva HPV și prin testare periodică. În alte țări din Uniune, mortalitatea a scăzut constant. La noi, acoperirea cu vaccin și cu screening a rămas mult în urmă. S-a scris despre asta când au ieșit rapoartele, apoi subiectul a dispărut din atenție. Dar contează. Vorbim despre vieți care s-ar putea salva. Sursele sunt pe ecran. Urmărește Sub Radar pentru mai multe semnale ignorate.",
+  "verified": true,
+  "verification_note": "Verificat 2026-08 prin OECD / Comisia Europeană — EU Country Cancer Profile: Romania (2023): mortalitate prin cancer de col uterin 16,9 la 100.000 femei, cea mai mare din UE (incidență 32,3 la 100.000, tot cea mai mare). GLOBOCAN 2020: circa 3.380 cazuri noi și 1.805 decese pe an. Mortalitatea este de aproximativ trei ori media UE. Valoarea „Media UE\" din grafic (~5,6) este derivată din raportul de ~3x față de rata României.",
+  "narration": "România are cea mai mare rată de mortalitate prin cancer de col uterin din toată Uniunea Europeană. Nu e o părere — reiese din datele oficiale europene. În fiecare an, peste trei mii de românce sunt diagnosticate, și aproape o mie opt sute mor. Rata de deces este de aproape trei ori mai mare decât media europeană. Și partea grea e asta: cancerul de col uterin e, în mare parte, prevenibil — prin vaccinare împotriva HPV și prin testare periodică. În alte țări din Uniune, mortalitatea a scăzut constant. La noi, acoperirea cu vaccin și cu screening a rămas mult în urmă. S-a scris despre asta când au ieșit rapoartele, apoi subiectul a dispărut din atenție. Dar contează. Vorbim despre vieți care s-ar putea salva. Sursele sunt pe ecran. Urmărește Sub Radar pentru mai multe semnale ignorate.",
   "sources": [
-    "[PRIMARĂ] European Cancer Information System (ECIS), Comisia Europeană / JRC — mortalitate cancer de col uterin pe țări → ecis.jrc.ec.europa.eu",
-    "[PRIMARĂ] IARC / WHO — Global Cancer Observatory (GLOBOCAN), profil România → gco.iarc.fr",
-    "[SECUNDARĂ] OECD / Comisia Europeană — State of Health in the EU: Romania Country Health Profile → health.ec.europa.eu"
+    "[PRIMARĂ] OECD / Comisia Europeană — EU Country Cancer Profile: Romania 2023 (mortalitate 16,9/100.000 femei, cea mai mare din UE) → cancer-inequalities.jrc.ec.europa.eu",
+    "[PRIMARĂ] IARC / WHO — GLOBOCAN 2020, România (~3.380 cazuri noi, ~1.805 decese/an) → gco.iarc.fr",
+    "[SECUNDARĂ] European Cancer Information System (ECIS), JRC — cervical cancer factsheet → ecis.jrc.ec.europa.eu"
   ],
   "stat_windows": [
     {
       "window_idx": 3,
       "values": [
-        {"label": "România", "value": 14.2, "color": "#c0392b"},
-        {"label": "Media UE", "value": 3.6, "color": "#1a6bb5"}
+        {"label": "România", "value": 16.9, "color": "#c0392b"},
+        {"label": "Media UE", "value": 5.6, "color": "#1a6bb5"}
       ],
-      "metric": "Mortalitate cancer col uterin (la 100.000 femei) [VERIFICĂ]",
-      "source": "ECIS / IARC"
+      "metric": "Mortalitate cancer col uterin (la 100.000 femei)",
+      "source": "OECD / CE — Country Cancer Profile 2023"
     }
   ],
   "video_search_terms": [
