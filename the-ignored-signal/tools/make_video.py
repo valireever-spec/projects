@@ -1016,7 +1016,7 @@ def _report_validation(name: str, issues: list[tuple[str, str]]) -> bool:
 # ── Per-script renderer ───────────────────────────────────────────────────────
 
 def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
-                   force: bool = False, tight: bool = False) -> Path | None:
+                   force: bool = False, pad: bool = False) -> Path | None:
     data = json.loads(script_path.read_text(encoding="utf-8"))
 
     print(f"\n=== {script_path.name} ===")
@@ -1040,7 +1040,7 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
 
     mp3_path = out_dir / f"{slug}.mp3"
     ass_path = out_dir / f"{slug}.ass"
-    mp4_path = out_dir / f"{slug}{'_tight' if tight else ''}.mp4"
+    mp4_path = out_dir / f"{slug}{'_60' if pad else ''}.mp4"
 
     # 1 — Voice
     print(f"[1/4] Synthesizing voice ({voice})...")
@@ -1051,9 +1051,9 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
     cues   = parse_srt_words(srt)
     chunks = chunk_captions(cues)
     dur    = media_duration(ffmpeg, mp3_path)
-    # Tight cut: end right on the CTA (no silent outro) for retention on Shorts/
-    # Reels/FB. Full cut: pad past TikTok's 60s monetization floor.
-    total  = dur if tight else max(dur, MIN_DURATION)
+    # Default: end right on the CTA — no silent outro (best retention). Opt-in
+    # --pad60 stretches to TikTok's 60s monetization floor with a held CTA.
+    total  = max(dur, MIN_DURATION) if pad else dur
     ass_path.write_text(
         build_ass(chunks, total, channel, source_text, show_source,
                   hook_card, cta_question, narration_dur=dur),
@@ -1196,10 +1196,10 @@ def main() -> None:
     args         = sys.argv[1:]
     force        = "--force" in args
     check_only   = "--check" in args
-    tight        = "--tight" in args   # no outro padding → better retention (Shorts/Reels)
+    pad          = "--pad60" in args   # pad to >60s for TikTok (adds a held-CTA outro)
     script_paths = [Path(a) for a in args if not a.startswith("--")]
     if not script_paths:
-        print("Usage: python tools/make_video.py [--check] [--force] [--tight] "
+        print("Usage: python tools/make_video.py [--check] [--force] [--pad60] "
               "<script1.json> [script2.json ...]")
         sys.exit(1)
 
@@ -1224,12 +1224,12 @@ def main() -> None:
 
     mp4_paths: list[Path] = []
     for sp in script_paths:
-        mp4 = _render_script(sp, out_dir, ffmpeg, force=force, tight=tight)
+        mp4 = _render_script(sp, out_dir, ffmpeg, force=force, pad=pad)
         if mp4:
             mp4_paths.append(mp4)
 
     if len(mp4_paths) > 1:
-        _concat_videos(mp4_paths, out_dir / f"combined{'_tight' if tight else ''}.mp4", ffmpeg)
+        _concat_videos(mp4_paths, out_dir / f"combined{'_60' if pad else ''}.mp4", ffmpeg)
     elif mp4_paths:
         print(f"\nOutput → {mp4_paths[0]}")
 
