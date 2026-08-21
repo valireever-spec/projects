@@ -1,6 +1,6 @@
 # Upload package — 03_taieri_ilegale
 
-**Channel:** Sub Radar  ·  **Durată:** 45s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 50s  ·  **Verificat:** True
 **Thumbnail:** 03_taieri_ilegale_thumb.jpg
 
 ---
@@ -8,25 +8,19 @@
 ## ▶️ YouTube Shorts
 
 **Titlu:**
-România a fost dată în judecată la Curtea de Justiție a UE pentru tăieri ilegale. #Shorts
+România a fost dată în judecată la Curtea de Justiție a UE pentru tăieri ilegale #Shorts
 
 **Descriere:**
-ROMÂNIA, DATĂ ÎN JUDECATĂ PENTRU TĂIERI ILEGALE DE PĂDURE
+România a fost dată în judecată la Curtea de Justiție a UE pentru tăieri ilegale.
 
 📌 Surse:
-- Comisia Europeană — infringement
-- [PRIMARĂ] Comisia Europeană — procedură de infringement împotriva României (păduri Natura 2000 / tăieri ilegale), inițiată 2020 → ec.europa.eu/commission/presscorner
-- [SECUNDARĂ] Curtea de Justiție a UE (CJUE) — cauză privind Directivele Habitate și Păsări → curia.europa.eu
-- [TERȚIARĂ] Agent Green — investigații privind tăierile ilegale din pădurile virgine → agentgreen.ro
-✅ Comisia Europeană a inițiat procedură de infringement împotriva României pentru eșecul de a proteja pădurile Natura 2000 și a nu opri tăierile ilegale. Cazul a ajuns la Curtea de Justiție a UE.
+• Comisia Europeană — procedură de infringement împotriva României (păduri Natura 2000 / tăieri ilegale), inițiată 2020 → ec.europa.eu/commission/presscorner
+• Curtea de Justiție a UE (CJUE) — cauză privind Directivele Habitate și Păsări → curia.europa.eu
+• Agent Green — investigații privind tăierile ilegale din pădurile virgine → agentgreen.ro
 
-🎬 Credite:
-- Video & foto: Pexels (Pexels License — fără atribuire necesară)
-- "Carpathian Mountains (Unsplash alpqdm9yhb4).jpg" by Lee Key lee_key — CC0 (Wikimedia Commons)
-- "Alone in the unspoilt wilderness (Unsplash).jpg" by David Marcu davidmarcu — CC0 (Wikimedia Commons)
+🎬 Credite imagini: Pexels; "Carpathian Mountains (Unsplash alpqdm9yhb4).jpg" by Lee Key lee_key — CC0 (Wikimedia Commons); "Alone in the unspoilt wilderness (Unsplash).jpg" by David Marcu davidmarcu — CC0 (Wikimedia Commons)
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
-⚠️ AI-generated voice-over. Footage is illustrative (Pexels, Wikimedia Commons).
 
 #SubRadar #Romania #Shorts #stiri #news
 

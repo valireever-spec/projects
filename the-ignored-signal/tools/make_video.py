@@ -887,29 +887,64 @@ def make_thumbnail(mp4_path: Path, out_path: Path, ffmpeg: str) -> bool:
     return r.returncode == 0 and out_path.exists()
 
 
+def _clean_source(s: str) -> str:
+    """Strip a leading '[PRIMARĂ]/[SECUNDARĂ]/…' tag for public display."""
+    return re.sub(r"^\[[^\]]+\]\s*", "", s).strip()
+
+
+# Function words a title should never end on (avoids dangling "…rate din").
+_STOP_TAIL = {"din", "de", "la", "în", "cu", "și", "sau", "pe", "a", "al", "ale",
+              "pentru", "care", "mai", "cele", "printre", "o", "un", "dintre", "e"}
+
+
+def _headline_title(headline: str, limit: int) -> str:
+    """A clean, complete title: first sentence, drop a trailing '— clause' if it
+    overflows, then a word-boundary trim that won't end on a function word."""
+    t = headline.strip().rstrip(".").split(". ")[0].strip()
+    if len(t) > limit and " — " in t:
+        head = t.split(" — ", 1)[0].strip()
+        if len(head.split()) >= 3:              # real main clause, not "România —"
+            t = head
+    if len(t) > limit:
+        t = t[:limit].rsplit(" ", 1)[0]
+        while t.split() and t.split()[-1].lower() in _STOP_TAIL:
+            t = t.rsplit(" ", 1)[0]
+    return t.rstrip(" ,;:—-")
+
+
+def youtube_fields(data: dict, out_dir: Path, slug: str) -> tuple[str, str, list[str]]:
+    """Publish-ready YouTube title / description / tags — the single source used
+    by both the upload sheet and tools/upload.py, so they never diverge. No
+    internal notes; clean title; sources tidied."""
+    headline = data.get("headline", slug).strip()
+    tags     = [t.lstrip("#") for t in _hashtags(data, "youtube")]
+
+    suffix = " #Shorts"
+    title  = _headline_title(headline, 100 - len(suffix)) + suffix
+
+    sources = [_clean_source(s) for s in data.get("sources", [])]
+    if not sources and data.get("source_onscreen"):
+        sources = [data["source_onscreen"].strip()]
+    wiki    = _read_credits(out_dir, slug)
+    credite = "Pexels" + ("; " + "; ".join(wiki) if wiki else "")
+
+    lines = [headline, ""]
+    if sources:
+        lines += ["📌 Surse:"] + [f"• {s}" for s in sources] + [""]
+    lines += [f"🎬 Credite imagini: {credite}", "",
+              f"⚠️ {AI_DISCLOSURE_RO}", "",
+              " ".join("#" + t for t in tags)]
+    return title, "\n".join(lines), tags
+
+
 def write_upload_package(data: dict, out_dir: Path, slug: str,
                          total: float, ffmpeg: str, mp4_path: Path) -> Path:
     """Emit a per-video upload sheet (title, description, hashtags, disclosure)
     for YouTube Shorts + TikTok, plus a branded thumbnail."""
-    headline  = data.get("headline", slug)
-    channel   = data.get("channel", "Sub Radar")
-    hook      = data.get("hook_card", "").replace("\n", " ").strip() or headline
-    source_os = data.get("source_onscreen", "")
-    ver_note  = data.get("verification_note", "")
-    sources   = data.get("sources", [])
-
-    yt_tags = _hashtags(data, "youtube")
+    channel = data.get("channel", "Sub Radar")
+    hook    = data.get("hook_card", "").replace("\n", " ").strip() or data.get("headline", slug)
+    title, description, tags = youtube_fields(data, out_dir, slug)
     tt_tags = _hashtags(data, "tiktok")
-
-    src_lines = ([f"- {source_os}"] if source_os else []) + [f"- {s}" for s in sources]
-    if not src_lines:
-        src_lines = ["- (adaugă sursele aici)"]
-    cred_lines = ["- Video & foto: Pexels (Pexels License — fără atribuire necesară)"]
-    cred_lines += [f"- {c}" for c in _read_credits(out_dir, slug)]
-
-    yt_title = headline if len(headline) <= 90 else headline[:87] + "..."
-    ver_line = f"✅ {ver_note}" if ver_note else ""
-    nl = "\n"
 
     md = f"""# Upload package — {slug}
 
@@ -921,24 +956,12 @@ def write_upload_package(data: dict, out_dir: Path, slug: str,
 ## ▶️ YouTube Shorts
 
 **Titlu:**
-{yt_title} #Shorts
+{title}
 
 **Descriere:**
-{hook}
+{description}
 
-📌 Surse:
-{nl.join(src_lines)}
-{ver_line}
-
-🎬 Credite:
-{nl.join(cred_lines)}
-
-⚠️ {AI_DISCLOSURE_RO}
-⚠️ {AI_DISCLOSURE_EN}
-
-{" ".join(yt_tags)}
-
-**Tags (câmpul Tags, fără #):** {", ".join(t.lstrip("#") for t in yt_tags)}
+**Tags (câmpul Tags, fără #):** {", ".join(tags)}
 
 > La publicare setează 'Altered content = Yes' (voce AI).
 

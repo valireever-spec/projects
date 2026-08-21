@@ -1,6 +1,6 @@
 # Upload package — 02_saracie_energetica
 
-**Channel:** Sub Radar  ·  **Durată:** 48s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 50s  ·  **Verificat:** True
 **Thumbnail:** 02_saracie_energetica_thumb.jpg
 
 ---
@@ -8,25 +8,19 @@
 ## ▶️ YouTube Shorts
 
 **Titlu:**
-Unul din șase români nu-și poate încălzi locuința. E scris într-un raport UE. #Shorts
+Unul din șase români nu-și poate încălzi locuința #Shorts
 
 **Descriere:**
-15% DIN ROMÂNI NU ÎȘI POT ÎNCĂLZI CASA IARNA
+Unul din șase români nu-și poate încălzi locuința. E scris într-un raport UE.
 
 📌 Surse:
-- Eurostat, EU-SILC
-- [PRIMARĂ] Eurostat, EU-SILC — Inability to keep home adequately warm (cod ilc_mdes01), 2023 → ec.europa.eu/eurostat
-- [SECUNDARĂ] EU Energy Poverty Advisory Hub (EPAH), Comisia Europeană → energy-poverty.ec.europa.eu
-- [TERȚIARĂ] Eurostat, Statistics Explained — Energy poverty in the EU → ec.europa.eu/eurostat/statistics-explained
-✅ Eurostat EU-SILC: ~15% din populația RO nu-și poate încălzi adecvat locuința, mult peste media UE de ~9%. România e constant în top 3 UE la acest indicator.
+• Eurostat, EU-SILC — Inability to keep home adequately warm (cod ilc_mdes01), 2023 → ec.europa.eu/eurostat
+• EU Energy Poverty Advisory Hub (EPAH), Comisia Europeană → energy-poverty.ec.europa.eu
+• Eurostat, Statistics Explained — Energy poverty in the EU → ec.europa.eu/eurostat/statistics-explained
 
-🎬 Credite:
-- Video & foto: Pexels (Pexels License — fără atribuire necesară)
-- "Winter in my village - panoramio.jpg" by István Szőllősi — CC BY 3.0 (Wikimedia Commons)
-- "Snow in the Carpathian Mountains (MODIS 2015-05-01).jpg" by Jeff Schmaltz, MODIS Land Rapid Response Team, NASA GSFC — Public domain (Wikimedia Commons)
+🎬 Credite imagini: Pexels; "Winter in my village - panoramio.jpg" by István Szőllősi — CC BY 3.0 (Wikimedia Commons); "Snow in the Carpathian Mountains (MODIS 2015-05-01).jpg" by Jeff Schmaltz, MODIS Land Rapid Response Team, NASA GSFC — Public domain (Wikimedia Commons)
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
-⚠️ AI-generated voice-over. Footage is illustrative (Pexels, Wikimedia Commons).
 
 #SubRadar #Romania #Shorts #stiri #news
 

@@ -39,30 +39,9 @@ SCOPES        = [
 NEWS_POLITICS = "25"   # YouTube categoryId
 
 
-def youtube_fields(data: dict, out_dir: Path, slug: str) -> tuple[str, str, list[str]]:
-    """Build (title, description, tags) — mirrors the YouTube section of the
-    generated upload sheet so on-platform metadata matches."""
-    headline  = data.get("headline", slug)
-    hook      = data.get("hook_card", "").replace("\n", " ").strip() or headline
-    source_os = data.get("source_onscreen", "")
-    sources   = data.get("sources", [])
-    tags      = [t.lstrip("#") for t in mv._hashtags(data, "youtube")]
-
-    title = (headline if len(headline) <= 90 else headline[:87] + "...") + " #Shorts"
-    title = title[:100]
-
-    src_lines  = ([f"- {source_os}"] if source_os else []) + [f"- {s}" for s in sources]
-    cred_lines = ["- Video & foto: Pexels (fără atribuire necesară)"]
-    cred_lines += [f"- {c}" for c in mv._read_credits(out_dir, slug)]
-    description = "\n".join([
-        hook, "",
-        "📌 Surse:", *src_lines, "",
-        "🎬 Credite:", *cred_lines, "",
-        "⚠️ " + mv.AI_DISCLOSURE_RO,
-        "⚠️ " + mv.AI_DISCLOSURE_EN, "",
-        " ".join("#" + t for t in tags),
-    ])
-    return title, description, tags
+# Title / description / tags come from the shared builder in make_video, so the
+# uploaded metadata is byte-identical to the generated upload sheet.
+youtube_fields = mv.youtube_fields
 
 
 def get_service():
