@@ -1,0 +1,56 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 1
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Caption,DejaVu Sans,48,&H00DAE5E9,&H00DAE5E9,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,430,1
+Style: Header,DejaVu Sans,38,&H00776063,&H00776063,&H00000000,&H00000000,0,0,0,0,100,100,3,0,1,2,0,8,60,60,170,1
+Style: Source,DejaVu Sans,34,&H002B39C0,&H002B39C0,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,60,60,340,1
+Style: HookCard,DejaVu Sans,82,&H00DAE5E9,&H00DAE5E9,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,ROMÂNIA, PE PRIMUL LOC ÎN UE\NLA DECESE PRIN CANCER DE COL UTERIN
+Dialogue: 0,0:00:00.00,0:01:02.00,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:01:02.00,Source,,0,0,0,,OECD / CE — Country Cancer Profile
+Dialogue: 0,0:00:02.00,0:00:03.62,Caption,,0,0,0,,RATĂ DE MORTALITATE PRIN CANCER
+Dialogue: 0,0:00:03.62,0:00:05.38,Caption,,0,0,0,,DE COL UTERIN DIN TOATĂ
+Dialogue: 0,0:00:05.38,0:00:06.04,Caption,,0,0,0,,UNIUNEA EUROPEANĂ
+Dialogue: 0,0:00:06.04,0:00:08.22,Caption,,0,0,0,,NU E O PĂRERE 
+Dialogue: 0,0:00:08.22,0:00:10.41,Caption,,0,0,0,,REIESE DIN DATELE OFICIALE EUROPENE
+Dialogue: 0,0:00:10.41,0:00:11.55,Caption,,0,0,0,,ÎN FIECARE AN
+Dialogue: 0,0:00:11.55,0:00:13.46,Caption,,0,0,0,,PESTE TREI MII DE ROMÂNCE
+Dialogue: 0,0:00:13.46,0:00:14.22,Caption,,0,0,0,,SUNT DIAGNOSTICATE
+Dialogue: 0,0:00:14.22,0:00:16.13,Caption,,0,0,0,,ȘI APROAPE O MIE OPT
+Dialogue: 0,0:00:16.13,0:00:16.89,Caption,,0,0,0,,SUTE MOR
+Dialogue: 0,0:00:16.89,0:00:18.68,Caption,,0,0,0,,RATA DE DECES ESTE DE
+Dialogue: 0,0:00:18.68,0:00:20.46,Caption,,0,0,0,,APROAPE TREI ORI MAI MARE
+Dialogue: 0,0:00:20.46,0:00:21.54,Caption,,0,0,0,,DECÂT MEDIA EUROPEANĂ
+Dialogue: 0,0:00:21.54,0:00:23.53,Caption,,0,0,0,,ȘI PARTEA GREA E ASTA
+Dialogue: 0,0:00:23.53,0:00:25.52,Caption,,0,0,0,,CANCERUL DE COL UTERIN E
+Dialogue: 0,0:00:25.52,0:00:26.72,Caption,,0,0,0,,ÎN MARE PARTE
+Dialogue: 0,0:00:26.72,0:00:27.51,Caption,,0,0,0,,PREVENIBIL 
+Dialogue: 0,0:00:27.51,0:00:29.50,Caption,,0,0,0,,PRIN VACCINARE ÎMPOTRIVA HPV ȘI
+Dialogue: 0,0:00:29.50,0:00:30.70,Caption,,0,0,0,,PRIN TESTARE PERIODICĂ
+Dialogue: 0,0:00:30.70,0:00:33.10,Caption,,0,0,0,,ÎN ALTE ȚĂRI DIN UNIUNE
+Dialogue: 0,0:00:33.10,0:00:35.02,Caption,,0,0,0,,MORTALITATEA A SCĂZUT CONSTANT
+Dialogue: 0,0:00:35.02,0:00:35.74,Caption,,0,0,0,,LA NOI
+Dialogue: 0,0:00:35.74,0:00:37.54,Caption,,0,0,0,,ACOPERIREA CU VACCIN ȘI CU
+Dialogue: 0,0:00:37.54,0:00:39.34,Caption,,0,0,0,,SCREENING A RĂMAS MULT ÎN
+Dialogue: 0,0:00:39.34,0:00:39.70,Caption,,0,0,0,,URMĂ
+Dialogue: 0,0:00:39.70,0:00:41.67,Caption,,0,0,0,,S-A SCRIS DESPRE ASTA CÂND
+Dialogue: 0,0:00:41.67,0:00:42.85,Caption,,0,0,0,,AU IEȘIT RAPOARTELE
+Dialogue: 0,0:00:42.85,0:00:44.82,Caption,,0,0,0,,APOI SUBIECTUL A DISPĂRUT DIN
+Dialogue: 0,0:00:44.82,0:00:45.21,Caption,,0,0,0,,ATENȚIE
+Dialogue: 0,0:00:45.21,0:00:47.10,Caption,,0,0,0,,DAR CONTEAZĂ
+Dialogue: 0,0:00:47.10,0:00:49.32,Caption,,0,0,0,,VORBIM DESPRE VIEȚI CARE S-AR
+Dialogue: 0,0:00:49.32,0:00:50.21,Caption,,0,0,0,,PUTEA SALVA
+Dialogue: 0,0:00:50.21,0:00:52.46,Caption,,0,0,0,,SURSELE SUNT PE ECRAN
+Dialogue: 0,0:00:52.46,0:00:54.81,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:54.81,0:00:56.21,Caption,,0,0,0,,MULTE SEMNALE IGNORATE
+Dialogue: 1,0:00:56.28,0:01:02.00,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓

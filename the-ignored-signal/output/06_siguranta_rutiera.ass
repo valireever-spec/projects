@@ -1,0 +1,59 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 1
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Caption,DejaVu Sans,48,&H00DAE5E9,&H00DAE5E9,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,430,1
+Style: Header,DejaVu Sans,38,&H00776063,&H00776063,&H00000000,&H00000000,0,0,0,0,100,100,3,0,1,2,0,8,60,60,170,1
+Style: Source,DejaVu Sans,34,&H002B39C0,&H002B39C0,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,60,60,340,1
+Style: HookCard,DejaVu Sans,82,&H00DAE5E9,&H00DAE5E9,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,ROMÂNIA, PE ULTIMUL LOC ÎN UE\NLA SIGURANȚA RUTIERĂ
+Dialogue: 0,0:00:00.00,0:01:02.00,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:01:02.00,Source,,0,0,0,,Eurostat / Comisia Europeană — 2023
+Dialogue: 0,0:00:02.00,0:00:03.53,Caption,,0,0,0,,MULTE MORȚI PE ȘOSELE DIN
+Dialogue: 0,0:00:03.53,0:00:04.56,Caption,,0,0,0,,TOATĂ UNIUNEA EUROPEANĂ
+Dialogue: 0,0:00:04.56,0:00:05.93,Caption,,0,0,0,,RAPORTAT LA POPULAȚIE 
+Dialogue: 0,0:00:05.93,0:00:07.30,Caption,,0,0,0,,LA EGALITATE CU BULGARIA
+Dialogue: 0,0:00:07.30,0:00:08.33,Caption,,0,0,0,,PE PRIMUL LOC
+Dialogue: 0,0:00:08.33,0:00:10.04,Caption,,0,0,0,,NU E O PĂRERE 
+Dialogue: 0,0:00:10.04,0:00:11.75,Caption,,0,0,0,,REIESE DIN STATISTICILE OFICIALE ALE
+Dialogue: 0,0:00:11.75,0:00:12.44,Caption,,0,0,0,,COMISIEI EUROPENE
+Dialogue: 0,0:00:12.44,0:00:14.15,Caption,,0,0,0,,PENTRU ANUL DOUĂ MII DOUĂZECI
+Dialogue: 0,0:00:14.15,0:00:14.79,Caption,,0,0,0,,ȘI TREI
+Dialogue: 0,0:00:14.79,0:00:16.35,Caption,,0,0,0,,RATA ESTE DE APROAPE DOUĂ
+Dialogue: 0,0:00:16.35,0:00:17.91,Caption,,0,0,0,,ORI MAI MARE DECÂT MEDIA
+Dialogue: 0,0:00:17.91,0:00:18.22,Caption,,0,0,0,,EUROPEANĂ
+Dialogue: 0,0:00:18.22,0:00:19.79,Caption,,0,0,0,,OPTZECI ȘI UNU DE MORȚI
+Dialogue: 0,0:00:19.79,0:00:21.35,Caption,,0,0,0,,LA UN MILION DE LOCUITORI
+Dialogue: 0,0:00:21.35,0:00:22.91,Caption,,0,0,0,,FAȚĂ DE PATRUZECI ȘI ȘASE
+Dialogue: 0,0:00:22.91,0:00:24.16,Caption,,0,0,0,,ÎN MEDIE ÎN UNIUNE
+Dialogue: 0,0:00:24.16,0:00:26.59,Caption,,0,0,0,,VORBIM DESPRE ȘOFERI
+Dialogue: 0,0:00:26.59,0:00:27.40,Caption,,0,0,0,,PIETONI
+Dialogue: 0,0:00:27.40,0:00:28.21,Caption,,0,0,0,,BICICLIȘTI
+Dialogue: 0,0:00:28.21,0:00:29.79,Caption,,0,0,0,,ÎN TIMP CE ÎN ALTE
+Dialogue: 0,0:00:29.79,0:00:31.38,Caption,,0,0,0,,ȚĂRI NUMĂRUL SCADE AN DE
+Dialogue: 0,0:00:31.38,0:00:31.69,Caption,,0,0,0,,AN
+Dialogue: 0,0:00:31.69,0:00:33.27,Caption,,0,0,0,,LA NOI RĂMÂNE BLOCAT SUS
+Dialogue: 0,0:00:33.27,0:00:35.24,Caption,,0,0,0,,S-A RAPORTAT SCURT CÂND AU
+Dialogue: 0,0:00:35.24,0:00:36.03,Caption,,0,0,0,,IEȘIT CIFRELE
+Dialogue: 0,0:00:36.03,0:00:37.99,Caption,,0,0,0,,APOI POVESTEA A DISPĂRUT DIN
+Dialogue: 0,0:00:37.99,0:00:38.39,Caption,,0,0,0,,ȘTIRI
+Dialogue: 0,0:00:38.39,0:00:40.30,Caption,,0,0,0,,DAR CONTEAZĂ
+Dialogue: 0,0:00:40.30,0:00:42.04,Caption,,0,0,0,,ÎN SPATELE FIECĂRUI NUMĂR E
+Dialogue: 0,0:00:42.04,0:00:43.77,Caption,,0,0,0,,UN OM ȘI O FAMILIE
+Dialogue: 0,0:00:43.77,0:00:45.47,Caption,,0,0,0,,MULTE DINTRE ACESTE MORȚI S-AR
+Dialogue: 0,0:00:45.47,0:00:46.49,Caption,,0,0,0,,PUTEA PREVENI 
+Dialogue: 0,0:00:46.49,0:00:48.18,Caption,,0,0,0,,CU DRUMURI MAI SIGURE ȘI
+Dialogue: 0,0:00:48.18,0:00:49.20,Caption,,0,0,0,,CU REGULI APLICATE
+Dialogue: 0,0:00:49.20,0:00:51.45,Caption,,0,0,0,,SURSELE SUNT PE ECRAN
+Dialogue: 0,0:00:51.45,0:00:53.79,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:53.79,0:00:55.20,Caption,,0,0,0,,MULTE SEMNALE IGNORATE
+Dialogue: 1,0:00:55.25,0:01:02.00,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
