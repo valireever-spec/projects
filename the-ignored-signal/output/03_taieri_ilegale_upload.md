@@ -1,6 +1,6 @@
 # Upload package — 03_taieri_ilegale
 
-**Channel:** Sub Radar  ·  **Durată:** 51s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 45s  ·  **Verificat:** True
 **Thumbnail:** 03_taieri_ilegale_thumb.jpg
 
 ---

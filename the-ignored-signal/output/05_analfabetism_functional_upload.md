@@ -1,6 +1,6 @@
 # Upload package — 05_analfabetism_functional
 
-**Channel:** Sub Radar  ·  **Durată:** 61s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 52s  ·  **Verificat:** True
 **Thumbnail:** 05_analfabetism_functional_thumb.jpg
 
 ---

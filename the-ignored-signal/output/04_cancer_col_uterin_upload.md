@@ -1,6 +1,6 @@
 # Upload package — 04_cancer_col_uterin
 
-**Channel:** Sub Radar  ·  **Durată:** 59s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 47s  ·  **Verificat:** True
 **Thumbnail:** 04_cancer_col_uterin_thumb.jpg
 
 ---

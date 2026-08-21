@@ -1,6 +1,6 @@
 # Upload package — 07_emigratia_medicilor
 
-**Channel:** Sub Radar  ·  **Durată:** 58s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 50s  ·  **Verificat:** True
 **Thumbnail:** 07_emigratia_medicilor_thumb.jpg
 
 ---

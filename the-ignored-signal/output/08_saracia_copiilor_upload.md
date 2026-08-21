@@ -1,6 +1,6 @@
 # Upload package — 08_saracia_copiilor
 
-**Channel:** Sub Radar  ·  **Durată:** 55s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 48s  ·  **Verificat:** True
 **Thumbnail:** 08_saracia_copiilor_thumb.jpg
 
 ---

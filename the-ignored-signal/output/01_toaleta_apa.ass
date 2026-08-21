@@ -16,35 +16,30 @@ Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,15% DIN ROMÂNI\NNU AU TOALETĂ CU APĂ ÎN CASĂ
-Dialogue: 0,0:00:00.00,0:00:56.86,Header,,0,0,0,,SUB RADAR
-Dialogue: 0,0:00:00.00,0:00:56.86,Source,,0,0,0,,Eurostat, EU-SILC 2023
-Dialogue: 0,0:00:02.00,0:00:03.79,Caption,,0,0,0,,PONDERE DE OAMENI FĂRĂ TOALETĂ
-Dialogue: 0,0:00:03.79,0:00:05.63,Caption,,0,0,0,,CU APĂ ÎN CASĂ DIN
-Dialogue: 0,0:00:05.63,0:00:06.68,Caption,,0,0,0,,TOATĂ UNIUNEA EUROPEANĂ
-Dialogue: 0,0:00:06.68,0:00:08.65,Caption,,0,0,0,,DE DEPARTE
-Dialogue: 0,0:00:08.65,0:00:09.88,Caption,,0,0,0,,CONFORM DATELOR EUROSTAT
-Dialogue: 0,0:00:09.88,0:00:11.93,Caption,,0,0,0,,PESTE CINCISPREZECE LA SUTĂ DINTRE
-Dialogue: 0,0:00:11.93,0:00:13.98,Caption,,0,0,0,,ROMÂNI NU AU O TOALETĂ
-Dialogue: 0,0:00:13.98,0:00:16.03,Caption,,0,0,0,,CU APĂ ÎN INTERIORUL LOCUINȚEI
-Dialogue: 0,0:00:16.03,0:00:18.46,Caption,,0,0,0,,ESTE CEL MAI MARE PROCENT
-Dialogue: 0,0:00:18.46,0:00:20.39,Caption,,0,0,0,,DIN ÎNTREAGA UNIUNE EUROPEANĂ
-Dialogue: 0,0:00:20.39,0:00:23.09,Caption,,0,0,0,,PRACTIC, SUNTEM SINGURA ȚARĂ AFLATĂ
-Dialogue: 0,0:00:23.09,0:00:24.71,Caption,,0,0,0,,LA ACEST NIVEL
-Dialogue: 0,0:00:24.71,0:00:26.96,Caption,,0,0,0,,S-A SCRIS DESPRE ASTA CÂTEVA
-Dialogue: 0,0:00:26.96,0:00:29.20,Caption,,0,0,0,,ZILE, APOI SUBIECTUL A DISPĂRUT
-Dialogue: 0,0:00:29.20,0:00:30.54,Caption,,0,0,0,,DIN ATENȚIA PUBLICĂ
-Dialogue: 0,0:00:30.54,0:00:32.59,Caption,,0,0,0,,DAR CONTEAZĂ
-Dialogue: 0,0:00:32.59,0:00:34.70,Caption,,0,0,0,,VORBIM DESPRE DATE DIN 2023
-Dialogue: 0,0:00:34.70,0:00:36.81,Caption,,0,0,0,,NU DESPRE O POVESTE DE
-Dialogue: 0,0:00:36.81,0:00:38.49,Caption,,0,0,0,,ACUM TREIZECI DE ANI
-Dialogue: 0,0:00:38.49,0:00:40.64,Caption,,0,0,0,,FĂRĂ CANALIZARE ȘI APĂ SIGURĂ
-Dialogue: 0,0:00:40.64,0:00:42.35,Caption,,0,0,0,,CREȘTE RISCUL DE INFECȚII
-Dialogue: 0,0:00:42.35,0:00:44.50,Caption,,0,0,0,,MAI ALES PENTRU COPII ȘI
-Dialogue: 0,0:00:44.50,0:00:45.35,Caption,,0,0,0,,PENTRU BĂTRÂNI
-Dialogue: 0,0:00:45.35,0:00:47.69,Caption,,0,0,0,,IAR DIFERENȚA DINTRE ORAȘE ȘI
-Dialogue: 0,0:00:47.69,0:00:49.10,Caption,,0,0,0,,SATE RĂMÂNE URIAȘĂ
-Dialogue: 0,0:00:49.10,0:00:51.44,Caption,,0,0,0,,ÎN INTERIORUL ACELEIAȘI ȚĂRI DIN
-Dialogue: 0,0:00:51.44,0:00:52.38,Caption,,0,0,0,,UNIUNEA EUROPEANĂ
-Dialogue: 0,0:00:52.38,0:00:54.59,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
-Dialogue: 0,0:00:54.59,0:00:56.81,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
-Dialogue: 1,0:00:52.86,0:00:56.86,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
+Dialogue: 0,0:00:00.00,0:00:42.34,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:42.34,Source,,0,0,0,,Eurostat, EU-SILC 2023
+Dialogue: 0,0:00:02.00,0:00:02.27,Caption,,0,0,0,,ROMÂNIA ÎNREGISTREAZĂ CEA MAI MARE
+Dialogue: 0,0:00:02.27,0:00:04.44,Caption,,0,0,0,,PONDERE DIN UNIUNEA EUROPEANĂ A
+Dialogue: 0,0:00:04.44,0:00:06.60,Caption,,0,0,0,,PERSOANELOR FĂRĂ TOALETĂ CU APĂ
+Dialogue: 0,0:00:06.60,0:00:07.85,Caption,,0,0,0,,ÎN INTERIORUL LOCUINȚEI
+Dialogue: 0,0:00:07.85,0:00:09.10,Caption,,0,0,0,,POTRIVIT DATELOR EUROSTAT
+Dialogue: 0,0:00:09.10,0:00:11.18,Caption,,0,0,0,,PESTE CINCISPREZECE LA SUTĂ DINTRE
+Dialogue: 0,0:00:11.18,0:00:13.26,Caption,,0,0,0,,ROMÂNI SE AFLĂ ÎN ACEASTĂ
+Dialogue: 0,0:00:13.26,0:00:14.09,Caption,,0,0,0,,SITUAȚIE 
+Dialogue: 0,0:00:14.09,0:00:16.17,Caption,,0,0,0,,CEL MAI RIDICAT PROCENT DIN
+Dialogue: 0,0:00:16.17,0:00:17.00,Caption,,0,0,0,,ÎNTREAGA UNIUNE
+Dialogue: 0,0:00:17.00,0:00:18.79,Caption,,0,0,0,,CIFRELE SE REFERĂ LA ANUL
+Dialogue: 0,0:00:18.79,0:00:20.59,Caption,,0,0,0,,DOUĂ MII DOUĂZECI ȘI TREI
+Dialogue: 0,0:00:20.59,0:00:22.39,Caption,,0,0,0,,NU LA UN TRECUT ÎNDEPĂRTAT
+Dialogue: 0,0:00:22.39,0:00:24.54,Caption,,0,0,0,,ÎN LIPSA CANALIZĂRII ȘI A
+Dialogue: 0,0:00:24.54,0:00:25.40,Caption,,0,0,0,,APEI SIGURE
+Dialogue: 0,0:00:25.40,0:00:26.69,Caption,,0,0,0,,CREȘTE RISCUL INFECȚIILOR
+Dialogue: 0,0:00:26.69,0:00:28.84,Caption,,0,0,0,,ÎN SPECIAL ÎN RÂNDUL COPIILOR
+Dialogue: 0,0:00:28.84,0:00:30.14,Caption,,0,0,0,,ȘI AL VÂRSTNICILOR
+Dialogue: 0,0:00:30.14,0:00:32.54,Caption,,0,0,0,,DIFERENȚA DINTRE MEDIUL URBAN ȘI
+Dialogue: 0,0:00:32.54,0:00:34.47,Caption,,0,0,0,,CEL RURAL RĂMÂNE CONSIDERABILĂ
+Dialogue: 0,0:00:34.47,0:00:36.88,Caption,,0,0,0,,ÎN INTERIORUL ACELEIAȘI ȚĂRI DIN
+Dialogue: 0,0:00:36.88,0:00:37.84,Caption,,0,0,0,,UNIUNEA EUROPEANĂ
+Dialogue: 0,0:00:37.84,0:00:40.05,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:40.05,0:00:42.27,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
+Dialogue: 1,0:00:38.34,0:00:42.34,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓

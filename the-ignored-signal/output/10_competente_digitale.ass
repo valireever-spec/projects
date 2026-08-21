@@ -16,36 +16,31 @@ Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,ROMÂNIA, PE ULTIMUL LOC ÎN UE\NLA COMPETENȚE DIGITALE
-Dialogue: 0,0:00:00.00,0:00:52.56,Header,,0,0,0,,SUB RADAR
-Dialogue: 0,0:00:00.00,0:00:52.56,Source,,0,0,0,,Eurostat — competențe digitale 2023
-Dialogue: 0,0:00:02.00,0:00:02.20,Caption,,0,0,0,,DOAR APROXIMATIV UNUL DIN PATRU
-Dialogue: 0,0:00:02.20,0:00:04.31,Caption,,0,0,0,,ROMÂNI ARE COMPETENȚE DIGITALE DE
-Dialogue: 0,0:00:04.31,0:00:05.15,Caption,,0,0,0,,BAZĂ 
-Dialogue: 0,0:00:05.15,0:00:07.62,Caption,,0,0,0,,ULTIMUL LOC DIN TOATĂ UNIUNEA EUROPEANĂ
-Dialogue: 0,0:00:07.62,0:00:09.43,Caption,,0,0,0,,NU E O PĂRERE 
-Dialogue: 0,0:00:09.43,0:00:11.25,Caption,,0,0,0,,REIESE DIN DATELE EUROSTAT PENTRU
-Dialogue: 0,0:00:11.25,0:00:13.42,Caption,,0,0,0,,ANUL DOUĂ MII DOUĂZECI ȘI TREI
-Dialogue: 0,0:00:13.42,0:00:15.22,Caption,,0,0,0,,CONCRET: SUB TREIZECI LA SUTĂ
-Dialogue: 0,0:00:15.22,0:00:17.02,Caption,,0,0,0,,DINTRE OAMENI SE DESCURCĂ CU
-Dialogue: 0,0:00:17.02,0:00:18.82,Caption,,0,0,0,,OPERAȚIUNI DE BAZĂ PE INTERNET
-Dialogue: 0,0:00:18.82,0:00:19.90,Caption,,0,0,0,,ȘI PE CALCULATOR
-Dialogue: 0,0:00:19.90,0:00:21.70,Caption,,0,0,0,,FAȚĂ DE O MEDIE EUROPEANĂ
-Dialogue: 0,0:00:21.70,0:00:23.50,Caption,,0,0,0,,DE PESTE CINCIZECI LA SUTĂ
-Dialogue: 0,0:00:23.50,0:00:25.18,Caption,,0,0,0,,IAR LA VÂRSTNICI E ȘI
-Dialogue: 0,0:00:25.18,0:00:26.19,Caption,,0,0,0,,MAI DRAMATIC 
-Dialogue: 0,0:00:26.19,0:00:27.87,Caption,,0,0,0,,ABIA CÂȚIVA LA SUTĂ DINTRE
-Dialogue: 0,0:00:27.87,0:00:29.55,Caption,,0,0,0,,CEI PESTE ȘAIZECI ȘI CINCI
-Dialogue: 0,0:00:29.55,0:00:30.22,Caption,,0,0,0,,DE ANI
-Dialogue: 0,0:00:30.22,0:00:32.29,Caption,,0,0,0,,COMPETENȚELE DIGITALE NU MAI SUNT
-Dialogue: 0,0:00:32.29,0:00:33.12,Caption,,0,0,0,,UN MOFT
-Dialogue: 0,0:00:33.12,0:00:33.95,Caption,,0,0,0,,FĂRĂ ELE
-Dialogue: 0,0:00:33.95,0:00:36.03,Caption,,0,0,0,,ACCESEZI TOT MAI GREU SERVICII
-Dialogue: 0,0:00:36.03,0:00:38.10,Caption,,0,0,0,,PUBLICE, UN LOC DE MUNCĂ
-Dialogue: 0,0:00:38.10,0:00:40.18,Caption,,0,0,0,,SAU CHIAR O PROGRAMARE MEDICALĂ
-Dialogue: 0,0:00:40.18,0:00:42.26,Caption,,0,0,0,,S-A SCRIS DESPRE ASTA CÂND
-Dialogue: 0,0:00:42.26,0:00:43.51,Caption,,0,0,0,,AU IEȘIT CIFRELE
-Dialogue: 0,0:00:43.51,0:00:46.01,Caption,,0,0,0,,APOI SUBIECTUL A DISPĂRUT DIN ATENȚIE
-Dialogue: 0,0:00:46.01,0:00:48.06,Caption,,0,0,0,,DAR CONTEAZĂ
-Dialogue: 0,0:00:48.06,0:00:50.28,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
-Dialogue: 0,0:00:50.28,0:00:52.50,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
-Dialogue: 1,0:00:48.56,0:00:52.56,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
+Dialogue: 0,0:00:00.00,0:00:43.99,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:43.99,Source,,0,0,0,,Eurostat — competențe digitale 2023
+Dialogue: 0,0:00:02.00,0:00:02.12,Caption,,0,0,0,,DOAR APROXIMATIV UNUL DIN PATRU
+Dialogue: 0,0:00:02.12,0:00:04.15,Caption,,0,0,0,,ROMÂNI DEȚINE COMPETENȚE DIGITALE DE
+Dialogue: 0,0:00:04.15,0:00:04.96,Caption,,0,0,0,,BAZĂ 
+Dialogue: 0,0:00:04.96,0:00:06.98,Caption,,0,0,0,,CEL MAI SCĂZUT NIVEL DIN
+Dialogue: 0,0:00:06.98,0:00:07.74,Caption,,0,0,0,,UNIUNEA EUROPEANĂ
+Dialogue: 0,0:00:07.74,0:00:09.50,Caption,,0,0,0,,POTRIVIT DATELOR EUROSTAT PENTRU ANUL
+Dialogue: 0,0:00:09.50,0:00:11.27,Caption,,0,0,0,,DOUĂ MII DOUĂZECI ȘI TREI
+Dialogue: 0,0:00:11.27,0:00:13.03,Caption,,0,0,0,,SUB TREIZECI LA SUTĂ DINTRE
+Dialogue: 0,0:00:13.03,0:00:14.79,Caption,,0,0,0,,PERSOANE POT EFECTUA OPERAȚIUNI DE
+Dialogue: 0,0:00:14.79,0:00:16.55,Caption,,0,0,0,,BAZĂ PE INTERNET ȘI PE
+Dialogue: 0,0:00:16.55,0:00:18.31,Caption,,0,0,0,,CALCULATOR, FAȚĂ DE O MEDIE
+Dialogue: 0,0:00:18.31,0:00:20.42,Caption,,0,0,0,,EUROPEANĂ DE PESTE CINCIZECI LA SUTĂ
+Dialogue: 0,0:00:20.42,0:00:21.60,Caption,,0,0,0,,ÎN RÂNDUL VÂRSTNICILOR
+Dialogue: 0,0:00:21.60,0:00:23.56,Caption,,0,0,0,,SITUAȚIA ESTE ȘI MAI ACCENTUATĂ
+Dialogue: 0,0:00:23.56,0:00:25.53,Caption,,0,0,0,,— DOAR CÂTEVA PROCENTE DINTRE
+Dialogue: 0,0:00:25.53,0:00:27.49,Caption,,0,0,0,,CEI CU VÂRSTA PESTE ȘAIZECI
+Dialogue: 0,0:00:27.49,0:00:29.06,Caption,,0,0,0,,ȘI CINCI DE ANI
+Dialogue: 0,0:00:29.06,0:00:31.15,Caption,,0,0,0,,COMPETENȚELE DIGITALE AU DEVENIT ESENȚIALE
+Dialogue: 0,0:00:31.15,0:00:31.99,Caption,,0,0,0,,FĂRĂ ELE
+Dialogue: 0,0:00:31.99,0:00:33.66,Caption,,0,0,0,,ACCESUL LA SERVICII PUBLICE
+Dialogue: 0,0:00:33.66,0:00:35.75,Caption,,0,0,0,,LA UN LOC DE MUNCĂ
+Dialogue: 0,0:00:35.75,0:00:37.84,Caption,,0,0,0,,SAU LA O PROGRAMARE MEDICALĂ
+Dialogue: 0,0:00:37.84,0:00:39.51,Caption,,0,0,0,,DEVINE TOT MAI DIFICIL
+Dialogue: 0,0:00:39.51,0:00:41.72,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:41.72,0:00:43.94,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
+Dialogue: 1,0:00:39.99,0:00:43.99,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓

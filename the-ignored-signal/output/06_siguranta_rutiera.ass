@@ -16,39 +16,33 @@ Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,ROMÂNIA, PE ULTIMUL LOC ÎN UE\NLA SIGURANȚA RUTIERĂ
-Dialogue: 0,0:00:00.00,0:00:58.01,Header,,0,0,0,,SUB RADAR
-Dialogue: 0,0:00:00.00,0:00:58.01,Source,,0,0,0,,Eurostat / Comisia Europeană — 2023
-Dialogue: 0,0:00:02.00,0:00:03.83,Caption,,0,0,0,,MULTE MORȚI PE ȘOSELE DIN
-Dialogue: 0,0:00:03.83,0:00:04.94,Caption,,0,0,0,,TOATĂ UNIUNEA EUROPEANĂ
-Dialogue: 0,0:00:04.94,0:00:06.43,Caption,,0,0,0,,RAPORTAT LA POPULAȚIE 
-Dialogue: 0,0:00:06.43,0:00:07.93,Caption,,0,0,0,,LA EGALITATE CU BULGARIA
-Dialogue: 0,0:00:07.93,0:00:09.04,Caption,,0,0,0,,PE PRIMUL LOC
-Dialogue: 0,0:00:09.04,0:00:10.91,Caption,,0,0,0,,NU E O PĂRERE 
-Dialogue: 0,0:00:10.91,0:00:12.77,Caption,,0,0,0,,REIESE DIN STATISTICILE OFICIALE ALE
-Dialogue: 0,0:00:12.77,0:00:13.51,Caption,,0,0,0,,COMISIEI EUROPENE
-Dialogue: 0,0:00:13.51,0:00:15.38,Caption,,0,0,0,,PENTRU ANUL DOUĂ MII DOUĂZECI
-Dialogue: 0,0:00:15.38,0:00:16.07,Caption,,0,0,0,,ȘI TREI
-Dialogue: 0,0:00:16.07,0:00:17.77,Caption,,0,0,0,,RATA ESTE DE APROAPE DOUĂ
-Dialogue: 0,0:00:17.77,0:00:19.47,Caption,,0,0,0,,ORI MAI MARE DECÂT MEDIA
-Dialogue: 0,0:00:19.47,0:00:21.17,Caption,,0,0,0,,EUROPEANĂ: OPTZECI ȘI UNU DE
-Dialogue: 0,0:00:21.17,0:00:22.87,Caption,,0,0,0,,MORȚI LA UN MILION DE
-Dialogue: 0,0:00:22.87,0:00:24.56,Caption,,0,0,0,,LOCUITORI, FAȚĂ DE PATRUZECI ȘI
-Dialogue: 0,0:00:24.56,0:00:26.26,Caption,,0,0,0,,ȘASE ÎN MEDIE ÎN UNIUNE
-Dialogue: 0,0:00:26.26,0:00:28.90,Caption,,0,0,0,,VORBIM DESPRE ȘOFERI
-Dialogue: 0,0:00:28.90,0:00:30.66,Caption,,0,0,0,,PIETONI, BICICLIȘTI
-Dialogue: 0,0:00:30.66,0:00:32.38,Caption,,0,0,0,,ÎN TIMP CE ÎN ALTE
-Dialogue: 0,0:00:32.38,0:00:34.10,Caption,,0,0,0,,ȚĂRI NUMĂRUL SCADE AN DE
-Dialogue: 0,0:00:34.10,0:00:36.17,Caption,,0,0,0,,AN, LA NOI RĂMÂNE BLOCAT SUS
-Dialogue: 0,0:00:36.17,0:00:38.31,Caption,,0,0,0,,S-A RAPORTAT SCURT CÂND AU
-Dialogue: 0,0:00:38.31,0:00:39.16,Caption,,0,0,0,,IEȘIT CIFRELE
-Dialogue: 0,0:00:39.16,0:00:41.73,Caption,,0,0,0,,APOI POVESTEA A DISPĂRUT DIN ȘTIRI
-Dialogue: 0,0:00:41.73,0:00:43.80,Caption,,0,0,0,,DAR CONTEAZĂ
-Dialogue: 0,0:00:43.80,0:00:45.69,Caption,,0,0,0,,ÎN SPATELE FIECĂRUI NUMĂR E
-Dialogue: 0,0:00:45.69,0:00:47.58,Caption,,0,0,0,,UN OM ȘI O FAMILIE
-Dialogue: 0,0:00:47.58,0:00:49.43,Caption,,0,0,0,,MULTE DINTRE ACESTE MORȚI S-AR
-Dialogue: 0,0:00:49.43,0:00:50.54,Caption,,0,0,0,,PUTEA PREVENI 
-Dialogue: 0,0:00:50.54,0:00:52.38,Caption,,0,0,0,,CU DRUMURI MAI SIGURE ȘI
-Dialogue: 0,0:00:52.38,0:00:53.49,Caption,,0,0,0,,CU REGULI APLICATE
-Dialogue: 0,0:00:53.49,0:00:55.71,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
-Dialogue: 0,0:00:55.71,0:00:57.93,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
-Dialogue: 1,0:00:54.01,0:00:58.01,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
+Dialogue: 0,0:00:00.00,0:00:49.78,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:49.78,Source,,0,0,0,,Eurostat / Comisia Europeană — 2023
+Dialogue: 0,0:00:02.00,0:00:03.65,Caption,,0,0,0,,MAI RIDICATE RATE DE MORTALITATE
+Dialogue: 0,0:00:03.65,0:00:05.07,Caption,,0,0,0,,RUTIERĂ DIN UNIUNEA EUROPEANĂ
+Dialogue: 0,0:00:05.07,0:00:06.14,Caption,,0,0,0,,RAPORTAT LA POPULAȚIE
+Dialogue: 0,0:00:06.14,0:00:07.92,Caption,,0,0,0,,LA EGALITATE CU BULGARIA PE
+Dialogue: 0,0:00:07.92,0:00:08.63,Caption,,0,0,0,,PRIMUL LOC
+Dialogue: 0,0:00:08.63,0:00:10.40,Caption,,0,0,0,,POTRIVIT STATISTICILOR COMISIEI EUROPENE PENTRU
+Dialogue: 0,0:00:10.40,0:00:12.18,Caption,,0,0,0,,ANUL DOUĂ MII DOUĂZECI ȘI
+Dialogue: 0,0:00:12.18,0:00:13.95,Caption,,0,0,0,,TREI, RATA ESTE DE APROAPE
+Dialogue: 0,0:00:13.95,0:00:15.73,Caption,,0,0,0,,DOUĂ ORI MAI MARE DECÂT
+Dialogue: 0,0:00:15.73,0:00:16.80,Caption,,0,0,0,,MEDIA EUROPEANĂ 
+Dialogue: 0,0:00:16.80,0:00:18.57,Caption,,0,0,0,,OPTZECI ȘI UNU DE DECESE
+Dialogue: 0,0:00:18.57,0:00:20.35,Caption,,0,0,0,,LA UN MILION DE LOCUITORI
+Dialogue: 0,0:00:20.35,0:00:22.13,Caption,,0,0,0,,FAȚĂ DE PATRUZECI ȘI ȘASE
+Dialogue: 0,0:00:22.13,0:00:23.55,Caption,,0,0,0,,ÎN MEDIE ÎN UNIUNE
+Dialogue: 0,0:00:23.55,0:00:25.93,Caption,,0,0,0,,ESTE VORBA DESPRE ȘOFERI
+Dialogue: 0,0:00:25.93,0:00:27.72,Caption,,0,0,0,,PIETONI ȘI BICICLIȘTI
+Dialogue: 0,0:00:27.72,0:00:29.65,Caption,,0,0,0,,ÎN TIMP CE ÎN ALTE
+Dialogue: 0,0:00:29.65,0:00:31.58,Caption,,0,0,0,,STATE NUMĂRUL SCADE AN DE
+Dialogue: 0,0:00:31.58,0:00:33.90,Caption,,0,0,0,,AN, ÎN ROMÂNIA RĂMÂNE CONSTANT RIDICAT
+Dialogue: 0,0:00:33.90,0:00:35.91,Caption,,0,0,0,,ÎN SPATELE FIECĂREI CIFRE SE
+Dialogue: 0,0:00:35.91,0:00:38.33,Caption,,0,0,0,,AFLĂ O PERSOANĂ ȘI O FAMILIE
+Dialogue: 0,0:00:38.33,0:00:40.49,Caption,,0,0,0,,MULTE DINTRE ACESTE DECESE AR
+Dialogue: 0,0:00:40.49,0:00:41.79,Caption,,0,0,0,,PUTEA FI PREVENITE
+Dialogue: 0,0:00:41.79,0:00:43.96,Caption,,0,0,0,,PRIN INFRASTRUCTURĂ MAI SIGURĂ ȘI
+Dialogue: 0,0:00:43.96,0:00:45.26,Caption,,0,0,0,,PRIN APLICAREA REGULILOR
+Dialogue: 0,0:00:45.26,0:00:47.48,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:47.48,0:00:49.70,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
+Dialogue: 1,0:00:45.78,0:00:49.78,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓

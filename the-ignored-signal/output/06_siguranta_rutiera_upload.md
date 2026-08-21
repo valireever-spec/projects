@@ -1,6 +1,6 @@
 # Upload package — 06_siguranta_rutiera
 
-**Channel:** Sub Radar  ·  **Durată:** 58s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 50s  ·  **Verificat:** True
 **Thumbnail:** 06_siguranta_rutiera_thumb.jpg
 
 ---
