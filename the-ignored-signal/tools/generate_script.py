@@ -29,7 +29,13 @@ from make_video import _load_dotenv, validate_script, _report_validation  # noqa
 
 import anthropic  # noqa: E402
 
-MODEL = "claude-opus-4-8"
+DEFAULT_MODEL = "claude-opus-4-8"
+# Friendly aliases → current model IDs (cheaper = fewer $ per 1M tokens).
+MODEL_ALIASES = {
+    "opus":   "claude-opus-4-8",     # most capable  ($5 / $25 per 1M)
+    "sonnet": "claude-sonnet-4-6",   # ~2x cheaper   ($3 / $15)
+    "haiku":  "claude-haiku-4-5",    # cheapest      ($1 / $5)
+}
 
 # Per-language voice + channel (edge-tts neural voices). ro matches the shipped
 # scripts (channel "Sub Radar"); the others enable the planned expansion.
@@ -128,7 +134,7 @@ def _extract_json(content: list) -> dict:
 
 
 def generate(topic: str, lang: str, country: str, category: str,
-             sources: list[str]) -> dict:
+             sources: list[str], model: str = DEFAULT_MODEL) -> dict:
     client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY
     lang_name = LANGUAGES[lang]["name"]
 
@@ -143,17 +149,23 @@ def generate(topic: str, lang: str, country: str, category: str,
     brief.append("\nResearch this now with web_search, then return the JSON script.")
     user_prompt = "\n".join(brief)
 
+    # Haiku 4.5 lacks adaptive thinking and dynamic-filter web search — degrade
+    # gracefully so the cheapest tier still works.
+    limited = "haiku" in model
+    kwargs = dict(
+        model=model,
+        max_tokens=8000,
+        system=SYSTEM,
+        tools=[{"type": "web_search_20250305" if limited else "web_search_20260209",
+                "name": "web_search"}],
+    )
+    if not limited:
+        kwargs["thinking"] = {"type": "adaptive"}
+
     messages = [{"role": "user", "content": user_prompt}]
     resp = None
     for _ in range(6):  # server-side web-search loop may pause_turn
-        resp = client.messages.create(
-            model=MODEL,
-            max_tokens=8000,
-            thinking={"type": "adaptive"},
-            tools=[{"type": "web_search_20260209", "name": "web_search"}],
-            system=SYSTEM,
-            messages=messages,
-        )
+        resp = client.messages.create(messages=messages, **kwargs)
         if resp.stop_reason == "pause_turn":
             messages.append({"role": "assistant", "content": resp.content})
             continue
@@ -172,7 +184,11 @@ def main() -> None:
     ap.add_argument("--slug", default="", help="output slug (default: auto NN_<topic>)")
     ap.add_argument("--out-dir", default="romanian_scripts", help="output directory")
     ap.add_argument("--channel", default="", help="override channel name")
+    ap.add_argument("--model", default="opus",
+                    help="opus (default, most capable) | sonnet (~2x cheaper) | "
+                         "haiku (cheapest) | any full model id")
     args = ap.parse_args()
+    model = MODEL_ALIASES.get(args.model, args.model)
 
     _load_dotenv()
     import os
@@ -183,9 +199,10 @@ def main() -> None:
     out_dir = Path(args.out_dir)
     out_dir.mkdir(exist_ok=True)
 
-    print(f"Researching + drafting ({MODEL} + web search): {args.topic!r} [{args.lang}]...")
+    print(f"Researching + drafting ({model} + web search): {args.topic!r} [{args.lang}]...")
     try:
-        data = generate(args.topic, args.lang, args.country, args.category, args.sources)
+        data = generate(args.topic, args.lang, args.country, args.category,
+                        args.sources, model=model)
     except anthropic.APIError as e:
         print(f"Claude API error: {e}")
         sys.exit(1)
