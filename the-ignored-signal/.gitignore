@@ -7,3 +7,7 @@ build/
 # Cache
 .cache/
 .next/
+
+# YouTube OAuth secrets — NEVER commit
+tools/client_secret.json
+tools/.youtube_token.json

@@ -4,3 +4,5 @@ edge-tts          # free neural TTS (make_video.py)
 imageio-ffmpeg    # bundled ffmpeg binary (make_video.py)
 matplotlib        # stat-window animations (make_video.py)
 anthropic         # Claude API — script generation (generate_script.py)
+google-api-python-client   # YouTube Data API — upload.py
+google-auth-oauthlib       # YouTube OAuth flow — upload.py
