@@ -1,6 +1,6 @@
 # Upload package — 01_toaleta_apa
 
-**Channel:** Sub Radar  ·  **Durată:** 52s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 57s  ·  **Verificat:** True
 **Thumbnail:** 01_toaleta_apa_thumb.jpg
 
 ---

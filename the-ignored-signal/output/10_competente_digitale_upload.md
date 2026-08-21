@@ -1,6 +1,6 @@
 # Upload package — 10_competente_digitale
 
-**Channel:** Sub Radar  ·  **Durată:** 48s  ·  **Verificat:** True
+**Channel:** Sub Radar  ·  **Durată:** 53s  ·  **Verificat:** True
 **Thumbnail:** 10_competente_digitale_thumb.jpg
 
 ---
@@ -22,6 +22,7 @@ ROMÂNIA, PE ULTIMUL LOC ÎN UE LA COMPETENȚE DIGITALE
 
 🎬 Credite:
 - Video & foto: Pexels (Pexels License — fără atribuire necesară)
+- "Romania-2199 - Shoemakers' Tower (7749781802).jpg" by Dennis G. Jarvis — CC BY-SA 2.0 (Wikimedia Commons)
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
 ⚠️ AI-generated voice-over. Footage is illustrative (Pexels, Wikimedia Commons).

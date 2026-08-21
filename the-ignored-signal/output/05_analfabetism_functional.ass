@@ -16,42 +16,39 @@ Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,PESTE 40% DINTRE ELEVII ROMÂNI\NNU ÎNȚELEG CE CITESC
-Dialogue: 0,0:00:00.00,0:00:55.73,Header,,0,0,0,,SUB RADAR
-Dialogue: 0,0:00:00.00,0:00:55.73,Source,,0,0,0,,OECD — PISA 2022
-Dialogue: 0,0:00:02.00,0:00:02.01,Caption,,0,0,0,,APROAPE JUMĂTATE DINTRE ELEVII ROMÂNI
-Dialogue: 0,0:00:02.01,0:00:03.92,Caption,,0,0,0,,DE CINCISPREZECE ANI NU ATING
-Dialogue: 0,0:00:03.92,0:00:05.40,Caption,,0,0,0,,NIVELUL MINIM LA CITIRE
-Dialogue: 0,0:00:05.40,0:00:07.90,Caption,,0,0,0,,NU E O EXAGERARE 
-Dialogue: 0,0:00:07.90,0:00:10.41,Caption,,0,0,0,,REIESE DIN TESTELE INTERNAȚIONALE PISA
-Dialogue: 0,0:00:10.41,0:00:11.91,Caption,,0,0,0,,COORDONATE DE OECD
-Dialogue: 0,0:00:11.91,0:00:12.35,Caption,,0,0,0,,CONCRET
-Dialogue: 0,0:00:12.35,0:00:13.66,Caption,,0,0,0,,POT DESCIFRA CUVINTELE
-Dialogue: 0,0:00:13.66,0:00:15.84,Caption,,0,0,0,,DAR NU ÎNȚELEG CU ADEVĂRAT
-Dialogue: 0,0:00:15.84,0:00:17.58,Caption,,0,0,0,,UN TEXT SIMPLU 
-Dialogue: 0,0:00:17.58,0:00:18.46,Caption,,0,0,0,,O INSTRUCȚIUNE
-Dialogue: 0,0:00:18.46,0:00:19.33,Caption,,0,0,0,,UN CONTRACT
-Dialogue: 0,0:00:19.33,0:00:20.20,Caption,,0,0,0,,UN ARTICOL
-Dialogue: 0,0:00:20.20,0:00:21.88,Caption,,0,0,0,,PESTE PATRUZECI LA SUTĂ DINTRE
-Dialogue: 0,0:00:21.88,0:00:23.56,Caption,,0,0,0,,ELEVI SUNT ÎN ACEASTĂ SITUAȚIE
-Dialogue: 0,0:00:23.56,0:00:25.24,Caption,,0,0,0,,FAȚĂ DE CIRCA DOUĂZECI ȘI
-Dialogue: 0,0:00:25.24,0:00:26.92,Caption,,0,0,0,,ȘASE LA SUTĂ ÎN MEDIE
-Dialogue: 0,0:00:26.92,0:00:27.93,Caption,,0,0,0,,ÎN ȚĂRILE OECD
-Dialogue: 0,0:00:27.93,0:00:30.09,Caption,,0,0,0,,IAR DACĂ SOCOTIM ȘI MATEMATICA
-Dialogue: 0,0:00:30.09,0:00:30.95,Caption,,0,0,0,,ȘI ȘTIINȚELE
-Dialogue: 0,0:00:30.95,0:00:33.12,Caption,,0,0,0,,APROAPE UNUL DIN TREI ELEVI
-Dialogue: 0,0:00:33.12,0:00:35.28,Caption,,0,0,0,,ESTE ANALFABET FUNCȚIONAL LA TOATE
-Dialogue: 0,0:00:35.28,0:00:35.71,Caption,,0,0,0,,MATERIILE
-Dialogue: 0,0:00:35.71,0:00:37.71,Caption,,0,0,0,,S-A SCRIS DESPRE ASTA CÂND
-Dialogue: 0,0:00:37.71,0:00:38.91,Caption,,0,0,0,,AU IEȘIT REZULTATELE
-Dialogue: 0,0:00:38.91,0:00:40.90,Caption,,0,0,0,,APOI SUBIECTUL A DISPĂRUT DIN
-Dialogue: 0,0:00:40.90,0:00:41.30,Caption,,0,0,0,,ATENȚIE
-Dialogue: 0,0:00:41.30,0:00:43.19,Caption,,0,0,0,,DAR CONTEAZĂ
-Dialogue: 0,0:00:43.19,0:00:45.01,Caption,,0,0,0,,UN COPIL CARE NU ÎNȚELEGE
-Dialogue: 0,0:00:45.01,0:00:46.84,Caption,,0,0,0,,CE CITEȘTE PORNEȘTE ÎN VIAȚĂ
-Dialogue: 0,0:00:46.84,0:00:48.67,Caption,,0,0,0,,CU UN HANDICAP URIAȘ 
-Dialogue: 0,0:00:48.67,0:00:49.40,Caption,,0,0,0,,LA ȘCOALĂ
-Dialogue: 0,0:00:49.40,0:00:50.13,Caption,,0,0,0,,LA MUNCĂ
-Dialogue: 0,0:00:50.13,0:00:51.59,Caption,,0,0,0,,ÎN FAȚA ORICĂRUI FORMULAR
-Dialogue: 0,0:00:51.59,0:00:53.63,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
-Dialogue: 0,0:00:53.63,0:00:55.67,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
-Dialogue: 1,0:00:51.73,0:00:55.73,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
+Dialogue: 0,0:00:00.00,0:01:00.58,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:01:00.58,Source,,0,0,0,,OECD — PISA 2022
+Dialogue: 0,0:00:02.00,0:00:02.18,Caption,,0,0,0,,APROAPE JUMĂTATE DINTRE ELEVII ROMÂNI
+Dialogue: 0,0:00:02.18,0:00:04.26,Caption,,0,0,0,,DE CINCISPREZECE ANI NU ATING
+Dialogue: 0,0:00:04.26,0:00:05.87,Caption,,0,0,0,,NIVELUL MINIM LA CITIRE
+Dialogue: 0,0:00:05.87,0:00:08.59,Caption,,0,0,0,,NU E O EXAGERARE 
+Dialogue: 0,0:00:08.59,0:00:11.31,Caption,,0,0,0,,REIESE DIN TESTELE INTERNAȚIONALE PISA
+Dialogue: 0,0:00:11.31,0:00:12.95,Caption,,0,0,0,,COORDONATE DE OECD
+Dialogue: 0,0:00:12.95,0:00:14.84,Caption,,0,0,0,,CONCRET: POT DESCIFRA CUVINTELE
+Dialogue: 0,0:00:14.84,0:00:17.21,Caption,,0,0,0,,DAR NU ÎNȚELEG CU ADEVĂRAT
+Dialogue: 0,0:00:17.21,0:00:19.11,Caption,,0,0,0,,UN TEXT SIMPLU 
+Dialogue: 0,0:00:19.11,0:00:20.06,Caption,,0,0,0,,O INSTRUCȚIUNE
+Dialogue: 0,0:00:20.06,0:00:21.01,Caption,,0,0,0,,UN CONTRACT
+Dialogue: 0,0:00:21.01,0:00:21.96,Caption,,0,0,0,,UN ARTICOL
+Dialogue: 0,0:00:21.96,0:00:23.78,Caption,,0,0,0,,PESTE PATRUZECI LA SUTĂ DINTRE
+Dialogue: 0,0:00:23.78,0:00:25.61,Caption,,0,0,0,,ELEVI SUNT ÎN ACEASTĂ SITUAȚIE
+Dialogue: 0,0:00:25.61,0:00:27.43,Caption,,0,0,0,,FAȚĂ DE CIRCA DOUĂZECI ȘI
+Dialogue: 0,0:00:27.43,0:00:29.26,Caption,,0,0,0,,ȘASE LA SUTĂ ÎN MEDIE
+Dialogue: 0,0:00:29.26,0:00:30.35,Caption,,0,0,0,,ÎN ȚĂRILE OECD
+Dialogue: 0,0:00:30.35,0:00:32.70,Caption,,0,0,0,,IAR DACĂ SOCOTIM ȘI MATEMATICA
+Dialogue: 0,0:00:32.70,0:00:33.64,Caption,,0,0,0,,ȘI ȘTIINȚELE
+Dialogue: 0,0:00:33.64,0:00:36.00,Caption,,0,0,0,,APROAPE UNUL DIN TREI ELEVI
+Dialogue: 0,0:00:36.00,0:00:38.82,Caption,,0,0,0,,ESTE ANALFABET FUNCȚIONAL LA TOATE MATERIILE
+Dialogue: 0,0:00:38.82,0:00:40.99,Caption,,0,0,0,,S-A SCRIS DESPRE ASTA CÂND
+Dialogue: 0,0:00:40.99,0:00:42.29,Caption,,0,0,0,,AU IEȘIT REZULTATELE
+Dialogue: 0,0:00:42.29,0:00:44.89,Caption,,0,0,0,,APOI SUBIECTUL A DISPĂRUT DIN ATENȚIE
+Dialogue: 0,0:00:44.89,0:00:46.94,Caption,,0,0,0,,DAR CONTEAZĂ
+Dialogue: 0,0:00:46.94,0:00:48.93,Caption,,0,0,0,,UN COPIL CARE NU ÎNȚELEGE
+Dialogue: 0,0:00:48.93,0:00:50.91,Caption,,0,0,0,,CE CITEȘTE PORNEȘTE ÎN VIAȚĂ
+Dialogue: 0,0:00:50.91,0:00:52.90,Caption,,0,0,0,,CU UN HANDICAP URIAȘ 
+Dialogue: 0,0:00:52.90,0:00:53.69,Caption,,0,0,0,,LA ȘCOALĂ
+Dialogue: 0,0:00:53.69,0:00:54.48,Caption,,0,0,0,,LA MUNCĂ
+Dialogue: 0,0:00:54.48,0:00:56.07,Caption,,0,0,0,,ÎN FAȚA ORICĂRUI FORMULAR
+Dialogue: 0,0:00:56.07,0:00:58.29,Caption,,0,0,0,,URMĂREȘTE SUB RADAR PENTRU MAI
+Dialogue: 0,0:00:58.29,0:01:00.52,Caption,,0,0,0,,MULTE POVEȘTI TRECUTE CU VEDEREA
+Dialogue: 1,0:00:56.58,0:01:00.58,EndCard,,0,0,0,,SUB RADAR\NȘtiai asta? Spune-ne în comentarii ↓
