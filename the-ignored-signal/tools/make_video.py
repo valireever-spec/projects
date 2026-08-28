@@ -15,6 +15,7 @@ import asyncio
 import hashlib
 import json
 import os
+import random
 import re
 import subprocess
 import sys
@@ -51,11 +52,43 @@ ACCENT_ASS = "&H002B39C0"   # #c0392b — deep red
 MUTED_ASS  = "&H00776063"   # #636077 — muted grey
 BLACK_ASS  = "&H00000000"
 W, H = 1080, 1920
-CAPTION_MAX_WORDS = 5
+# 4 words/line reads easier for the 35+ audience and in silent autoplay than 5.
+CAPTION_MAX_WORDS = 4
 FONT = "DejaVu Sans"
-VOICE_RATE = "-8%"   # slightly slower for a measured, journalistic delivery
+VOICE_RATE = "+5%"   # brisk, natural pace (was -8% — sounded slow/dragging).
+#                      Per-script override: add "voice_rate": "+8%" to a JSON.
+
+# Background music bed (opt-in via --music). Kept low so narration always
+# dominates — news, not a montage. ~0.12 ≈ -18 dB under the voice.
+MUSIC_VOLUME = 0.12
+MUSIC_EXTS   = (".mp3", ".m4a", ".wav", ".ogg", ".aac", ".flac")
+MUSIC_DIR    = Path("assets/music")
+
+# Loudness target for the narration. TikTok/YouTube normalize playback to
+# roughly -14 LUFS; matching it here means our audio plays at full, consistent
+# volume across every video instead of being turned down (or up) on ingest.
+# EBU R128 single-pass (TP = true-peak ceiling, LRA = loudness range).
+LOUDNORM = "loudnorm=I=-14:TP=-1.5:LRA=11"
 
 SRT_TS = re.compile(r"(\d{2}):(\d{2}):(\d{2}),(\d{3})")
+
+
+def _resolve_music(spec: str | None) -> Path | None:
+    """Resolve a --music value to a track file.
+
+    spec=None → pick a random track from assets/music/; a directory → random
+    track inside it; a file → that file. Returns None if nothing usable is
+    found, so rendering continues without a bed rather than failing.
+    """
+    base = Path(spec) if spec else MUSIC_DIR
+    if base.is_file():
+        return base
+    if base.is_dir():
+        tracks = sorted(p for p in base.iterdir()
+                        if p.suffix.lower() in MUSIC_EXTS)
+        if tracks:
+            return random.choice(tracks)
+    return None
 
 
 # ── Timing helpers ────────────────────────────────────────────────────────────
@@ -114,7 +147,9 @@ def chunk_captions(cues: list) -> list:
             if (i == len(toks) - 1
                     or (end_of_phrase and len(group) >= 2)
                     or (len(group) >= CAPTION_MAX_WORDS and remaining >= 2)):
-                disp = " ".join(group).rstrip(".,;:!?—…")
+                # Keep ? and ! — they carry the meaning of a debate CTA
+                # ("…te-ai obișnuit deja?"); strip only neutral punctuation.
+                disp = " ".join(group).rstrip(".,;:—…")
                 if disp:
                     chunks.append([gstart, start + (i + 1) * span, disp])
                 group = []
@@ -127,6 +162,22 @@ def chunk_captions(cues: list) -> list:
 
 def ass_escape(text: str) -> str:
     return text.replace("\\", "\\\\").replace("{", "(").replace("}", ")")
+
+
+def _karaoke_text(escaped_text: str, dur: float) -> str:
+    """Wrap each word with an ASS \\k tag so the caption lights up word-by-word
+    as it is spoken. Input must already be ass-escaped; the \\k braces are added
+    here. Duration (s) is split evenly across the words (centisecond units)."""
+    words = escaped_text.split()
+    if not words:
+        return escaped_text
+    total_cs = max(len(words), int(round(dur * 100)))
+    per, rem = divmod(total_cs, len(words))
+    out = []
+    for i, w in enumerate(words):
+        cs = per + (1 if i < rem else 0)
+        out.append(f"{{\\k{cs}}}{w}")
+    return " ".join(out)
 
 
 HOOK_DUR    = 2.0
@@ -145,7 +196,8 @@ SAFE_BOTTOM = 340
 def build_ass(chunks: list, duration: float, channel: str,
               source_text: str, show_source: bool,
               hook_card: str, cta_question: str,
-              narration_dur: float | None = None) -> str:
+              narration_dur: float | None = None,
+              karaoke: bool = False) -> str:
     # duration = full video length (may exceed narration when padded for TikTok);
     # narration_dur = when the voice ends, so the CTA card holds through the outro.
     DARK_BOX = "&H440F0909"
@@ -159,7 +211,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Caption,{FONT},48,{FG_ASS},{FG_ASS},{BLACK_ASS},&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,{CAP_MARGIN},1
+Style: Caption,{FONT},54,{FG_ASS},{MUTED_ASS},{BLACK_ASS},&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,{CAP_MARGIN},1
 Style: Header,{FONT},38,{MUTED_ASS},{MUTED_ASS},{BLACK_ASS},&H00000000,0,0,0,0,100,100,3,0,1,2,0,8,60,60,{SAFE_TOP},1
 Style: Source,{FONT},34,{ACCENT_ASS},{ACCENT_ASS},{BLACK_ASS},&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,60,60,{SAFE_BOTTOM},1
 Style: HookCard,{FONT},82,{FG_ASS},{FG_ASS},{BLACK_ASS},{DARK_BOX},-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
@@ -195,9 +247,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         display_start = max(start, HOOK_DUR) if hook_card else start
         if display_start >= end:
             continue
+        body = ass_escape(text.upper())
+        if karaoke:
+            body = _karaoke_text(body, end - display_start)
         events.append(
             f"Dialogue: 0,{seconds_to_ass(display_start)},{seconds_to_ass(end)},"
-            f"Caption,,0,0,0,,{ass_escape(text.upper())}"
+            f"Caption,,0,0,0,,{body}"
         )
 
     end_text = ass_escape(channel.upper())
@@ -222,6 +277,60 @@ async def synth(text: str, voice: str, mp3_path: Path, rate: str = VOICE_RATE) -
             elif chunk["type"] in ("WordBoundary", "SentenceBoundary"):
                 submaker.feed(chunk)
     return submaker.get_srt()
+
+
+# ── Piper (local, CPU, offline) — fine-tuned Romanian voices ───────────────────
+
+_PIPER_DIR = Path(__file__).resolve().parent / "piper_voices"
+PIPER_VOICES = {
+    "mihai": _PIPER_DIR / "ro_RO-mihai-medium.onnx",   # male, default anchor
+    "lili":  _PIPER_DIR / "ro_RO-lili-high.onnx",      # female, for variety
+}
+PIPER_BIN = Path(sys.executable).with_name("piper")
+
+
+def _srt_ts_out(t: float) -> str:
+    h = int(t // 3600); m = int((t % 3600) // 60); s = t % 60
+    return f"{h:02d}:{m:02d}:{int(s):02d},{int(round((s - int(s)) * 1000)):03d}"
+
+
+def _proportional_srt(text: str, total_dur: float) -> str:
+    """Piper gives no word timestamps, so build a sentence-level SRT with each
+    sentence's duration proportional to its length. chunk_captions() then splits
+    each cue into word groups (breaking on punctuation), keeping sync tight."""
+    sents = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text.strip()) if s.strip()]
+    if not sents:
+        return ""
+    weights = [max(1, len(s)) for s in sents]
+    tot = sum(weights)
+    out, t = [], 0.0
+    for i, (s, w) in enumerate(zip(sents, weights), 1):
+        d = total_dur * w / tot
+        out.append(f"{i}\n{_srt_ts_out(t)} --> {_srt_ts_out(t + d)}\n{s}\n")
+        t += d
+    return "\n".join(out)
+
+
+def synth_piper(text: str, voice: str, mp3_path: Path, ffmpeg_bin: str,
+                rate: str = VOICE_RATE) -> str:
+    """Local Piper TTS → mp3 + a proportional SRT. rate ('+5%') maps to Piper's
+    length_scale (higher % = faster = smaller scale)."""
+    model = PIPER_VOICES.get(voice, PIPER_VOICES["mihai"])
+    try:
+        pct = int(str(rate).replace("%", "").replace("+", ""))
+    except ValueError:
+        pct = 0
+    length_scale = 1.0 / (1.0 + pct / 100.0)   # +5% → 0.952 (a bit faster)
+    wav = mp3_path.with_suffix(".wav")
+    subprocess.run(
+        [str(PIPER_BIN), "-m", str(model), "-f", str(wav),
+         "--length-scale", f"{length_scale:.3f}"],
+        input=text, text=True, capture_output=True, check=True,
+    )
+    subprocess.run([ffmpeg_bin, "-y", "-loglevel", "error", "-i", str(wav),
+                    "-b:a", "192k", str(mp3_path)], check=True)
+    wav.unlink(missing_ok=True)
+    return _proportional_srt(text, media_duration(ffmpeg_bin, mp3_path))
 
 
 # ── Duration helper ───────────────────────────────────────────────────────────
@@ -369,15 +478,67 @@ KB_SCALE = 1.40
 # need a credit line (written to <slug>_credits.txt). AI is the never-fail
 # fallback so a render never breaks for lack of an image.
 PEXELS_KEY    = os.environ.get("PEXELS_API_KEY", "").strip()
+PIXABAY_KEY   = os.environ.get("PIXABAY_API_KEY", "").strip()   # free, no attribution
 USE_WIKIMEDIA = True
 
-# Per-run registry of image content hashes already used, so no scene photo
-# repeats within a video or across videos rendered in the same invocation.
+# Media dedup so footage never repeats. _USED_IMG_HASHES = within one run;
+# _MEDIA_REGISTRY (hash→slug, persisted to output/.media_registry.json) spans
+# ALL renders, so a clip used in one video never reappears in another — the main
+# defense against footage repeating across the channel.
 _USED_IMG_HASHES: set[str] = set()
+_MEDIA_REGISTRY: dict[str, str] = {}
+_CURRENT_SLUG: str = ""
+_REGISTRY_LOADED = False
+_REGISTRY_NAME = ".media_registry.json"
+_MEDIA_RE = re.compile(r"^(?:clip|photo|img)_(.+?)_(\d+)a?\.(?:mp4|jpg)$")
 
 
 def _img_hash(path: Path) -> str:
     return hashlib.md5(path.read_bytes()).hexdigest()
+
+
+def _load_media_registry(out_dir: Path) -> None:
+    """Load — or, on first run, bootstrap from existing cached media — the
+    persistent hash→slug registry that keeps footage unique across all videos."""
+    global _REGISTRY_LOADED
+    if _REGISTRY_LOADED:
+        return
+    _REGISTRY_LOADED = True
+    reg = out_dir / _REGISTRY_NAME
+    if reg.exists():
+        try:
+            _MEDIA_REGISTRY.update(json.loads(reg.read_text()))
+            return
+        except Exception:
+            pass
+    for p in out_dir.iterdir():                 # bootstrap from what's on disk
+        m = _MEDIA_RE.match(p.name)
+        if m and p.is_file() and p.stat().st_size > 10_000:
+            try:
+                _MEDIA_REGISTRY.setdefault(_img_hash(p), m.group(1))
+            except Exception:
+                pass
+
+
+def _save_media_registry(out_dir: Path) -> None:
+    try:
+        (out_dir / _REGISTRY_NAME).write_text(json.dumps(_MEDIA_REGISTRY))
+    except Exception as e:
+        print(f"    (registry save skipped: {e})")
+
+
+def _hash_used_elsewhere(h: str) -> bool:
+    """True if hash h was already used by a DIFFERENT video (per the registry)."""
+    owner = _MEDIA_REGISTRY.get(h)
+    return owner is not None and owner != _CURRENT_SLUG
+
+
+def _pexels_page(span: int = 5) -> int:
+    """Stable per-video page offset so different videos pull different results for
+    the same query — widens variety and complements the dedup registry."""
+    if not _CURRENT_SLUG:
+        return 1
+    return int(hashlib.md5(_CURRENT_SLUG.encode()).hexdigest(), 16) % span + 1
 
 
 def _is_fresh(path: Path) -> bool:
@@ -402,6 +563,28 @@ def _image_prompt(visual_term: str, idx: int = 0) -> str:
         "moody atmosphere, photorealistic, ultra detailed, "
         "no text, no watermark, no logo"
     )
+
+
+_SDXL_OK: bool | None = None
+
+
+def _fetch_local_sdxl(prompt: str, dest: Path, seed: int = 0) -> bool:
+    """Generate a unique image locally with SDXL (opt-in via USE_LOCAL_SDXL=1).
+    Truly original + never-repeating. Falls through to Pollinations if the local
+    stack isn't installed or a generation fails."""
+    global _SDXL_OK
+    if not os.environ.get("USE_LOCAL_SDXL") or _SDXL_OK is False:
+        return False
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import gen_image  # local SDXL wrapper (requirements-sdxl.txt)
+        ok = gen_image.generate(prompt, dest, seed=seed)
+        _SDXL_OK = True
+        return ok and dest.exists() and dest.stat().st_size > 10_000
+    except Exception as e:
+        print(f"    local SDXL unavailable ({str(e)[:80]}) — falling back")
+        _SDXL_OK = False
+        return False
 
 
 def _fetch_pollinations(prompt: str, dest: Path, seed: int) -> bool:
@@ -458,7 +641,7 @@ def _fetch_pexels(term: str, dest: Path) -> bool:
         return False
     url = ("https://api.pexels.com/v1/search?"
            f"query={urllib.parse.quote(term)}&orientation=portrait"
-           "&size=large&per_page=15")
+           f"&size=large&per_page=30&page={_pexels_page()}")
     req = urllib.request.Request(
         url, headers={"Authorization": PEXELS_KEY,
                       "User-Agent": "TheIgnoredSignal/1.0"})
@@ -472,8 +655,9 @@ def _fetch_pexels(term: str, dest: Path) -> bool:
         src = photo["src"]
         if not _download(src.get("original") or src.get("large2x"), dest):
             continue
-        if _img_hash(dest) in _USED_IMG_HASHES:
-            continue          # duplicate of an image already used — try next
+        h = _img_hash(dest)
+        if h in _USED_IMG_HASHES or _hash_used_elsewhere(h):
+            continue          # already used in this or another video — try next
         return True
     return False
 
@@ -489,7 +673,7 @@ def _fetch_pexels_video(term: str, dest: Path) -> bool:
         return False
     url = ("https://api.pexels.com/videos/search?"
            f"query={urllib.parse.quote(term)}&orientation=portrait"
-           "&size=medium&per_page=10")
+           f"&size=medium&per_page=20&page={_pexels_page()}")
     req = urllib.request.Request(
         url, headers={"Authorization": PEXELS_KEY,
                       "User-Agent": "TheIgnoredSignal/1.0"})
@@ -511,8 +695,62 @@ def _fetch_pexels_video(term: str, dest: Path) -> bool:
                   else max(portrait, key=lambda f: f["height"]))
         if not _download(choice["link"], dest, timeout=180):
             continue
-        if _img_hash(dest) in _USED_IMG_HASHES:
-            continue          # duplicate clip already used — try next
+        h = _img_hash(dest)
+        if h in _USED_IMG_HASHES or _hash_used_elsewhere(h):
+            continue          # already used in this or another video — try next
+        return True
+    return False
+
+
+def _fetch_pixabay_video(term: str, dest: Path) -> bool:
+    """Free motion b-roll from Pixabay (no attribution) — diversity beyond Pexels.
+    Pixabay has no orientation filter, so pick the largest file; the render crops
+    to portrait. Skips clips already used in this or another video."""
+    if not PIXABAY_KEY:
+        return False
+    url = ("https://pixabay.com/api/videos/?"
+           f"key={PIXABAY_KEY}&q={urllib.parse.quote(term)}"
+           f"&per_page=30&page={_pexels_page()}")
+    try:
+        with urllib.request.urlopen(urllib.request.Request(
+                url, headers={"User-Agent": "TheIgnoredSignal/1.0"}), timeout=30) as resp:
+            hits = json.loads(resp.read().decode()).get("hits", [])
+    except Exception as e:
+        print(f"    pixabay video error: {e}")
+        return False
+    for hit in hits:
+        vids = hit.get("videos", {})
+        f = vids.get("large") or vids.get("medium") or vids.get("small")
+        if not f or not f.get("url") or not _download(f["url"], dest, timeout=180):
+            continue
+        h = _img_hash(dest)
+        if h in _USED_IMG_HASHES or _hash_used_elsewhere(h):
+            continue
+        return True
+    return False
+
+
+def _fetch_pixabay(term: str, dest: Path) -> bool:
+    """Free vertical photo from Pixabay (no attribution)."""
+    if not PIXABAY_KEY:
+        return False
+    url = ("https://pixabay.com/api/?"
+           f"key={PIXABAY_KEY}&q={urllib.parse.quote(term)}"
+           f"&image_type=photo&orientation=vertical&per_page=30&page={_pexels_page()}")
+    try:
+        with urllib.request.urlopen(urllib.request.Request(
+                url, headers={"User-Agent": "TheIgnoredSignal/1.0"}), timeout=30) as resp:
+            hits = json.loads(resp.read().decode()).get("hits", [])
+    except Exception as e:
+        print(f"    pixabay error: {e}")
+        return False
+    for hit in hits:
+        u = hit.get("largeImageURL") or hit.get("webformatURL")
+        if not u or not _download(u, dest):
+            continue
+        h = _img_hash(dest)
+        if h in _USED_IMG_HASHES or _hash_used_elsewhere(h):
+            continue
         return True
     return False
 
@@ -524,8 +762,21 @@ def _clean_html(s: str) -> str:
     return re.sub(r"<[^>]+>", "", s).strip()
 
 
+# Tokens marking a Wikimedia result as genuinely Romanian. Commons search is
+# text-based, so "Bucharest blocks" can return an Irish/Russian look-alike; for
+# Romania place terms we require one of these in the title/categories.
+_RO_SIGNALS = ("romania", "român", "bucharest", "bucureșt", "bucurest", "cluj",
+               "timiș", "timis", "iași", "brașov", "brasov", "sibiu", "constanț",
+               "constanta", "transilvan", "carpat", "moldova",
+               # Romanian national-treasure markers (titles say these, not "Romania")
+               "pietroas", "tezaur", "closca", "cloșca", "apahida")
+
+
 def _fetch_wikimedia(term: str, dest: Path) -> tuple[bool, str]:
     """Authentic Commons photo. Returns (ok, attribution) — CC-BY needs credit."""
+    ro_signal = any(k in term.lower() for k in
+                    ("romania", "bucharest", "cluj", "timis", "iasi", "brasov",
+                     "sibiu", "constanta", "transilvan", "carpat"))
     url = ("https://commons.wikimedia.org/w/api.php?action=query"
            "&generator=search&gsrnamespace=6&gsrlimit=10"
            f"&gsrsearch={urllib.parse.quote(term)}"
@@ -548,12 +799,18 @@ def _fetch_wikimedia(term: str, dest: Path) -> tuple[bool, str]:
         lic = em.get("LicenseShortName", {}).get("value", "")
         if not any(tok in lic.lower() for tok in _WIKI_OK):
             continue
+        if ro_signal:
+            hay = (p.get("title", "") + " "
+                   + em.get("Categories", {}).get("value", "")).lower()
+            if not any(k in hay for k in _RO_SIGNALS):
+                continue    # geo-guard: skip non-Romanian look-alikes
         thumb = ii.get("thumburl")
         time.sleep(0.4)   # be gentle with the upload CDN
         if not thumb or not _download(thumb, dest, ua=WIKI_UA):
             continue
-        if _img_hash(dest) in _USED_IMG_HASHES:
-            continue          # duplicate of an image already used — try next
+        h = _img_hash(dest)
+        if h in _USED_IMG_HASHES or _hash_used_elsewhere(h):
+            continue          # already used in this or another video — try next
         author = _clean_html(em.get("Artist", {}).get("value", "")) or "Wikimedia Commons"
         title  = p.get("title", "").replace("File:", "")
         return True, f'"{title}" by {author} — {lic} (Wikimedia Commons)'
@@ -570,12 +827,18 @@ def get_scene_media(search_terms: list[str], out_dir: Path, slug: str,
     then real stills, with AI as the never-fail fallback. No media repeats within
     or across a run. Wikimedia attributions go to <slug>_credits.txt.
     """
+    global _CURRENT_SLUG
+    _CURRENT_SLUG = slug
+    _load_media_registry(out_dir)
+
     media:   list[tuple[str, Path]] = []
     credits: list[str]              = []
 
     def use(kind: str, path: Path) -> None:
-        """Record the media as used (dedup) and add it to the scene list."""
-        _USED_IMG_HASHES.add(_img_hash(path))
+        """Record media as used (per-run + persistent registry) and add it."""
+        h = _img_hash(path)
+        _USED_IMG_HASHES.add(h)
+        _MEDIA_REGISTRY[h] = slug
         media.append((kind, path))
 
     for i, term in enumerate(search_terms):
@@ -584,7 +847,27 @@ def get_scene_media(search_terms: list[str], out_dir: Path, slug: str,
         dest_a = out_dir / f"img_{slug}_{i}a.jpg"    # legacy AI pair cache
         dest   = out_dir / f"img_{slug}_{i}.jpg"     # AI cache
 
-        print(f"  [{i+1}/{len(search_terms)}] {term!r}")
+        # "ai:" prefix forces AI generation — for scenes free stock can't serve
+        # (gold bars, vaults, treasure) or where foreign leakage is a real risk.
+        ai_forced = term.lower().startswith("ai:")
+        if ai_forced:
+            term = term[3:].strip()
+        print(f"  [{i+1}/{len(search_terms)}] {term!r}{' [AI]' if ai_forced else ''}")
+
+        if ai_forced:
+            for cached_ai in (dest, dest_a):
+                if _is_fresh(cached_ai):
+                    use("image", cached_ai); print(f"    AI cached: {cached_ai.name}")
+                    break
+            else:
+                print("    forced AI...")
+                if (_fetch_local_sdxl(_image_prompt(term, i), dest, i * 137 + 42)
+                        or _fetch_pollinations(_image_prompt(term, i), dest, i * 137 + 42)):
+                    use("image", dest); print("    AI ✓")
+                else:
+                    print("    AI failed — skipped")
+            continue
+
         # A term naming the country is a PLACE shot — use a real, geotagged
         # Romania photo (Wikimedia) so we never show a US/Italian street.
         # Generic concept terms (hospital, children, traffic) use Pexels video.
@@ -600,19 +883,39 @@ def get_scene_media(search_terms: list[str], out_dir: Path, slug: str,
         if reused:
             continue
 
-        if is_place and USE_WIKIMEDIA:
-            ok, attribution = _fetch_wikimedia(term, photo)
-            if ok:
-                use("image", photo); credits.append(attribution)
-                print(f"    Wikimedia ✓ — {attribution}"); continue
+        if is_place:
+            # PLACE shots must be geo-verified Romania (Wikimedia) or AI — NEVER
+            # ungeofenced Pexels/Pixabay, which leak foreign look-alikes (Irish
+            # buildings, Western terraces, etc.).
+            if USE_WIKIMEDIA:
+                ok, attribution = _fetch_wikimedia(term, photo)
+                if ok:
+                    use("image", photo); credits.append(attribution)
+                    print(f"    Wikimedia ✓ — {attribution}"); continue
+            if _is_fresh(dest):
+                use("image", dest); print(f"    AI cached: {dest.name}"); continue
+            print("    place → AI (no geo-verified stock)...")
+            ai_prompt = _image_prompt(f"{term}, {country}" if country else term, i)
+            if (_fetch_local_sdxl(ai_prompt, dest, i * 137 + 42)
+                    or _fetch_pollinations(ai_prompt, dest, i * 137 + 42)):
+                use("image", dest); print("    AI ✓")
+            else:
+                print("    place AI failed — skipped")
+            continue
 
-        # Motion b-roll (concept terms, or place fallback if Wikimedia had nothing)
+        # Motion b-roll (concept terms only past this point)
         if _fetch_pexels_video(term, clip):
             use("video", clip)
             print(f"    Pexels video ✓ ({clip.stat().st_size // 1024} KB)"); continue
+        if _fetch_pixabay_video(term, clip):
+            use("video", clip)
+            print(f"    Pixabay video ✓ ({clip.stat().st_size // 1024} KB)"); continue
         if _fetch_pexels(term, photo):
             use("image", photo)
             print(f"    Pexels photo ✓ ({photo.stat().st_size // 1024} KB)"); continue
+        if _fetch_pixabay(term, photo):
+            use("image", photo)
+            print(f"    Pixabay photo ✓ ({photo.stat().st_size // 1024} KB)"); continue
         if USE_WIKIMEDIA and not is_place and country:
             ok, attribution = _fetch_wikimedia(term, photo)
             if ok:
@@ -625,7 +928,8 @@ def get_scene_media(search_terms: list[str], out_dir: Path, slug: str,
         if _is_fresh(dest):
             use("image", dest); print(f"    AI cached: {dest.name}"); continue
         print(f"    generating (AI fallback)...")
-        if _fetch_pollinations(_image_prompt(term, i), dest, i * 137 + 42):
+        if _fetch_local_sdxl(_image_prompt(term, i), dest, i * 137 + 42) \
+                or _fetch_pollinations(_image_prompt(term, i), dest, i * 137 + 42):
             use("image", dest); print(f"    AI ✓ ({dest.stat().st_size // 1024} KB)")
         else:
             print(f"    failed — skipped")
@@ -638,6 +942,7 @@ def get_scene_media(search_terms: list[str], out_dir: Path, slug: str,
             encoding="utf-8",
         )
         print(f"  Wrote {len(credits)} image credit(s) → {cf.name}")
+    _save_media_registry(out_dir)
     return media
 
 
@@ -697,6 +1002,10 @@ def make_stat_clip(stat: dict, clip_dur: float, out_path: Path, ffmpeg_bin: str)
     fig.text(0.5, 0.18, source, ha="center", va="center",
              color=MUTED, fontsize=20)
 
+    # Whole-number stats (e.g. km, counts) show no decimal; mixed/fractional
+    # sets keep 1 decimal so 15.7 & 5.0 stay consistent.
+    int_fmt = all(float(v["value"]).is_integer() for v in values)
+
     def update(frame: int):
         t = min(frame / anim_frames, 1.0) if anim_frames > 0 else 1.0
         ease = 1 - (1 - t) ** 3
@@ -704,7 +1013,10 @@ def make_stat_clip(stat: dict, clip_dur: float, out_path: Path, ffmpeg_bin: str)
             h = entry["value"] * ease
             bar.set_height(h)
             val_texts[j].set_position((j, h + max_val * 0.01))
-            val_texts[j].set_text(f"{h:.1f}{unit}" if h > 0.5 else "")
+            if h > 0.5:
+                val_texts[j].set_text(f"{h:.0f}{unit}" if int_fmt else f"{h:.1f}{unit}")
+            else:
+                val_texts[j].set_text("")
         return bars
 
     ani = animation.FuncAnimation(
@@ -995,6 +1307,26 @@ RUSSIA_FLAG_KEYWORDS = (
 
 VERIFY_MARKER = re.compile(r"\[VERIFIC[ĂA][^\]]*\]", re.IGNORECASE)
 
+# A source counts as scientific/institutional validation if it is tagged primary
+# or research, or points at an official body / court / peer-reviewed venue.
+_AUTH_TAG = re.compile(r"\[(PRIMAR|CERCETARE|STUDIU|PEER)", re.IGNORECASE)
+_AUTH_HINTS = (
+    ".gov", "europa.eu", "ccr.ro", "curia.europa", "consilium.europa", "coe.int",
+    "bnr.ro", "mae.ro",   # official RO state bodies: National Bank, Foreign Ministry
+    "eurostat", "presidency.ro", "rand.org", "pubmed", "ncbi.nlm.nih.gov",
+    "sciencedirect", "nature.com", "thelancet", "who.int", "un.org", "nato.int",
+    "oecd.org", "worldbank.org", "globsec.org",
+    "peer-review", "peer reviewed", "curtea", "court", "declasificat",
+    "hotărâre", "decizie", "studiu", "study", "journal",
+)
+
+
+def _is_authoritative(source: str) -> bool:
+    """True if a source line is scientific/institutional validation (a primary/
+    official/court source or peer-reviewed research), not just a news mention."""
+    s = source.lower()
+    return bool(_AUTH_TAG.search(source)) or any(h in s for h in _AUTH_HINTS)
+
 
 def validate_script(data: dict) -> list[tuple[str, str]]:
     """Editorial gate before a script becomes a publish-ready video.
@@ -1022,11 +1354,16 @@ def validate_script(data: dict) -> list[tuple[str, str]]:
                                f"(add a sources[] list)"))
 
     if any(k in text.lower() for k in RUSSIA_FLAG_KEYWORDS):
-        if n_sources < 3:
-            issues.append(("error", f"Russia-flagged story needs >=3 sources; "
-                                    f"found {n_sources}"))
-        issues.append(("warn", "Russia flag: >=2 sources must be official/institutional "
-                               "and hold 24h before publishing"))
+        # Enhanced gate: what matters is scientific/institutional VALIDATION, not
+        # a raw source count. Require >=2 authoritative sources (primary/official/
+        # court or peer-reviewed research) rather than an arbitrary 3rd source.
+        n_auth = sum(1 for s in data.get("sources", []) if _is_authoritative(str(s)))
+        if n_auth < 2:
+            issues.append(("error", "Russia-flagged story needs scientific/institutional "
+                                    "validation: >=2 authoritative sources (primary, "
+                                    "official body/court, or peer-reviewed research); "
+                                    f"found {n_auth}"))
+        issues.append(("warn", "Russia flag: 24h hold + human review before publishing"))
     return issues
 
 
@@ -1048,7 +1385,8 @@ def _report_validation(name: str, issues: list[tuple[str, str]]) -> bool:
 # ── Per-script renderer ───────────────────────────────────────────────────────
 
 def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
-                   force: bool = False, pad: bool = False) -> Path | None:
+                   force: bool = False, pad: bool = False,
+                   anim: bool = False, music_path: Path | None = None) -> Path | None:
     data = json.loads(script_path.read_text(encoding="utf-8"))
 
     print(f"\n=== {script_path.name} ===")
@@ -1057,7 +1395,8 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
         return None
 
     narration      = data.get("narration", "")
-    voice          = data.get("voice", "ro-RO-EmilNeural")
+    voice          = data.get("voice", "mihai")   # default: local Piper Mihai (male)
+    voice_rate     = data.get("voice_rate", VOICE_RATE)
     channel        = data.get("channel", "Sub Radar")
     source_text    = data.get("source_onscreen", "")
     show_source    = data.get("show_source", True)
@@ -1070,13 +1409,24 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
         first_sentence = re.split(r"[.!?]", narration)[0].strip()
         hook_card = first_sentence[:80]
 
+    # Per-script opt-out: grave topics (e.g. cancer, child poverty) can set
+    # "music": false to stay dry even in a batch render started with --music.
+    # Absent → the bed plays whenever a track is available.
+    if music_path and not data.get("music", True):
+        print("  music: skipped for this script (\"music\": false)")
+        music_path = None
+
     mp3_path = out_dir / f"{slug}.mp3"
     ass_path = out_dir / f"{slug}.ass"
     mp4_path = out_dir / f"{slug}{'_60' if pad else ''}.mp4"
 
     # 1 — Voice
-    print(f"[1/4] Synthesizing voice ({voice})...")
-    srt = asyncio.run(synth(narration, voice, mp3_path))
+    if voice in PIPER_VOICES:
+        print(f"[1/4] Synthesizing voice (Piper: {voice})...")
+        srt = synth_piper(narration, voice, mp3_path, ffmpeg, voice_rate)
+    else:
+        print(f"[1/4] Synthesizing voice (edge-tts: {voice})...")
+        srt = asyncio.run(synth(narration, voice, mp3_path, voice_rate))
 
     # 2 — Captions
     print("[2/4] Building captions...")
@@ -1088,15 +1438,21 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
     total  = max(dur, MIN_DURATION) if pad else dur
     ass_path.write_text(
         build_ass(chunks, total, channel, source_text, show_source,
-                  hook_card, cta_question, narration_dur=dur),
+                  hook_card, cta_question, narration_dur=dur, karaoke=anim),
         encoding="utf-8",
     )
     pad_note = f" (+{total - dur:.1f}s outro)" if total > dur + 0.1 else ""
     print(f"       {len(chunks)} caption chunks, {dur:.1f}s narration{pad_note}")
 
     # 3 — Images + stat animations
-    n_wins    = max(6, min(12, int(total / 5)))
     stat_defs = data.get("stat_windows", [])
+    # Stat-driven Shorts retain better with a quicker visual rhythm: tighter
+    # windows cut faster from each number to its human-impact footage (per
+    # YouTube retention feedback). Non-stat scripts keep the calmer ~5s cadence.
+    # ~3-3.5s shots keep a 35+ audience engaged without feeling frenetic; the
+    # old 5s/12-window cap read as slow and hurt mid-video retention.
+    secs_per_win = 3 if stat_defs else 3.5
+    n_wins       = max(6, min(18, int(total / secs_per_win)))
 
     print(f"[3/4] Building {n_wins} visual windows...")
     search_terms = extract_timed_terms(chunks, country, n_wins, fallback_terms)
@@ -1157,32 +1513,67 @@ def _render_script(script_path: Path, out_dir: Path, ffmpeg: str,
         filter_str, clip_dur = build_filter_complex(ass_arg, scenes, total)
         # When padded, fade the narration out and fill the outro with silence.
         _afo    = f"afade=t=out:st={max(0.0, dur - 0.4):.2f}:d=0.4"   # no abrupt cut
-        afilter = _afo + (",apad" if total > dur + 0.1 else "")
+        # loudnorm first (bring the voice to target level), then the fade, then
+        # pad silence for a padded outro.
+        afilter = LOUDNORM + "," + _afo + (",apad" if total > dur + 0.1 else "")
+
+        music_inputs: list[str] = []
+        extra_af    = ["-af", afilter]
+        audio_map   = f"{audio_idx}:a"
+        fc          = filter_str
+        if music_path:
+            # Fold audio into the filtergraph so voice + music can be mixed.
+            music_idx = audio_idx + 1
+            music_inputs = ["-stream_loop", "-1", "-i", str(music_path)]
+            voice_ch = f"[{audio_idx}:a]{afilter}[voice]"
+            mfade    = max(0.0, total - 1.2)
+            music_ch = (f"[{music_idx}:a]volume={MUSIC_VOLUME},"
+                        f"afade=t=in:st=0:d=0.8,"
+                        f"afade=t=out:st={mfade:.2f}:d=1.2[bed]")
+            mix      = "[voice][bed]amix=inputs=2:duration=first:normalize=0[a]"
+            fc        = ";".join([filter_str, voice_ch, music_ch, mix])
+            audio_map = "[a]"
+            extra_af  = []
 
         cmd = [
             ffmpeg, "-y",
             *inputs,
             "-i", str(mp3_path),
-            "-filter_complex", filter_str,
-            "-map", "[v]", "-map", f"{audio_idx}:a",
-            "-af", afilter,
-            "-c:v", "libx264", "-preset", "medium", "-crf", "26",
-            "-maxrate", "8M", "-bufsize", "16M", "-pix_fmt", "yuv420p",
+            *music_inputs,
+            "-filter_complex", fc,
+            "-map", "[v]", "-map", audio_map,
+            *extra_af,
+            "-c:v", "libx264", "-preset", "slow", "-crf", "20",
+            "-maxrate", "14M", "-bufsize", "28M", "-pix_fmt", "yuv420p",
             "-c:a", "aac", "-b:a", "192k",
             "-t", str(total + 0.3),
             str(mp4_path),
         ]
     else:
+        music_inputs = []
+        extra_af     = ["-af", LOUDNORM + ",apad"]
+        audio_map    = "1:a"
+        fc           = filter_gradient(ass_arg)
+        if music_path:
+            music_inputs = ["-stream_loop", "-1", "-i", str(music_path)]
+            mfade    = max(0.0, total - 1.2)
+            music_ch = (f"[2:a]volume={MUSIC_VOLUME},afade=t=in:st=0:d=0.8,"
+                        f"afade=t=out:st={mfade:.2f}:d=1.2[bed]")
+            mix      = f"[1:a]{LOUDNORM},apad[voice];[voice][bed]amix=inputs=2:duration=first:normalize=0[a]"
+            fc        = ";".join([fc, music_ch, mix])
+            audio_map = "[a]"
+            extra_af  = []
         cmd = [
             ffmpeg, "-y",
             "-f", "lavfi", "-i",
             f"gradients=s={W}x{H}:c0=0x0a0a14:c1=0x05050b"
             f":nb_colors=2:speed=0.004:d={total:.2f}:r=30",
             "-i", str(mp3_path),
-            "-filter_complex", filter_gradient(ass_arg),
-            "-map", "[v]", "-map", "1:a",
-            "-af", "apad",
-            "-c:v", "libx264", "-preset", "medium", "-pix_fmt", "yuv420p",
+            *music_inputs,
+            "-filter_complex", fc,
+            "-map", "[v]", "-map", audio_map,
+            *extra_af,
+            "-c:v", "libx264", "-preset", "slow", "-crf", "20", "-pix_fmt", "yuv420p",
             "-c:a", "aac", "-b:a", "192k",
             "-t", str(total),
             str(mp4_path),
@@ -1229,10 +1620,20 @@ def main() -> None:
     force        = "--force" in args
     check_only   = "--check" in args
     pad          = "--pad60" in args   # pad to >60s for TikTok (adds a held-CTA outro)
+    # Word-by-word karaoke captions on by default (strong retention lever);
+    # --static-captions restores the old whole-phrase reveal.
+    anim         = "--static-captions" not in args
+    # --music (bare → random track from assets/music/) or --music=PATH
+    music_spec   = None
+    music_on     = "--music" in args
+    for a in args:
+        if a.startswith("--music="):
+            music_spec = a.split("=", 1)[1]
+            music_on   = True
     script_paths = [Path(a) for a in args if not a.startswith("--")]
     if not script_paths:
         print("Usage: python tools/make_video.py [--check] [--force] [--pad60] "
-              "<script1.json> [script2.json ...]")
+              "[--static-captions] [--music[=PATH]] <script1.json> [script2.json ...]")
         sys.exit(1)
 
     # Validation-only mode: report and exit non-zero if any script has errors.
@@ -1254,9 +1655,23 @@ def main() -> None:
     out_dir.mkdir(exist_ok=True)
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
 
+    music_path = None
+    if music_on:
+        music_path = _resolve_music(music_spec)
+        if music_path:
+            print(f"Music bed: {music_path}")
+        else:
+            where = music_spec or str(MUSIC_DIR)
+            print(f"⚠️  --music given but no track found at {where} — "
+                  f"rendering without a bed. Drop a royalty-free .mp3 into "
+                  f"{MUSIC_DIR}/ (see {MUSIC_DIR}/README.md).")
+    print("Captions: word-by-word karaoke highlight" if anim
+          else "Captions: static whole-phrase (--static-captions)")
+
     mp4_paths: list[Path] = []
     for sp in script_paths:
-        mp4 = _render_script(sp, out_dir, ffmpeg, force=force, pad=pad)
+        mp4 = _render_script(sp, out_dir, ffmpeg, force=force, pad=pad,
+                             anim=anim, music_path=music_path)
         if mp4:
             mp4_paths.append(mp4)
 

@@ -16,7 +16,7 @@ Two backends:
 Usage:
     # free local (needs `ollama serve` + `ollama pull qwen2.5:7b`)
     python tools/generate_script.py "România are cea mai scumpă energie din UE"
-    python tools/generate_script.py "topic" --model ollama:qwen2.5:14b
+    python tools/generate_script.py "topic" --model ollama:qwen2.5:7b
     # paid, verified
     python tools/generate_script.py "topic" --model sonnet --source https://ec.europa.eu/...
 """
@@ -49,7 +49,7 @@ DEFAULT_OLLAMA_MODEL = "qwen2.5:7b"
 # Per-language voice + channel (edge-tts neural voices). ro matches the shipped
 # scripts (channel "Sub Radar"); the others enable the planned expansion.
 LANGUAGES = {
-    "ro": {"voice": "ro-RO-EmilNeural", "channel": "Sub Radar",           "name": "Romanian"},
+    "ro": {"voice": "mihai",            "channel": "Sub Radar",           "name": "Romanian"},
     "en": {"voice": "en-US-GuyNeural",  "channel": "The Ignored Signal",  "name": "English"},
     "fr": {"voice": "fr-FR-HenriNeural","channel": "Le Signal Ignoré",    "name": "French"},
     "de": {"voice": "de-DE-ConradNeural","channel": "Das Überhörte Signal","name": "German"},
@@ -74,17 +74,52 @@ EDITORIAL RULES (non-negotiable):
   a government body, a peer-reviewed study, UN/NATO/Council of Europe, or a named \
   senior official on record). Prefer official documents over news articles.
 - Russia/Ukraine/NATO/Belarus/Kremlin/disinformation/election-interference \
-  stories need 3+ sources, at least 2 official/institutional, and a 24h hold — \
-  set verified=false unless you can meet that bar from search.
+  stories need SCIENTIFIC/INSTITUTIONAL VALIDATION: at least 2 authoritative \
+  sources (a primary/official body, a court record, or peer-reviewed research — \
+  not just news mentions), plus a mandatory 24h hold before publishing. Set \
+  verified=false unless you can actually meet that bar from search. A raw count \
+  of three sources is NOT the point — quality of validation is.
 - Set "verified": true ONLY if you actually found and cited enough real sources \
   with the correct figures. If you cannot verify a number, set verified=false and \
   keep the marker [VERIFICĂ] next to that number in the narration.
 
+AUDIENCE: adults 35+ with a high-school education. Write in plain, everyday \
+language — short sentences, concrete nouns, no institutional jargon. If a term \
+like "infringement", "spor natural negativ" or "PIB" is unavoidable, explain it \
+in the same breath in ordinary words. Never assume prior knowledge of EU process.
+
+TOPIC ANGLE (analytics-derived): the channel's best performers are MIGRATION / \
+diaspora and INTERNAL POLITICS & GOVERNANCE (corruption, courts/CJUE, EU-funds \
+mismanagement, political dysfunction, cross-country governance comparisons). \
+Abstract statistical topics (energy poverty, digital skills, literacy) \
+underperform. Whatever topic you are given, find and lead with its most \
+personally-relevant, human angle — never the methodology or the statistic itself. \
+Screen the angle: "does this hit the viewer personally in one sentence?"
+
 WRITING RULES for the narration (spoken text):
 - Language: write in the requested language. Natural, spoken register.
-- Length: ~45-60 seconds of speech (roughly 120-150 words).
-- Structure it as: hook (a striking verified fact) → what happened → why it \
-  matters → a short close inviting the viewer to follow.
+- Length: ~30-35 seconds of speech (roughly 85-100 words). Do NOT exceed ~35s — \
+  shorter Shorts get far higher completion, which is what drives the feed. Cut \
+  ruthlessly; note spelled-out numbers eat time, so budget for them.
+- Structure: hook (hard number) → the PERSONAL STAKE within the first ~8 seconds \
+  → ONE tight line of what happened / why → a debate-sparking close. Front-load \
+  the stakes; keep background minimal.
+- HOOK (first sentence): lead with a hard, concrete number or fact stated as a \
+  DECLARATION, never a question. "Three million Romanians have left the country" \
+  beats "How many Romanians have left?". This is the single biggest driver of \
+  whether a scrolling viewer stops.
+- PERSONAL STAKE FIRST (biggest retention lever): put the "this affects YOU" \
+  consequence in the first ~8 seconds, right after the hook number and BEFORE any \
+  methodology or background — their taxes, pension, town, kids, health, lungs — as \
+  a concrete cause→effect line ("that means fewer workers paying for your \
+  pension"). Analytics show viewers bail between the hook and the data section, so \
+  the personal hit must land before that.
+- LEAN NARRATION — reduce statistics and methodology in the SPOKEN text (this is a \
+  retention rule, NOT a sourcing change): use ONE hero number, do not stack \
+  multiple statistics, and NEVER recite methodology or sourcing in the narration \
+  ("datele Eurostat/OECD arată", "conform studiului"...). The on-screen source \
+  card and the description carry the sources; keep them out of the spoken flow. \
+  Avoid abstract framings like "the management of public funds".
 - Spell numbers out as WORDS for text-to-speech (e.g. "cincisprezece la sută", \
   not "15%"). Never use symbols like %, €. No markdown, no emojis, no line breaks.
 - Do NOT claim the sources are on screen (never write "sursele sunt pe ecran" or \
@@ -98,7 +133,7 @@ Return ONLY a JSON object (no prose, no markdown fences) with these fields:
   "headline": "one-line headline in the target language",
   "source_onscreen": "short source label shown on screen, e.g. 'Eurostat, EU-SILC 2023'",
   "hook_card": "TWO SHORT LINES for the opening card, separated by \\n",
-  "cta_question": "a short viewer question for the end card",
+  "cta_question": "a short end-card question that invites DEBATE (opinion/blame/choice, e.g. 'Who should pay the fine?'), not a yes/no",
   "verified": true or false,
   "verification_note": "1-2 sentences: what you verified and against which source(s)",
   "narration": "the full spoken narration, numbers spelled out, one paragraph",
@@ -113,14 +148,25 @@ Return ONLY a JSON object (no prose, no markdown fences) with these fields:
      "metric": "short metric label in target language",
      "source": "short source label"}
   ],
-  "video_search_terms": ["8-10 ENGLISH b-roll search phrases for stock footage"]
+  "video_search_terms": ["12-16 ENGLISH b-roll search phrases for stock footage"]
 }
 Rules for those fields:
-- "stat_windows": include ONE only if the story has a clear 2-3 value numeric \
-  comparison with real, verified numbers; otherwise use an empty array [].
-- "video_search_terms": English, concrete, stock-footage-friendly. Prefix \
-  place-specific ones with the country (e.g. "Romania rural village"); use \
-  "European ..." for generic institutional shots.
+- "stat_windows": STRONGLY prefer including at least one whenever the story has \
+  any 2-3 value numeric comparison with real, verified numbers — an animated \
+  on-screen number is a major attention and trust driver for this audience. Use \
+  an empty array [] only if there is genuinely no comparable figure. Put the \
+  stat window at the moment the narration says that number (window_idx).
+- "video_search_terms": 12-16 phrases (the renderer cuts every ~3s, so it needs \
+  enough distinct shots). English, concrete, stock-footage-friendly. Order them \
+  so the MOST dramatic/arresting shot is first — it plays under the hook. Prefix \
+  place-specific ones with the country (e.g. "Romania rural village") so they are \
+  geo-verified. RELEVANCE RULES to avoid off-topic/branded stock: describe a \
+  concrete physical scene (objects + action + setting), NOT abstract concepts. \
+  Avoid words that pull commercial or branded clips — "notifications" (banking \
+  apps), "social media" / hashtags, brand names. For anything with a FLAG, a \
+  ballot/vote, a national crowd/protest, a courtroom, or an EU/institution shot, \
+  PREFIX the term with "ai:" so it is generated (directed) instead of pulled from \
+  ungeofenced stock — otherwise you get e.g. US flags on a Romanian story.
 - Do NOT include voice/channel/country — the tool fills those in.
 """
 

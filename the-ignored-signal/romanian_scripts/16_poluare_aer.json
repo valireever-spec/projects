@@ -1,0 +1,48 @@
+{
+  "slug": "16_poluare_aer",
+  "headline": "Aerul din România ucide aproape 18.000 de oameni pe an — mai mulți decât accidentele rutiere. Cel mai poluat oraș e Bucureștiul, urmat de Iași, Cluj, Brașov și Ploiești.",
+  "voice": "ro-RO-EmilNeural",
+  "voice_rate": "+7%",
+  "channel": "Sub Radar",
+  "source_onscreen": "AEM / CJUE / IQAir",
+  "country": "Romania",
+  "hook_card": "APROAPE 18.000 DE MORȚI/AN\nAERUL DIN ROMÂNIA",
+  "cta_question": "Ai purificator de aer acasă — sau te-ai obișnuit deja?",
+  "music": true,
+  "verified": true,
+  "verification_note": "Verificat 2026-08: circa 17.900 decese premature pe an în România sunt atribuite particulelor fine PM2.5 (Agenția Europeană de Mediu, date 2022) — mai multe decât decesele rutiere anuale. Bucureștiul este cel mai poluat oraș (indice de poluare cel mai ridicat, Numbeo/Statista 2024; PM2.5 mediu 15,7 µg/m³ = de 3,1 ori limita OMS); pe 23 oct. 2025 a fost al 7-lea cel mai poluat oraș din lume (IQAir, AQI 121). Alte orașe intens poluate: Iași, Cluj, Brașov, Timișoara și Ploiești. Ploiești este un caz aparte: din cauza complexului de rafinării, poluarea atinge niveluri apropiate de Bucureștiul, deși orașul e mult mai mic (studiu peer-review, Scientific Reports/Nature, 2022). Aerul din capitală este, la propriu, ilegal: CJUE a condamnat România (cauza C-638/18, 30 apr. 2020) pentru încălcarea sistematică a limitelor PM10 în București (2007-2016). Subiect intern de mediu — nu declanșează verificarea sporită.",
+  "narration": "Aerul din România ucide aproape optsprezece mii de oameni pe an — mai mulți decât accidentele rutiere. Particulele fine intră în sânge și atacă inima, creierul și plămânii, mai ales la copii. Cel mai poluat oraș e Bucureștiul, de trei ori peste limita recomandată. Iar la Ploiești, din cauza rafinăriilor, aerul e la fel de toxic, deși orașul e mult mai mic. Atât de toxic, încât Curtea Europeană de Justiție a condamnat România. Tu ai purificator de aer acasă — sau te-ai obișnuit deja? Scrie în comentarii.",
+  "sources": [
+    "[PRIMARĂ] Agenția Europeană de Mediu (AEM) — ~17.900 decese premature/an atribuite PM2.5 în România (2022) → eea.europa.eu",
+    "[PRIMARĂ] CJUE — cauza C-638/18 (30 apr. 2020): România a încălcat sistematic limitele PM10 în București → op.europa.eu",
+    "[PRIMARĂ/peer-review] Scientific Reports (Nature), 2022 — Ploiești, una dintre cele mai poluate regiuni din România (complexul de rafinării) → nature.com/articles/s41598-022-16015-7",
+    "[SECUNDARĂ] IQAir — București al 7-lea cel mai poluat oraș din lume (23 oct. 2025); PM2.5 15,7 µg/m³ = 3,1× limita OMS → iqair.com",
+    "[SECUNDARĂ] Numbeo / Statista — indicele de poluare pe orașe, 2024: București (75,2) cel mai ridicat, urmat de Iași → statista.com"
+  ],
+  "stat_windows": [
+    {
+      "window_idx": 4,
+      "unit": "",
+      "values": [
+        { "label": "București", "value": 15.7, "color": "#c0392b" },
+        { "label": "Limita OMS", "value": 5.0, "color": "#1a6bb5" }
+      ],
+      "metric": "PM2.5 medie anuală (µg/m³) — de peste 3× limita recomandată",
+      "source": "IQAir 2024 / OMS"
+    }
+  ],
+  "video_search_terms": [
+    "car exhaust pipe emitting smoke close up",
+    "factory smokestack thick smoke emission close up",
+    "oil refinery flare stack burning",
+    "industrial chimney billowing black smoke",
+    "dense grey smog haze sky",
+    "empty playground swings foggy morning",
+    "human lungs chest x-ray medical scan",
+    "coal power plant cooling towers steam",
+    "black smoke pollution against sky",
+    "protective face mask lying on table close up",
+    "dust particles floating in sunlight beam",
+    "thick smoggy hazy polluted air"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "slug": "18_romania_polonia",
+  "headline": "Polonia tocmai a fost promovată la statutul de economie dezvoltată. România a rămas în urmă — nu din lipsă de bani, ci de continuitate.",
+  "voice": "ro-RO-EmilNeural",
+  "voice_rate": "+7%",
+  "channel": "Sub Radar",
+  "source_onscreen": "S&P / FTSE Russell / CNAIR",
+  "country": "Romania",
+  "hook_card": "POLONIA A IEȘIT DIN\nCLUBUL SĂRACILOR DIN EST",
+  "cta_question": "Nouă ce ne lipsește — banii, sau seriozitatea?",
+  "music": true,
+  "verified": true,
+  "verification_note": "Verificat 2026-08: pe 20 aug. 2026, S&P Dow Jones Indices a reclasificat Polonia din piață emergentă în piață DEZVOLTATĂ (în vigoare la reconstituirea indicilor din sept. 2027); FTSE Russell o făcuse deja pe 24 sept. 2018 — prima țară din Europa Centrală și de Est. România rămâne piață emergentă. Autostrăzi+drumuri expres (verificat CNAIR / GDDKiA): România ~1.418 km la finalul lui 2025; Polonia ~5.200 km (≈1.885 autostradă + ≈3.321 drum expres) — de peste 3× mai mult. Continuitate: Polonia a atras ~250 mld € fonduri UE de la aderare (2004), cheltuite timpuriu pe infrastructură productivă; România are absorbție cronic scăzută (a doua cea mai slabă din UE) și a retras proiecte PNRR. Deficit de conformare TVA (Comisia Europeană, 2023): România ~30% — cel mai mare din UE. PIB/loc. la puterea de cumpărare (Eurostat PPS, UE=100, 2024): Polonia 78, România 77 — România a redus decalajul de la 6 puncte (2022) la 1, dar NU a depășit Polonia. Teza (din eseul-sursă, verificată factual): diferența nu e inteligența, ci că statul polonez a fost tratat ca instrument care trebuie să funcționeze, iar cel român ca pradă. Subiect comparativ, non-sensibil; niciun declanșator de verificare sporită. DE RECONFIRMAT înainte de publicare: km exacți de autostradă (surse naționale) și cifra fondurilor UE.",
+  "narration": "Polonia tocmai a ieșit din clubul săracilor din est — a fost declarată economie dezvoltată. Cum? Prin continuitate. Douăzeci de ani, guverne rivale au tratat statul ca pe un instrument, iar banii europeni ca pe un proiect, nu ca pe o pradă. România își rescrie prioritățile la fiecare alegeri. Pe hartă: Polonia, peste cinci mii de kilometri de autostradă. România, o mie patru sute. Nu sunt mai deștepți. Statul lor funcționează. Nouă ce ne lipsește: banii, sau seriozitatea?",
+  "sources": [
+    "[PRIMARĂ] S&P Dow Jones Indices — Polonia reclasificată ca piață dezvoltată (anunț 20 aug. 2026; în vigoare sept. 2027) → spglobal.com",
+    "[PRIMARĂ] FTSE Russell (LSEG) — Polonia, piață dezvoltată din 24 sept. 2018, prima din Europa Centrală și de Est → lseg.com/ftse-russell",
+    "[PRIMARĂ] CNAIR (RO) / GDDKiA (PL) — rețea autostrăzi+drumuri expres: România ~1.418 km (2025), Polonia ~5.200 km → 130km.ro / gov.pl/gddkia",
+    "[INSTITUȚIONAL] Comisia Europeană — VAT Gap 2023: România, cel mai mare deficit de conformare TVA din UE (~30%) → taxation-customs.ec.europa.eu",
+    "[PRIMARĂ] Eurostat — PIB/locuitor în PPS (tec00114): Polonia 78 / România 77 (2024) → ec.europa.eu/eurostat"
+  ],
+  "stat_windows": [
+    {
+      "window_idx": 7,
+      "unit": "",
+      "values": [
+        { "label": "Polonia", "value": 5200.0, "color": "#c0392b" },
+        { "label": "România", "value": 1418.0, "color": "#1a6bb5" }
+      ],
+      "metric": "Km de autostradă și drum expres (2025) — Polonia, de peste 3× mai mult",
+      "source": "CNAIR / GDDKiA 2025"
+    }
+  ],
+  "video_search_terms": [
+    "ai:an aerial photo of a large modern highway interchange at dusk, no people",
+    "ai:a wide empty modern motorway stretching to the horizon at golden hour, no people",
+    "ai:tall construction cranes building a concrete highway bridge, no people",
+    "ai:a modern high-speed train on an elevated railway through countryside, no people",
+    "ai:a modern European city skyline with new glass towers at sunrise, no people",
+    "ai:stacks of euro coins and banknotes on a wooden table, close up",
+    "ai:a half-finished abandoned concrete highway overgrown in the countryside, no people",
+    "ai:new apartment and office towers under construction with cranes, no people",
+    "ai:an aerial photo of a freshly paved multi-lane highway cutting through green fields, no people",
+    "ai:an old cracked narrow potholed country road, no people",
+    "ai:a large industrial port with gantry cranes and stacked shipping containers at dawn, no people",
+    "ai:rows of solar panels and wind turbines in green fields, no people"
+  ]
+}

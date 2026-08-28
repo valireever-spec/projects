@@ -1,0 +1,42 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 1
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Caption,DejaVu Sans,54,&H00DAE5E9,&H00776063,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,430,1
+Style: Header,DejaVu Sans,38,&H00776063,&H00776063,&H00000000,&H00000000,0,0,0,0,100,100,3,0,1,2,0,8,60,60,170,1
+Style: Source,DejaVu Sans,34,&H002B39C0,&H002B39C0,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,60,60,340,1
+Style: HookCard,DejaVu Sans,82,&H00DAE5E9,&H00DAE5E9,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,POLONIA A IEȘIT DIN\NCLUBUL SĂRACILOR DIN EST
+Dialogue: 0,0:00:00.00,0:00:35.76,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:35.76,Source,,0,0,0,,S&P / FTSE Russell / CNAIR
+Dialogue: 0,0:00:02.00,0:00:03.19,Caption,,0,0,0,,{\k30}DIN {\k30}CLUBUL {\k30}SĂRACILOR {\k29}DIN
+Dialogue: 0,0:00:03.19,0:00:03.97,Caption,,0,0,0,,{\k77}EST
+Dialogue: 0,0:00:03.97,0:00:05.85,Caption,,0,0,0,,{\k38}A {\k38}FOST {\k38}DECLARATĂ {\k37}ECONOMIE {\k37}DEZVOLTATĂ
+Dialogue: 0,0:00:05.85,0:00:07.09,Caption,,0,0,0,,{\k124}CUM?
+Dialogue: 0,0:00:07.09,0:00:09.03,Caption,,0,0,0,,{\k97}PRIN {\k97}CONTINUITATE
+Dialogue: 0,0:00:09.03,0:00:09.94,Caption,,0,0,0,,{\k31}DOUĂZECI {\k30}DE {\k30}ANI
+Dialogue: 0,0:00:09.94,0:00:11.14,Caption,,0,0,0,,{\k31}GUVERNE {\k30}RIVALE {\k30}AU {\k30}TRATAT
+Dialogue: 0,0:00:11.14,0:00:12.35,Caption,,0,0,0,,{\k31}STATUL {\k30}CA {\k30}PE {\k30}UN
+Dialogue: 0,0:00:12.35,0:00:13.56,Caption,,0,0,0,,{\k31}INSTRUMENT, {\k30}IAR {\k30}BANII {\k30}EUROPENI
+Dialogue: 0,0:00:13.56,0:00:14.76,Caption,,0,0,0,,{\k31}CA {\k30}PE {\k30}UN {\k30}PROIECT
+Dialogue: 0,0:00:14.76,0:00:16.27,Caption,,0,0,0,,{\k31}NU {\k30}CA {\k30}PE {\k30}O {\k30}PRADĂ
+Dialogue: 0,0:00:16.27,0:00:18.38,Caption,,0,0,0,,{\k53}ROMÂNIA {\k53}ÎȘI {\k53}RESCRIE {\k52}PRIORITĂȚILE
+Dialogue: 0,0:00:18.38,0:00:19.96,Caption,,0,0,0,,{\k53}LA {\k53}FIECARE {\k52}ALEGERI
+Dialogue: 0,0:00:19.96,0:00:20.88,Caption,,0,0,0,,{\k46}PE {\k45}HARTĂ
+Dialogue: 0,0:00:20.88,0:00:22.70,Caption,,0,0,0,,{\k46}POLONIA, {\k46}PESTE {\k45}CINCI {\k45}MII
+Dialogue: 0,0:00:22.70,0:00:24.52,Caption,,0,0,0,,{\k46}DE {\k46}KILOMETRI {\k45}DE {\k45}AUTOSTRADĂ
+Dialogue: 0,0:00:24.52,0:00:27.38,Caption,,0,0,0,,{\k58}ROMÂNIA, {\k57}O {\k57}MIE {\k57}PATRU {\k57}SUTE
+Dialogue: 0,0:00:27.38,0:00:29.38,Caption,,0,0,0,,{\k50}NU {\k50}SUNT {\k50}MAI {\k50}DEȘTEPȚI
+Dialogue: 0,0:00:29.38,0:00:31.65,Caption,,0,0,0,,{\k76}STATUL {\k76}LOR {\k75}FUNCȚIONEAZĂ
+Dialogue: 0,0:00:31.65,0:00:33.97,Caption,,0,0,0,,{\k58}NOUĂ {\k58}CE {\k58}NE {\k58}LIPSEȘTE
+Dialogue: 0,0:00:33.97,0:00:35.71,Caption,,0,0,0,,{\k58}BANII, {\k58}SAU {\k58}SERIOZITATEA?
+Dialogue: 1,0:00:31.76,0:00:35.76,EndCard,,0,0,0,,SUB RADAR\NNouă ce ne lipsește — banii, sau seriozitatea?

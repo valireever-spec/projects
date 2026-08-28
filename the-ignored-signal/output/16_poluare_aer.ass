@@ -1,0 +1,45 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 1
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Caption,DejaVu Sans,54,&H00DAE5E9,&H00776063,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,430,1
+Style: Header,DejaVu Sans,38,&H00776063,&H00776063,&H00000000,&H00000000,0,0,0,0,100,100,3,0,1,2,0,8,60,60,170,1
+Style: Source,DejaVu Sans,34,&H002B39C0,&H002B39C0,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,60,60,340,1
+Style: HookCard,DejaVu Sans,82,&H00DAE5E9,&H00DAE5E9,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,APROAPE 18.000 DE MORȚI/AN\NAERUL DIN ROMÂNIA
+Dialogue: 0,0:00:00.00,0:00:33.89,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:33.89,Source,,0,0,0,,AEM / CJUE / IQAir
+Dialogue: 0,0:00:02.00,0:00:02.93,Caption,,0,0,0,,{\k24}APROAPE {\k23}OPTSPREZECE {\k23}MII {\k23}DE
+Dialogue: 0,0:00:02.93,0:00:04.34,Caption,,0,0,0,,{\k47}OAMENI {\k47}PE {\k47}AN
+Dialogue: 0,0:00:04.34,0:00:06.06,Caption,,0,0,0,,{\k35}MAI {\k35}MULȚI {\k34}DECÂT {\k34}ACCIDENTELE {\k34}RUTIERE
+Dialogue: 0,0:00:06.06,0:00:07.60,Caption,,0,0,0,,{\k39}PARTICULELE {\k39}FINE {\k38}INTRĂ {\k38}ÎN
+Dialogue: 0,0:00:07.60,0:00:09.14,Caption,,0,0,0,,{\k39}SÂNGE {\k39}ȘI {\k38}ATACĂ {\k38}INIMA
+Dialogue: 0,0:00:09.14,0:00:10.30,Caption,,0,0,0,,{\k39}CREIERUL {\k38}ȘI {\k38}PLĂMÂNII
+Dialogue: 0,0:00:10.30,0:00:11.83,Caption,,0,0,0,,{\k39}MAI {\k39}ALES {\k38}LA {\k38}COPII
+Dialogue: 0,0:00:11.83,0:00:13.40,Caption,,0,0,0,,{\k40}CEL {\k39}MAI {\k39}POLUAT {\k39}ORAȘ
+Dialogue: 0,0:00:13.40,0:00:14.19,Caption,,0,0,0,,{\k39}E {\k39}BUCUREȘTIUL
+Dialogue: 0,0:00:14.19,0:00:15.76,Caption,,0,0,0,,{\k40}DE {\k39}TREI {\k39}ORI {\k39}PESTE
+Dialogue: 0,0:00:15.76,0:00:16.54,Caption,,0,0,0,,{\k39}LIMITA {\k39}RECOMANDATĂ
+Dialogue: 0,0:00:16.54,0:00:17.60,Caption,,0,0,0,,{\k36}IAR {\k35}LA {\k35}PLOIEȘTI
+Dialogue: 0,0:00:17.60,0:00:18.66,Caption,,0,0,0,,{\k36}DIN {\k35}CAUZA {\k35}RAFINĂRIILOR
+Dialogue: 0,0:00:18.66,0:00:20.07,Caption,,0,0,0,,{\k36}AERUL {\k35}E {\k35}LA {\k35}FEL
+Dialogue: 0,0:00:20.07,0:00:20.78,Caption,,0,0,0,,{\k36}DE {\k35}TOXIC
+Dialogue: 0,0:00:20.78,0:00:22.19,Caption,,0,0,0,,{\k36}DEȘI {\k35}ORAȘUL {\k35}E {\k35}MULT
+Dialogue: 0,0:00:22.19,0:00:22.90,Caption,,0,0,0,,{\k36}MAI {\k35}MIC
+Dialogue: 0,0:00:22.90,0:00:24.21,Caption,,0,0,0,,{\k44}ATÂT {\k44}DE {\k43}TOXIC
+Dialogue: 0,0:00:24.21,0:00:25.96,Caption,,0,0,0,,{\k44}ÎNCÂT {\k44}CURTEA {\k44}EUROPEANĂ {\k43}DE
+Dialogue: 0,0:00:25.96,0:00:27.71,Caption,,0,0,0,,{\k44}JUSTIȚIE {\k44}A {\k44}CONDAMNAT {\k43}ROMÂNIA
+Dialogue: 0,0:00:27.71,0:00:29.16,Caption,,0,0,0,,{\k37}TU {\k36}AI {\k36}PURIFICATOR {\k36}DE
+Dialogue: 0,0:00:29.16,0:00:30.24,Caption,,0,0,0,,{\k55}AER {\k54}ACASĂ
+Dialogue: 0,0:00:30.24,0:00:31.69,Caption,,0,0,0,,{\k37}SAU {\k36}TE-AI {\k36}OBIȘNUIT {\k36}DEJA?
+Dialogue: 0,0:00:31.69,0:00:33.83,Caption,,0,0,0,,{\k72}SCRIE {\k71}ÎN {\k71}COMENTARII
+Dialogue: 1,0:00:29.89,0:00:33.89,EndCard,,0,0,0,,SUB RADAR\NAi purificator de aer acasă — sau te-ai obișnuit deja?

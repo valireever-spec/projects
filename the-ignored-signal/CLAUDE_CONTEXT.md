@@ -30,6 +30,13 @@ Surface real European stories that were reported but ignored — factual, source
 - Full creator anonymity (ProtonMail + VoIP + Mullvad VPN + AI voice)
 - No monetization at launch — Estonian OÜ added later
 
+## Content Strategy (analytics-derived, 2026-08-28)
+Data-driven priorities from live Sub Radar performance (94% Shorts-feed traffic → **retention is the master lever**). See `PUBLISHED.md` → Analytics snapshots / Lessons learned for the numbers.
+- **Topic focus: MIGRATION/diaspora + INTERNAL POLITICS & GOVERNANCE** (corruption, courts/CJUE, EU-funds mismanagement, political dysfunction, cross-country governance comparisons). These break out (migration 1.342, doctors 291, court 125). **Deprioritize abstract stat topics** (energy poverty, child poverty, digital skills, literacy) — they consistently flop (17–56 views).
+- **Every topic must pass:** "does it hit the viewer personally in one sentence?"
+- **Reduce statistics & methodology *in the narration*** (NOT a sourcing change — the 2-source rule and on-screen source card stay). One hero number, don't stack stats, and never recite methodology ("datele Eurostat arată…") in the spoken flow — keep sources on the card/description.
+- **Personal "this is YOU" stake in the first ~8s** (before any data); **≤35s total**; **debate-question CTA** + auto-pinned comment.
+
 ## Content Categories
 EU legislation, economic stories, environmental findings, scientific research, historical context, human interest, Russia hybrid war (enhanced verification), human rights violations, corruption
 

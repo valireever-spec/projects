@@ -1,0 +1,45 @@
+{
+  "slug": "17_mame_minore",
+  "headline": "Aproape jumătate dintre toate fetițele sub 15 ani care nasc în Uniunea Europeană sunt în România — deși țara are doar o mică parte din nașterile UE.",
+  "voice": "ro-RO-EmilNeural",
+  "voice_rate": "+7%",
+  "channel": "Sub Radar",
+  "source_onscreen": "Eurostat / Salvați Copiii",
+  "country": "Romania",
+  "hook_card": "45% DIN MAMELE SUB 15 ANI\nDIN UE SUNT ÎN ROMÂNIA",
+  "cta_question": "E vina sărăciei, a școlii, sau a tăcerii?",
+  "music": false,
+  "verified": true,
+  "verification_note": "Verificat 2026-08: pe date Eurostat (2022), România concentrează circa 45% din toate nașterile UE la mame sub 15 ani și circa 28% din nașterile la mame sub 18 ani — deși are doar ~4,6% din totalul nașterilor UE. În 2022, 746 de fete de 10-14 ani au născut; între 2018 și 2022 au fost 40.916 nașteri la mame sub 18 ani (~8.000/an). Nuanță de acuratețe: cea mai mare RATĂ a nașterilor la adolescente din UE o are Bulgaria; superlativul verificabil al României este numărul de mame MINORE (sub 15 / sub 18 ani) — de aceea cârligul spune 'sub 15 ani', nu 'adolescente'. Subiect social intern — nu declanșează verificarea sporită. Sensibil: fără chipuri de minori, ton factual; risc de 'limited ads' pe YouTube — de acceptat.",
+  "narration": "Aproape jumătate dintre toate fetițele sub cincisprezece ani care nasc în Uniunea Europeană sunt în România. Chiar anul trecut, șapte sute patruzeci și șase de fete între zece și paisprezece ani au devenit mame. Copile care ar trebui să fie în clasa a șaptea, cresc, la rândul lor, copii — fără liceu și fără nicio plasă de siguranță. România are cei mai mulți copii născuți din mame minore din toată Uniunea Europeană, deși are doar o mică parte din nașterile ei. Și aproape nimeni nu vorbește despre asta. E vina sărăciei, a școlii, sau a tăcerii? Tu ce crezi?",
+  "sources": [
+    "[PRIMARĂ] Eurostat — nașteri după vârsta mamei (2022): România ≈45% din nașterile UE la mame sub 15 ani, ≈28% la mame sub 18 → ec.europa.eu/eurostat",
+    "[SECUNDARĂ] Salvați Copiii România (analiză pe date Eurostat) — 746 de fete de 10-14 ani au născut în 2022; 40.916 nașteri la mame sub 18 ani în 2018-2022 → salvaticopiii.ro",
+    "[INSTITUȚIONAL] UNICEF România — sarcina la adolescente, fenomen ciclic transmis între generații → unicef.org/romania"
+  ],
+  "stat_windows": [
+    {
+      "window_idx": 7,
+      "values": [
+        { "label": "din nașterile UE", "value": 4.6, "color": "#1a6bb5" },
+        { "label": "din mamele sub 15 (UE)", "value": 45.0, "color": "#c0392b" }
+      ],
+      "metric": "Cota României: doar 4,6% din nașteri, dar 45% din mamele sub 15 ani",
+      "source": "Eurostat 2022"
+    }
+  ],
+  "video_search_terms": [
+    "ai:empty rural classroom with old wooden desks, soft morning light, no people",
+    "ai:a lone school desk with an open notebook and pencil, quiet empty classroom",
+    "ai:a child's schoolbag left alone on a wooden chair, melancholic",
+    "ai:an empty wooden baby crib in a dim modest room",
+    "ai:deserted school hallway with metal lockers, cold light, no people",
+    "ai:a chalkboard with faint chalk writing in an empty classroom",
+    "ai:a pair of small baby shoes on a wooden floor, soft window light, no people",
+    "ai:an empty cradle next to a small bed in a poor room",
+    "ai:an open schoolbook and notebooks on a desk, no people",
+    "ai:a quiet empty playground with a single swing at dawn, no children",
+    "ai:a modest Eastern European village house at dusk, no people",
+    "ai:small baby shoes placed on a windowsill, soft light"
+  ]
+}

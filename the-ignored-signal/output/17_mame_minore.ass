@@ -1,0 +1,48 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 1
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Caption,DejaVu Sans,54,&H00DAE5E9,&H00776063,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,430,1
+Style: Header,DejaVu Sans,38,&H00776063,&H00776063,&H00000000,&H00000000,0,0,0,0,100,100,3,0,1,2,0,8,60,60,170,1
+Style: Source,DejaVu Sans,34,&H002B39C0,&H002B39C0,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,60,60,340,1
+Style: HookCard,DejaVu Sans,82,&H00DAE5E9,&H00DAE5E9,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,45% DIN MAMELE SUB 15 ANI\NDIN UE SUNT ÎN ROMÂNIA
+Dialogue: 0,0:00:00.00,0:00:34.90,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:34.90,Source,,0,0,0,,Eurostat / Salvați Copiii
+Dialogue: 0,0:00:02.00,0:00:02.95,Caption,,0,0,0,,{\k24}FETIȚELE {\k24}SUB {\k24}CINCISPREZECE {\k23}ANI
+Dialogue: 0,0:00:02.95,0:00:04.38,Caption,,0,0,0,,{\k36}CARE {\k36}NASC {\k36}ÎN {\k35}UNIUNEA
+Dialogue: 0,0:00:04.38,0:00:05.76,Caption,,0,0,0,,{\k35}EUROPEANĂ {\k35}SUNT {\k34}ÎN {\k34}ROMÂNIA
+Dialogue: 0,0:00:05.76,0:00:06.73,Caption,,0,0,0,,{\k33}CHIAR {\k32}ANUL {\k32}TRECUT
+Dialogue: 0,0:00:06.73,0:00:08.03,Caption,,0,0,0,,{\k33}ȘAPTE {\k33}SUTE {\k32}PATRUZECI {\k32}ȘI
+Dialogue: 0,0:00:08.03,0:00:09.32,Caption,,0,0,0,,{\k33}ȘASE {\k33}DE {\k32}FETE {\k32}ÎNTRE
+Dialogue: 0,0:00:09.32,0:00:10.62,Caption,,0,0,0,,{\k33}ZECE {\k33}ȘI {\k32}PAISPREZECE {\k32}ANI
+Dialogue: 0,0:00:10.62,0:00:11.59,Caption,,0,0,0,,{\k33}AU {\k32}DEVENIT {\k32}MAME
+Dialogue: 0,0:00:11.59,0:00:12.88,Caption,,0,0,0,,{\k33}COPILE {\k32}CARE {\k32}AR {\k32}TREBUI
+Dialogue: 0,0:00:12.88,0:00:14.18,Caption,,0,0,0,,{\k33}SĂ {\k32}FIE {\k32}ÎN {\k32}CLASA
+Dialogue: 0,0:00:14.18,0:00:14.83,Caption,,0,0,0,,{\k33}A {\k32}ȘAPTEA
+Dialogue: 0,0:00:14.83,0:00:16.12,Caption,,0,0,0,,{\k33}CRESC, {\k32}LA {\k32}RÂNDUL {\k32}LOR
+Dialogue: 0,0:00:16.12,0:00:16.77,Caption,,0,0,0,,{\k65}COPII
+Dialogue: 0,0:00:16.77,0:00:18.06,Caption,,0,0,0,,{\k33}FĂRĂ {\k32}LICEU {\k32}ȘI {\k32}FĂRĂ
+Dialogue: 0,0:00:18.06,0:00:19.36,Caption,,0,0,0,,{\k33}NICIO {\k32}PLASĂ {\k32}DE {\k32}SIGURANȚĂ
+Dialogue: 0,0:00:19.36,0:00:20.60,Caption,,0,0,0,,{\k31}ROMÂNIA {\k31}ARE {\k31}CEI {\k31}MAI
+Dialogue: 0,0:00:20.60,0:00:21.84,Caption,,0,0,0,,{\k31}MULȚI {\k31}COPII {\k31}NĂSCUȚI {\k31}DIN
+Dialogue: 0,0:00:21.84,0:00:23.09,Caption,,0,0,0,,{\k31}MAME {\k31}MINORE {\k31}DIN {\k31}TOATĂ
+Dialogue: 0,0:00:23.09,0:00:23.71,Caption,,0,0,0,,{\k31}UNIUNEA {\k31}EUROPEANĂ
+Dialogue: 0,0:00:23.71,0:00:24.95,Caption,,0,0,0,,{\k31}DEȘI {\k31}ARE {\k31}DOAR {\k31}O
+Dialogue: 0,0:00:24.95,0:00:26.51,Caption,,0,0,0,,{\k31}MICĂ {\k31}PARTE {\k31}DIN {\k31}NAȘTERILE {\k31}EI
+Dialogue: 0,0:00:26.51,0:00:28.18,Caption,,0,0,0,,{\k42}ȘI {\k42}APROAPE {\k42}NIMENI {\k41}NU
+Dialogue: 0,0:00:28.18,0:00:29.43,Caption,,0,0,0,,{\k42}VORBEȘTE {\k42}DESPRE {\k41}ASTA
+Dialogue: 0,0:00:29.43,0:00:30.87,Caption,,0,0,0,,{\k48}E {\k48}VINA {\k48}SĂRĂCIEI
+Dialogue: 0,0:00:30.87,0:00:31.83,Caption,,0,0,0,,{\k48}A {\k48}ȘCOLII
+Dialogue: 0,0:00:31.83,0:00:33.27,Caption,,0,0,0,,{\k48}SAU {\k48}A {\k48}TĂCERII?
+Dialogue: 0,0:00:33.27,0:00:34.84,Caption,,0,0,0,,{\k52}TU {\k52}CE {\k52}CREZI?
+Dialogue: 1,0:00:30.90,0:00:34.90,EndCard,,0,0,0,,SUB RADAR\NE vina sărăciei, a școlii, sau a tăcerii?
