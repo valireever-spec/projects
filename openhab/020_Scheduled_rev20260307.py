@@ -422,10 +422,16 @@ def priza9_tod_hp_state(event):
 @when("Time cron 0 55 15 * * ?")
 @when("Time cron 0 30 16 * * ?")
 def priza9_power_cron_jobs(event):
-	if event is not None and event.trigger in ["Time cron 0 55 7 * * ?", "Time cron 0 55 15 * * ?"]:
+	# FIX 2026-08-28: event.trigger is always None for cron events in OH 2.5 JSR223
+	# (same defect documented in stop_prize FIX-A). Both branches were therefore dead
+	# and the 07:55/15:55 OFF and 08:30/16:30 ON windows never fired — confirmed by
+	# events.log showing no Priza9_Power commands at those times. Disambiguate by the
+	# wall-clock minute instead: :55 = OFF window, :30 = ON window.
+	minute = DateTime.now().getMinuteOfHour()
+	if minute == 55:  # 07:55 / 15:55 -> OFF
 		if items["Priza9_Power"] != OFF:
 			events.sendCommand("Priza9_Power", "OFF")
-	elif event is not None and event.trigger in ["Time cron 0 30 8 * * ?", "Time cron 0 30 16 * * ?"]:
+	elif minute == 30:  # 08:30 / 16:30 -> ON
 		if items["HomePresence"] == ON and items["Priza9_Power"] != ON and items["Eco_Power_Switch"] == ON:
 			events.sendCommand("Priza9_Power", "ON")
 
@@ -533,10 +539,13 @@ def stop_prize(event):
 	# JSR223. Use DateTime.now().getHourOfDay() to distinguish midnight (0) from noon (12).
 	# Midnight: clear full latch first, then outlet — single rule so order is deterministic.
 	if DateTime.now().getHourOfDay() == 0:
-		logger.info("SCHEDULE", "Midnight: Stopping Priza1, clearing BatteryFull")
+		logger.info("SCHEDULE", "Midnight: Stopping Priza1, clearing BatteryFull flags")
 		if items["Priza1_BatteryFull"] != OFF:
 			events.sendCommand("Priza1_BatteryFull", "OFF")
 			LogAction.logInfo("Priza1", "Priza1_BatteryFull OFF — end of day (midnight)")
+		if items["Priza4_BatteryFull"] != OFF:
+			events.sendCommand("Priza4_BatteryFull", "OFF")
+			LogAction.logInfo("Priza4", "Priza4_BatteryFull OFF — end of day (midnight)")
 	else:
 		logger.info("SCHEDULE", "Noon: Stopping Priza1")
 	events.sendCommand("Priza1_Power", "OFF")
@@ -578,6 +587,17 @@ def reset_priza1_battery_full(event):
 		logger.info("BATTERY", "Priza1_BatteryFull daily reset at 05:00")
 	else:
 		logger.info("BATTERY", "Priza1_BatteryFull already OFF at 05:00 (normal)")
+
+@rule("Daily reset Priza4_BatteryFull", description="Reset BatteryFull flag at 05:00 to prevent stuck state", tags=["cron", "Priza4", "safety"])
+@when("Time cron 0 0 5 * * ? *")
+def reset_priza4_battery_full(event):
+	priza4_full = str(items["Priza4_BatteryFull"]).strip()
+	if priza4_full == "ON":
+		events.sendCommand("Priza4_BatteryFull", "OFF")
+		LogAction.logInfo("Priza4", "Daily safety reset: Priza4_BatteryFull OFF (05:00)")
+		logger.info("BATTERY", "Priza4_BatteryFull daily reset at 05:00")
+	else:
+		logger.info("BATTERY", "Priza4_BatteryFull already OFF at 05:00 (normal)")
 
 # NOTE: eco_timer_on/off block and eco_power_switch_state rule removed 2026-03-07.
 # Device sequencing on Eco_Power_Switch changes is now handled entirely by

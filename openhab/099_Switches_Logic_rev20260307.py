@@ -25,13 +25,17 @@ NULL = UnDefType.NULL
 @rule("Initialize Priza ForceOn states on startup", tags=["startup", "initialization"])
 @when("System started")
 def initialize_priza_forceon(event):
+	# FIX 2026-08-28 (#4): items[name] already returns the item STATE in this scope
+	# (as used everywhere else in this file), so .getState() on it raised AttributeError
+	# and aborted this startup init — ForceOn/RdytoForce were never seeded to OFF.
+	# Compare the state object directly instead.
 	for priza_num in [1, 2, 3]:
 		forceon_item = "Priza{}ForceOn".format(priza_num)
-		if items[forceon_item].getState() in [NULL, UnDefType.UNDEF]:
+		if items[forceon_item] in [NULL, UnDefType.UNDEF]:
 			events.sendCommand(forceon_item, "OFF")
 			LogAction.logInfo("Priza_Init", "{} initialized to OFF".format(forceon_item))
 		rdyforce_item = "Priza{}RdytoForce".format(priza_num)
-		if items[rdyforce_item].getState() in [NULL, UnDefType.UNDEF]:
+		if items[rdyforce_item] in [NULL, UnDefType.UNDEF]:
 			events.sendCommand(rdyforce_item, "OFF")
 			LogAction.logInfo("Priza_Init", "{} initialized to OFF".format(rdyforce_item))
 
@@ -289,14 +293,19 @@ def Priza3current(event):
 @rule("House shutdown", description="House received update OFF", tags=["House", "Shutdown"])
 @when("Item HouseShutdown received update OFF")
 def house_off(event):
-	house_off = executeCommandLine("/etc/openhab2/scripts/house_shutdown.sh", 10000)
+	# FIX 2026-08-28 (#3): don't rebind the rule-function name — that shadowed the
+	# decorator-provided .log attribute with the command-output string, so the
+	# house_off.log.info(...) call below raised AttributeError whenever Logging was ON.
+	result = executeCommandLine("/etc/openhab2/scripts/house_shutdown.sh", 10000)
 	if is_state(items["Logging"], ON):
 		house_off.log.info("House switch off")
 
 @rule("Rule when Pi_Fireplace is on", description="mqtt_state", tags=["mqtt", "state"])
 @when("Item ScriptParrot_Pi_fireplace changed")
 def fireplacemqtt(event):
-	if str(event.itemState) == ON:
+	# FIX 2026-08-28 (#2): str(event.itemState) == ON compared a Python str to the Java
+	# OnOffType enum -> always False, so this branch was dead. Use the is_state helper.
+	if is_state(event.itemState, ON):
 		#fireplacemqtt = executeCommandLine("/etc/openhab2/scripts/fireplace.sh", 10000)
 		events.sendCommand("Pi_fireplace", "ON")
 		events.postUpdate("Fireplace", "ON")
@@ -307,18 +316,21 @@ def fireplacemqtt(event):
 def pifireplace(event):
 	#global shutdownpifireplace
 	#global startpifireplace
-	if str(event.itemState) == OFF:
+	# FIX 2026-08-28 (#2): str(state) == OnOffType enum is always False -> both branches
+	# were dead (shutdownfireplace.sh / fireplace.sh never ran). Use the is_state helper.
+	if is_state(event.itemState, OFF):
 		shutdownpifireplace = executeCommandLine("/etc/openhab2/scripts/shutdownfireplace.sh", 10000)
 		events.postUpdate("Pi_fireplace_restart", "OFF")
 		events.postUpdate("Fireplace", "OFF")
-	if str(event.itemState) == ON:
+	if is_state(event.itemState, ON):
 		startpifireplace = executeCommandLine("/etc/openhab2/scripts/fireplace.sh", 10000)
 
 @rule("Rule Pi_fireplace_restart", description="Pi_fireplace_restart", tags=["restart", "state"])
 @when("Item Pi_fireplace_restart changed")
 def pifireplacerestart(event):
 	#global restartpifireplace
-	if str(event.itemState) == ON:
+	# FIX 2026-08-28 (#2): str(state) == OnOffType enum is always False. Use is_state.
+	if is_state(event.itemState, ON):
 		restartpifireplace = executeCommandLine("/etc/openhab2/scripts/restartfireplace.sh", 10000)
 
 def timer1_fireplace():
