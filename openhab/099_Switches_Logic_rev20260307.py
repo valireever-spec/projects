@@ -59,6 +59,11 @@ KeepOnTime = 20
 MinCLevel = u"0.055 A"
 Current_Low = u"0.0 A"
 Current_Threshold = u"0.05 A"  # Threshold for detecting "no current" (handles sensor noise)
+# FIX 2026-08-28 (#5): numeric (Amps) form of Current_Threshold for comparing against
+# float readings (safe_float / .floatValue()). Comparing a Python float to a QuantityType
+# (as the old `lstValcurr* <op> QuantityType(Current_Threshold)` did) is type-mismatched
+# and unreliable in Jython — compare float-to-float instead.
+Current_Threshold_A = 0.05
 
 MinCLevel_P1 = u"0.150 A"
 
@@ -413,7 +418,7 @@ def priza1preforce1(event):
 	if items["Priza1_Power"] == ON and items["Priza1_Current"] <= QuantityType(Current_Threshold):  ###Telefonul s-a scos de la incarcat
 		if not is_state(items["Priza1RdytoForce"], ON):
 			events.sendCommand("Priza1RdytoForce", "ON")
-	if items["Priza1_Power"] == ON and lstValcurrPriza1 <= QuantityType(Current_Threshold):   ###Telefonul s-a bagat la incarcat
+	if items["Priza1_Power"] == ON and lstValcurrPriza1 <= Current_Threshold_A:   ###Telefonul s-a bagat la incarcat
 		if not is_state(items["Priza1RdytoForce"], ON):
 			events.sendCommand("Priza1RdytoForce", "ON")
 		if items["Priza1RdytoForce"] == ON and items["Priza1ForceOn"] == ON:
@@ -423,7 +428,7 @@ def priza1preforce1(event):
 		if not is_state(items["Priza1RdytoForce"], OFF):
 			events.sendCommand("Priza1RdytoForce", "OFF")
 ###Added on 02.06.2023###Rule when Priza1ForceOn and the phone is pulled from charger
-	if items["Priza1_Current"] <= QuantityType(Current_Threshold) and lstValcurrPriza1 > QuantityType(Current_Threshold):
+	if items["Priza1_Current"] <= QuantityType(Current_Threshold) and lstValcurrPriza1 > Current_Threshold_A:
 		if is_state(items["Priza1ForceOn"], ON):
 			events.sendCommand("Priza1ForceOn", "OFF")
 			if Priza1ForceOnTimer is not None:
@@ -478,7 +483,7 @@ def priza2preforce1(event):
 	if items["Priza2_Power"] == ON and items["Priza2_Current"] <= QuantityType(Current_Threshold):  ###Telefonul s-a scos de la incarcat
 		if not is_state(items["Priza2RdytoForce"], ON):
 			events.sendCommand("Priza2RdytoForce", "ON")
-	if items["Priza2_Power"] == ON and lstValcurrPriza2 <= QuantityType(Current_Threshold):   ###Telefonul s-a bagat la incarcat
+	if items["Priza2_Power"] == ON and lstValcurrPriza2 <= Current_Threshold_A:   ###Telefonul s-a bagat la incarcat
 		if not is_state(items["Priza2RdytoForce"], ON):
 			events.sendCommand("Priza2RdytoForce", "ON")
 		if items["Priza2RdytoForce"] == ON and items["Priza2ForceOn"] == ON:
@@ -488,7 +493,7 @@ def priza2preforce1(event):
 		if not is_state(items["Priza2RdytoForce"], OFF):
 			events.sendCommand("Priza2RdytoForce", "OFF")
 ###Added on 02.06.2023###Rule when Priza2ForceOn and the phone is pulled from charger
-	if items["Priza2_Current"] <= QuantityType(Current_Threshold) and lstValcurrPriza2 > QuantityType(Current_Threshold):
+	if items["Priza2_Current"] <= QuantityType(Current_Threshold) and lstValcurrPriza2 > Current_Threshold_A:
 		if is_state(items["Priza2ForceOn"], ON):
 			events.sendCommand("Priza2ForceOn", "OFF")
 			if Priza2ForceOnTimer is not None:
@@ -534,7 +539,7 @@ def priza3preforce1(event):
 	if items["Priza3_Power"] == ON and items["Priza3_Current"] <= QuantityType(Current_Threshold):  ###Telefonul s-a scos de la incarcat
 		if not is_state(items["Priza3RdytoForce"], ON):
 			events.sendCommand("Priza3RdytoForce", "ON")
-	if items["Priza3_Power"] == ON and lstValcurrPriza3 <= QuantityType(Current_Threshold):   ###Telefonul s-a bagat la incarcat
+	if items["Priza3_Power"] == ON and lstValcurrPriza3 <= Current_Threshold_A:   ###Telefonul s-a bagat la incarcat
 		if not is_state(items["Priza3RdytoForce"], ON):
 			events.sendCommand("Priza3RdytoForce", "ON")
 		if items["Priza3RdytoForce"] == ON and items["Priza3ForceOn"] == ON:
@@ -544,7 +549,7 @@ def priza3preforce1(event):
 		if not is_state(items["Priza3RdytoForce"], OFF):
 			events.sendCommand("Priza3RdytoForce", "OFF")
 ###Added on 02.06.2023###Rule when Priza3ForceOn and the phone is pulled from charger
-	if items["Priza3_Current"] <= QuantityType(Current_Threshold) and lstValcurrPriza3 > QuantityType(Current_Threshold):
+	if items["Priza3_Current"] <= QuantityType(Current_Threshold) and lstValcurrPriza3 > Current_Threshold_A:
 		if is_state(items["Priza3ForceOn"], ON):
 			events.sendCommand("Priza3ForceOn", "OFF")
 			if Priza3ForceOnTimer is not None:
