@@ -343,13 +343,13 @@ def timer1_fireplace():
 	if is_state(items["Pi_fireplace"], OFF):
 		events.sendCommand("Pi_fireplace", "ON")
 	if FireplaceTimerOn is not None:
-	    FireplaceTimerOn.cancel()
+		FireplaceTimerOn.cancel()
 
 def timer2_fireplace():
 	global FireplaceTimerOff
 	events.sendCommand("Priza8_Power", "OFF")
 	if FireplaceTimerOff is not None:
-	    FireplaceTimerOff.cancel()
+		FireplaceTimerOff.cancel()
 
 @rule("Rule when Fireplace changes", description="onoff", tags=["onoff", "state"])
 @when("Item Fireplace changed")
@@ -370,13 +370,13 @@ def timer4_fireplace():
 	events.sendCommand("Priza8_Power", "ON")
 	events.postUpdate("Fireplace_restart", "OFF")
 	if Fireplace_startTimer is not None:
-	    Fireplace_startTimer.cancel()
+		Fireplace_startTimer.cancel()
 	
 def timer3_fireplace():
 	global Fireplace_startTimer
 	events.sendCommand("Priza8_Power", "OFF")
 	if Fireplace_restartTimer is not None:
-	    Fireplace_restartTimer.cancel()
+		Fireplace_restartTimer.cancel()
 	if Fireplace_startTimer is None or Fireplace_startTimer.hasTerminated():
 		Fireplace_startTimer = ScriptExecution.createTimer(DateTime.now().plusSeconds(10), timer4_fireplace)
 
@@ -432,7 +432,7 @@ def priza1preforce1(event):
 		if is_state(items["Priza1ForceOn"], ON):
 			events.sendCommand("Priza1ForceOn", "OFF")
 			if Priza1ForceOnTimer is not None:
-			    Priza1ForceOnTimer.cancel()
+				Priza1ForceOnTimer.cancel()
 ###Added on 02.06.2023###Rule when Priza1ForceOn and the phone is pulled from charger
 
 @rule("Priza1_Power", description="Priza1_Power changes Priza1RdytoForce", tags=["Power", "Priza1"])
@@ -450,7 +450,7 @@ def timer_priza1forceon():
 	events.sendCommand("Priza1ForceOn", "OFF")
 	events.sendCommand("Priza1RdytoForce", "OFF")
 	if Priza1ForceOnTimer is not None:
-	    Priza1ForceOnTimer.cancel()
+		Priza1ForceOnTimer.cancel()
 
 @rule("Rule Priza1 forced to stay on for a period", description="on", tags=["on", "state"])
 @when("Item Priza1_Current changed")
@@ -497,7 +497,7 @@ def priza2preforce1(event):
 		if is_state(items["Priza2ForceOn"], ON):
 			events.sendCommand("Priza2ForceOn", "OFF")
 			if Priza2ForceOnTimer is not None:
-			    Priza2ForceOnTimer.cancel()
+				Priza2ForceOnTimer.cancel()
 ###Added on 02.06.2023###Rule when Priza2ForceOn and the phone is pulled from charger
 
 @rule("Priza2_Power", description="Priza2_Power changes Priza2RdytoForce", tags=["Power", "Priza2"])
@@ -515,7 +515,7 @@ def timer_priza2forceon():
 	events.sendCommand("Priza2ForceOn", "OFF")
 	events.sendCommand("Priza2RdytoForce", "OFF")
 	if Priza2ForceOnTimer is not None:
-	    Priza2ForceOnTimer.cancel()
+		Priza2ForceOnTimer.cancel()
 
 @rule("Rule Priza2 forced to stay on for a period", description="on", tags=["on", "state"])
 @when("Item Priza2_Current changed")
@@ -553,7 +553,7 @@ def priza3preforce1(event):
 		if is_state(items["Priza3ForceOn"], ON):
 			events.sendCommand("Priza3ForceOn", "OFF")
 			if Priza3ForceOnTimer is not None:
-			    Priza3ForceOnTimer.cancel()
+				Priza3ForceOnTimer.cancel()
 ###Added on 02.06.2023###Rule when Priza3ForceOn and the phone is pulled from charger
 
 @rule("Priza3_Power", description="Priza3_Power changes Priza3RdytoForce", tags=["Power", "Priza3"])
@@ -571,7 +571,7 @@ def timer_priza3forceon():
 	events.sendCommand("Priza3ForceOn", "OFF")
 	events.sendCommand("Priza3RdytoForce", "OFF")
 	if Priza3ForceOnTimer is not None:
-	    Priza3ForceOnTimer.cancel()
+		Priza3ForceOnTimer.cancel()
 
 @rule("Rule Priza3 forced to stay on for a period", description="on", tags=["on", "state"])
 @when("Item Priza3_Current changed")

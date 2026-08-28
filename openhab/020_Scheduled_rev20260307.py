@@ -293,7 +293,10 @@ def permsufra_forced_switch_state(event):
 
 @rule("Restart Openhab cronjob", description="Restart Openhab cronjob", tags=["cron", "openHAB"])
 @when("Time cron 0 30 11 1 * ?")   ###27.11.2022 Restart periodic in fiecare data de 1 a fiecarei luni, la ora 11:30 AM #https://www.freeformatter.com/cron-expression-generator-quartz.html
-def permsufra_forced_switch_state(event):
+# FIX 2026-08-28: renamed from a duplicate 'permsufra_forced_switch_state' (a second
+# module-level def with that name shadowed the first). Rules register by their @rule
+# name string, so behavior is unchanged — this only removes the naming smell.
+def restart_openhab_monthly(event):
 	events.sendCommand("Restart_Openhab", "ON")  ###Restartul se face cu comanda "ON"
 
 @rule("Sonoff1 reachable state cronjob", description="Sonoff1 reachable state", tags=["cron", "Sonoff1_Latency"])
