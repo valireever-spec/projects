@@ -11,3 +11,11 @@ build/
 # YouTube OAuth secrets — NEVER commit
 tools/client_secret.json
 tools/.youtube_token.json
+
+# Render cache — derived per-scene artifacts (some >100MB); purged from history 2026-08-29.
+# Final per-video outputs (NN_slug.mp4/.mp3/.ass/_thumb.jpg/_upload.md) are still tracked.
+output/clip_*
+output/img_*
+output/stat_*
+output/photo_*
+output/combined.mp4
