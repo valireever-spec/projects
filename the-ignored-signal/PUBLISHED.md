@@ -112,6 +112,34 @@ Reading:
 
 ## Analytics snapshots
 
+### Geography — 2026-08-29 (~1.372 views) — DIASPORA is half the audience
+
+| Țară | Views | % | AVD | Citire |
+|------|------:|--:|-----|--------|
+| România | 700 | 51% | **0:17** | jumătate din views, dar cea mai slabă retenție |
+| Germania | 182 | 13% | 0:24 | diaspora |
+| Italia | 126 | 9% | **0:39** | diaspora — de 2,3× timpul României |
+| Moldova | 84 | 6% | 0:25 | vorbitori de română |
+| Spania | 56 | 4% | 0:25 | diaspora |
+| Austria/UK/Franța | 86 | 6% | ~0:21 | diaspora |
+
+**Two strategy-shaping findings:**
+- **~49% of viewers are abroad** (DE/IT/ES/AT/UK/FR) + Moldova — the exact top
+  Romanian-diaspora countries. Audience = Romanians at home AND diaspora, ~half each.
+- **Diaspora retention is far higher:** Romania 17s vs Italy 39s (2.3×), DE/MD/ES
+  ~24–25s (~1.5×). Romania = 51% of views but only 38% of watch time; Italy = 9% of
+  views but 17% of watch time. The people who LEFT are the most engaged — the core
+  topics (migration, depopulation, Poland comparison) are literally their story.
+
+Actions:
+- **Frame migration/diaspora content to the person abroad** ("tu, care ai plecat în
+  Italia/Germania…"). Doubly validates the migration + internal-politics focus.
+- **Domestic 17s retention is the drag** → the ≤35s + first-8s-stake fixes target it;
+  also test a less-fatalistic tone for home (relentless "Romania is failing" may cause
+  domestic swipe while diaspora leans in). See [[ignored_signal_script_pattern]].
+- **Growth:** DE/IT diaspora already highly engaged in Romanian → DE/IT subtitles (or
+  the deferred multilingual expansion) would compound an audience already watching.
+
 ### Channel — 2026-08-28 (14-day pull + realtime)
 
 Totals (14d): **1.780 views, +6 subs, AVD 23s, 50,9% avg watched, 30 likes, 2 comm.**

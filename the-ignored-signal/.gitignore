@@ -19,3 +19,7 @@ output/img_*
 output/stat_*
 output/photo_*
 output/combined.mp4
+
+# Python virtualenv — never commit (bloats history; purged 2026-08-29)
+.venv-video/
+.venv/
