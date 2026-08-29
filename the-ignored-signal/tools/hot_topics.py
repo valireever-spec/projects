@@ -155,23 +155,71 @@ def fetch_rss(feeds: dict[str, str]) -> list[Item]:
     return out
 
 
-# War is international by nature; every other topic must be about ROMANIA, or the
-# keyword match just pulls in US/global noise (Trump budget, US courts, etc.).
-_INTERNATIONAL = {"Război Rusia-Ucraina"}
+# Foreign-noise filter: keyword matching pulls in US/global stories (Trump, US
+# governors, Dolly Parton…) that aren't about Romania. Drop them from every topic.
+# War is REGION-AWARE: US-domestic items are dropped, but anything touching
+# Ukraine/Russia/Moldova/NATO stays. Diaspora-source items are never noise.
 _FOREIGN_URL = ("/externe/", "/sua/", "/international", "/mapamond")
-_FOREIGN_TITLE = ("trump", " sua", "sua ", "american", "washington", "iran",
-                  "coreea", "canada", "beijing", "china ")
-_RO_TITLE = ("români", "romania", "românia", "roman", "bucure", "guvernul român",
-             "psd", "pnl", "usr", "aur", "iohannis", "ilie bolojan", "leu", "ron",
-             "insse", "ins:", "cfr", "anaf", "dna")
+_FOREIGN_TITLE = (
+    "trump", "sua", "american", "washington", "white house", "biden",
+    "harris", "pentagon", "iran", "coreea", "canada", "beijing", "china",
+    "tennessee", "nashville", "dolly parton", "texas", "florida", "california",
+    "new york", "los angeles", "hollywood", "guvernatorul statului", "governor",
+)
+_RO_TITLE = (
+    "români", "romania", "românia", "roman", "bucure", "guvernul român",
+    "bolojan", "nicușor", "psd", "pnl", "usr", "aur", "iohannis", "leu", "ron",
+    "insse", "ins:", "cfr", "anaf", "dna", "pnrr",
+)
+_WAR_REGION = (
+    "ucrain", "ukrain", "rusia", "russia", "russian", "moldova", "nato",
+    "marea neagr", "chișin", "chisin", "kiev", "kyiv", "odesa", "donbas",
+    "crimeea", "basarabia", "transnistria", "zaporoj", "putin", "kremlin",
+)
+
+
+# Diaspora feeds only inform the diaspora topic, and only for genuine diaspora-LIFE
+# items (drop sports/olympiads that merely mention Italy/Spain).
+_DIASPORA_SIGNAL = (
+    "diaspora", "emigr", "migran", "migrați", "comunitatea român", "muncitor",
+    "plecat", "străinătate", "strainatate", "remiten", "azil", "permis de",
+    "reședin", "deporta", "exploatat", "refugiat", "integr", "se întorc",
+)
+
+
+def _compile(words: tuple[str, ...]) -> "re.Pattern[str]":
+    """Match each keyword at a LEFT word boundary — prefixes like 'emigr' still
+    match 'emigrare', but whole words like 'nato' no longer match 'guverNATOrul'."""
+    return re.compile(r"(?<!\w)(?:" + "|".join(re.escape(w) for w in words) + ")")
+
+
+_TOPIC_RE = {name: _compile(tuple(kws)) for name, kws in TOPICS.items()}
+_FOREIGN_TITLE_RE = _compile(_FOREIGN_TITLE)
+_RO_TITLE_RE = _compile(_RO_TITLE)
+_WAR_REGION_RE = _compile(_WAR_REGION)
+_DIASPORA_SIGNAL_RE = _compile(_DIASPORA_SIGNAL)
+
+
+def _is_diaspora(it: Item) -> bool:
+    return it.source.startswith("GNews-diaspora")
 
 
 def _foreign_noise(it: Item) -> bool:
-    """A clearly foreign-politics item with no Romanian angle."""
+    """A clearly foreign (usually US) item with no Romanian angle."""
     u, t = it.url.lower(), it.title.lower()
-    looks_foreign = any(f in u for f in _FOREIGN_URL) or any(f in t for f in _FOREIGN_TITLE)
-    ro_relevant = any(r in t for r in _RO_TITLE) or it.source in ("r/romania",)
-    return looks_foreign and not ro_relevant
+    looks_foreign = any(f in u for f in _FOREIGN_URL) or _FOREIGN_TITLE_RE.search(t)
+    ro_relevant = _RO_TITLE_RE.search(t) or it.source == "r/romania"
+    return bool(looks_foreign) and not ro_relevant
+
+
+def _is_noise(it: Item, topic: str) -> bool:
+    if _is_diaspora(it):
+        return False
+    if not _foreign_noise(it):
+        return False
+    if topic == "Război Rusia-Ucraina":          # keep only region-relevant war
+        return not _WAR_REGION_RE.search(it.title.lower())
+    return True
 
 
 def score_topics(items: list[Item]) -> list[TopicHeat]:
@@ -182,11 +230,17 @@ def score_topics(items: list[Item]) -> list[TopicHeat]:
         rec = _recency_weight(it.ts, now)
         # engagement weight: log-ish so one viral post doesn't dominate
         eng = 1.0 + (it.score ** 0.5) / 10.0
-        for name, kws in TOPICS.items():
-            if not any(k in t for k in kws):
+        if _is_diaspora(it):
+            # Only genuinely diaspora-life items; drop sports/events noise.
+            if _DIASPORA_SIGNAL_RE.search(t):
+                heats["Migrație & diaspora"].heat += rec * eng
+                heats["Migrație & diaspora"].items.append(it)
+            continue
+        for name in TOPICS:
+            if not _TOPIC_RE[name].search(t):
                 continue
-            if name not in _INTERNATIONAL and _foreign_noise(it):
-                continue                          # drop US/global noise from RO topics
+            if _is_noise(it, name):
+                continue                          # drop US/global noise
             heats[name].heat += rec * eng
             heats[name].items.append(it)
     ranked = [h for h in heats.values() if h.items]
@@ -203,13 +257,19 @@ def main() -> None:
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     args = ap.parse_args()
 
-    print("Scanning free sources (Reddit + Google Trends + RO news RSS)...", file=sys.stderr)
+    print("Scanning free sources (Reddit + Google Trends + RO news + diaspora)...", file=sys.stderr)
     items = fetch_reddit(["romania", "europe", "worldnews"])
     items += fetch_rss({
         "GoogleTrends-RO": "https://trends.google.com/trends/trendingsearches/daily/rss?geo=RO",
         "Digi24":          "https://www.digi24.ro/rss",
         "G4Media":         "https://www.g4media.ro/feed",
         "HotNews":         "https://hotnews.ro/feed",
+        # Diaspora-specific: Google News searches for Romanians abroad (top
+        # audience countries) — these are ALWAYS treated as diaspora-relevant.
+        "GNews-diaspora-IT": "https://news.google.com/rss/search?q=rom%C3%A2ni+Italia&hl=ro&gl=RO&ceid=RO:ro",
+        "GNews-diaspora-DE": "https://news.google.com/rss/search?q=rom%C3%A2ni+Germania&hl=ro&gl=RO&ceid=RO:ro",
+        "GNews-diaspora-ES": "https://news.google.com/rss/search?q=rom%C3%A2ni+Spania&hl=ro&gl=RO&ceid=RO:ro",
+        "GNews-diaspora":    "https://news.google.com/rss/search?q=diaspora+rom%C3%A2n%C4%83&hl=ro&gl=RO&ceid=RO:ro",
     })
     print(f"  collected {len(items)} items", file=sys.stderr)
 
