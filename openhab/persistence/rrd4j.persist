@@ -1,0 +1,98 @@
+	Strategies
+	{
+		everyMinute	: "0 * * * * ?"
+		everyHour	: "0 0 * * * ?"
+		everyDay	: "0 0 0 * * ?"
+		default = everyChange
+	}
+
+Items
+	{
+	
+Priza1_Current	:	strategy = everyMinute
+Priza2_Current	:	strategy = everyMinute
+Priza3_Current	:	strategy = everyMinute
+Priza4_Current	:	strategy = everyMinute
+Priza5_Current	:	strategy = everyMinute
+Priza6_Current	:	strategy = everyMinute
+Priza7_Current	:	strategy = everyMinute
+Priza8_Current	:	strategy = everyMinute
+Priza9_Current	:	strategy = everyMinute
+Priza1_Power_Cons	:	strategy = everyMinute
+Priza2_Power_Cons	:	strategy = everyMinute
+Priza3_Power_Cons	:	strategy = everyMinute
+Priza4_Power_Cons	:	strategy = everyMinute
+Sufra1_pir_LowBattery	:	strategy = everyMinute
+Sufra2_pir_LowBattery	:	strategy = everyMinute
+DormC1_pir_LowBattery	:	strategy = everyMinute
+DormC2_pir_LowBattery	:	strategy = everyMinute
+DormP1_pir_LowBattery	:	strategy = everyMinute
+DormP2_pir_LowBattery	:	strategy = everyMinute
+Bucatarie2_LowBattery	:	strategy = everyMinute
+CUB1_LowBattery	:	strategy = everyMinute
+CUB2_LowBattery	:	strategy = everyMinute
+CUB3_LowBattery	:	strategy = everyMinute
+CUB1_BatteryLevel	:	strategy = everyMinute
+CUB2_BatteryLevel	:	strategy = everyMinute
+CUB3_BatteryLevel	:	strategy = everyMinute
+CUB4_BatteryLevel	:	strategy = everyMinute
+Sufra1_pir_BatteryLevel	:	strategy = everyMinute
+Sufra2_pir_BatteryLevel	:	strategy = everyMinute
+DormC1_pir_BatteryLevel	:	strategy = everyMinute
+DormC2_pir_BatteryLevel	:	strategy = everyMinute
+DormP1_pir_BatteryLevel	:	strategy = everyMinute
+DormP2_pir_BatteryLevel	:	strategy = everyMinute
+SNZB1_BatteryLevel	:	strategy = everyMinute
+SNZB2_BatteryLevel	:	strategy = everyMinute
+Bucatarie1_Temperature	:	strategy = everyMinute
+DormC1_pir_Temperature	:	strategy = everyMinute
+DormC2_pir_Temperature	:	strategy = everyMinute
+DormP1_pir_Temperature	:	strategy = everyMinute
+DormP2_pir_Temperature	:	strategy = everyMinute
+Sufra1_pir_Temperature	:	strategy = everyMinute
+Sufra2_pir_Temperature	:	strategy = everyMinute
+ScriptParrot_OH2_Avail_RAM	:	strategy = everyMinute
+ScriptParrot_Telefunkentv_online	:	strategy = everyMinute
+ScriptParrot_Telefunkentv_state	:	strategy = everyMinute
+
+HMS_Efficiency	:	strategy = everyMinute
+
+HMS_Inverter1Power	:	strategy = everyMinute
+HMS_Inverter1Temperature	:	strategy = everyMinute
+
+HMS_PV1Current	:	strategy = everyMinute
+HMS_PV2Current	:	strategy = everyMinute
+
+HMS_PV1DailyYield	:	strategy = everyMinute
+HMS_PV2DailyYield	:	strategy = everyMinute
+HMS_TotalDailyYield	:	strategy = everyMinute
+
+HMS_PV1EnergyTotal	:	strategy = everyMinute
+HMS_PV2EnergyTotal	:	strategy = everyMinute
+
+HMS_PV1Power	:	strategy = everyMinute
+HMS_PV2Power	:	strategy = everyMinute
+HMS_TotalPower	:	strategy = everyMinute
+
+HMS_PV1Voltage	:	strategy = everyMinute
+HMS_PV2Voltage	:	strategy = everyMinute
+
+HMS_Inverter1GridVoltage	:	strategy = everyMinute
+HMS_Inverter1GridFrequency	:	strategy = everyMinute
+
+Shellyem3_Leistung1	:	strategy = everyMinute
+Shellyem3_Leistung2	:	strategy = everyMinute
+Shellyem3_Leistung3	:	strategy = everyMinute
+House_Power_Consumption	:	strategy = everyMinute
+
+Priza2_Power_Cons : strategy = everyMinute
+// Counters: charted here (everyMinute); exact restore now comes from MapDB (mapdb.persist)
+Priza2_Runtime_Minutes : strategy = everyMinute
+Priza2_DailyCost    : strategy = everyMinute
+Priza2_AllTimeCost  : strategy = everyMinute
+Priza11_LED_MinutesToday : strategy = everyMinute
+
+// Sticky state items (Tomatoes_OnBalcony, WindowSensorAlex_State, DoorSensorSufra_State)
+// moved to MapDB only - they are states, not chartable series.
+
+	}

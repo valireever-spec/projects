@@ -1,0 +1,24 @@
+// MapDB persistence - exact LAST-value store, ideal for restoreOnStartup.
+// MapDB keeps only the most recent value per item (not history); rrd4j keeps
+// the charted history. everyMinute guarantees each item is captured even when
+// static, so restoreOnStartup always has an exact value to restore.
+
+Strategies {
+	everyMinute : "0 * * * * ?"
+	default = everyChange
+}
+
+Items {
+	// Counters & costs
+	Priza2_Runtime_Minutes,
+	Priza2_Daily_Energy_Wh,
+	Priza2_DailyCost,
+	Priza2_AllTimeCost,
+	Priza11_LED_MinutesToday,
+
+	// Sticky state sensors
+	Tomatoes_OnBalcony,
+	WindowSensorAlex_State,
+	DoorSensorSufra_State
+		: strategy = everyMinute, everyChange, restoreOnStartup
+}
