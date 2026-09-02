@@ -158,6 +158,8 @@ phase_disabled = {"L1": False, "L2": False, "L3": False}
 last_update = {"L1": 0, "L2": 0, "L3": 0, "L4": 0}
 last_eco_cmd = None
 last_eco_cmd_ts = None
+last_winter_charge_cmd_ts = None
+WINTER_CHARGE_COOLDOWN_SEC = 60
 
 # Filter / reconstruction
 filtered_power = None
@@ -263,6 +265,14 @@ def log_important(msg):
 def log_debug(msg):
     if DEBUG_VERBOSE:
         LogAction.logInfo("ECO_DBG", msg)
+
+# Transition-only logging: emit under key only when the message changes,
+# so per-cycle "Skip ..." reasons don't flood the log every 1-2s.
+_last_skip_log = {}
+def log_skip(key, msg):
+    if _last_skip_log.get(key) != msg:
+        _last_skip_log[key] = msg
+        LogAction.logInfo("ECO", msg)
 
 def cancel_timer(t):
     if t is not None:
@@ -757,16 +767,16 @@ def stop_sequence():
 def is_device_allowed(dev, target):
     if dev == "Priza1_Power_auto" and target == "ON":
         if items["Priza1_BatteryFull"] == OnOffType.ON:
-            log_important("Skip Priza1 (battery full)")
+            log_skip("Priza1", "Skip Priza1 (battery full)")
             return False
 
     if dev == "Priza4_Power_auto" and target == "ON":
         if items["Priza4_BatteryFull"] == OnOffType.ON:
-            log_important("Skip Priza4 (battery full)")
+            log_skip("Priza4", "Skip Priza4 (battery full)")
             return False
     if dev == "Priza4_Power_auto" and target == "OFF":
         if items["Priza4_BatteryFull"] != OnOffType.ON:
-            log_important("Skip Priza4 OFF (battery not confirmed full)")
+            log_skip("Priza4", "Skip Priza4 OFF (battery not confirmed full)")
             return False
 
     # Guard Priza3/7: Don't turn OFF if actively charging
@@ -776,7 +786,7 @@ def is_device_allowed(dev, target):
             if curr not in [NULL, UNDEF]:
                 curr_val = float(str(curr).split()[0]) if " " in str(curr) else float(str(curr))
                 if curr_val > 0.070:  # MinCLevel_P3_1 threshold
-                    log_important("Skip Priza3 OFF (actively charging, current={})".format(curr_val))
+                    log_skip("Priza3", "Skip Priza3 OFF (actively charging, current={})".format(curr_val))
                     return False
         except:
             pass
@@ -787,19 +797,19 @@ def is_device_allowed(dev, target):
             if curr not in [NULL, UNDEF]:
                 curr_val = float(str(curr).split()[0]) if " " in str(curr) else float(str(curr))
                 if curr_val > 0.010:  # MinCLevel_P7_1 threshold
-                    log_important("Skip Priza7 OFF (actively charging, current={})".format(curr_val))
+                    log_skip("Priza7", "Skip Priza7 OFF (actively charging, current={})".format(curr_val))
                     return False
         except:
             pass
 
     if dev == "Priza9_Power" and target == "ON":
         if not is_priza9_allowed():
-            log_important("Skip Priza9 (time)")
+            log_skip("Priza9", "Skip Priza9 (time)")
             return False
 
     if dev == "Priza9_Power" and target == "OFF":
         if items["Priza9ForceOn"] == OnOffType.ON:
-            log_important("Skip Priza9 OFF (force on)")
+            log_skip("Priza9", "Skip Priza9 OFF (force on)")
             return False
 
     return True
@@ -1152,26 +1162,34 @@ def eco_watchdog(event):
     # 5b) Winter scheduled charging override (FIX 2026-06-20)
     # Allow Priza1/4 to charge even in IMPORT_MODE during scheduled windows
     if is_winter_charging_time():
-        priza1_full = str(items["Priza1_BatteryFull"]).strip() == "ON"
-        priza1_is_off = str(items["Priza1_Power_auto"]).strip() == "OFF"
-        priza4_full = str(items["Priza4_BatteryFull"]).strip() == "ON"
-        priza4_is_off = str(items["Priza4_Power_auto"]).strip() == "OFF"
+        global last_winter_charge_cmd_ts
+        winter_age = secs_since(last_winter_charge_cmd_ts)
+        if winter_age is None or winter_age >= WINTER_CHARGE_COOLDOWN_SEC:
+            priza1_full = str(items["Priza1_BatteryFull"]).strip() == "ON"
+            priza1_is_off = str(items["Priza1_Power_auto"]).strip() == "OFF"
+            priza4_full = str(items["Priza4_BatteryFull"]).strip() == "ON"
+            priza4_is_off = str(items["Priza4_Power_auto"]).strip() == "OFF"
 
-        activated = False
+            activated = False
 
-        if not priza1_full and priza1_is_off:
-            events.sendCommand("Priza1_Power_auto", "ON")
-            log_important("WINTER: Priza1_Power_auto ON (scheduled window)")
-            activated = True
+            if not priza1_full and priza1_is_off:
+                events.sendCommand("Priza1_Power_auto", "ON")
+                log_important("WINTER: Priza1_Power_auto ON (scheduled window)")
+                activated = True
 
-        if not priza4_full and priza4_is_off:
-            events.sendCommand("Priza4_Power_auto", "ON")
-            log_important("WINTER: Priza4_Power_auto ON (scheduled window)")
-            activated = True
+            if not priza4_full and priza4_is_off:
+                events.sendCommand("Priza4_Power_auto", "ON")
+                log_important("WINTER: Priza4_Power_auto ON (scheduled window)")
+                activated = True
 
-        # Skip apply_intent() to prevent ON-OFF cycling
-        if activated:
-            return
+            if activated:
+                last_winter_charge_cmd_ts = now()
+
+        # INTENTIONAL (confirmed 2026-08-28): return unconditionally during winter
+        # charging windows — not only when a charge command was just issued — so
+        # apply_intent()/summary are suppressed for the whole window and IMPORT_MODE
+        # cannot fight the scheduled charge (ON-OFF cycling). Reviewed and kept as-is.
+        return
 
     # 6) enforce current intent
     apply_intent()
