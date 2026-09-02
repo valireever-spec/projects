@@ -244,7 +244,7 @@ def log_summary_tick():
     fil_s = str(filtered_power) if filtered_power is not None else "None"
     seq_s = "{}@{}".format(sequence_mode, sequence_index) if sequence_mode is not None else "None"
 
-    log_important(
+    log_telemetry(
         "SUM raw={} filt={} dir={} intent={} pwr={} eco={} seq={}".format(
             raw_s, fil_s, direction_state, intent_state, pwr, eco, seq_s
         )
@@ -273,6 +273,12 @@ def log_skip(key, msg):
     if _last_skip_log.get(key) != msg:
         _last_skip_log[key] = msg
         LogAction.logInfo("ECO", msg)
+
+# Per-cycle ECO telemetry (SUM / RAW MEDIAN FILTERED): logged at DEBUG so it stays
+# out of the INFO log by default. To see it, raise logger
+# 'org.eclipse.smarthome.model.script.ECO' to DEBUG in log4j2.
+def log_telemetry(msg):
+    LogAction.logDebug("ECO", msg)
 
 def cancel_timer(t):
     if t is not None:
@@ -555,7 +561,7 @@ def compute_filtered_power():
     events.postUpdate("House_Power_Consumption", str(filtered_power) + " W")
     log_counter += 1
     if log_counter % 10 == 0:
-        log_important("RAW={} MEDIAN={} FILTERED={} DIR={} INTENT={}".format(raw, median, filtered_power, direction_state, intent_state))
+        log_telemetry("RAW={} MEDIAN={} FILTERED={} DIR={} INTENT={}".format(raw, median, filtered_power, direction_state, intent_state))
 
     return filtered_power
 
