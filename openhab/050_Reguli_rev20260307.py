@@ -529,12 +529,38 @@ def techpro9_dim(event):
 	if is_state(items["Logging"], ON):
 		techpro9_dim.log.info("techpro9 dimm " + str(items["Bec_TechPro9_Dimmer"]))
 
+# Telefunken TV detection consolidated 2026-09-03 onto the exec probe
+# Telefunkentv_avail_Output ("1"=up / "0"=down; exec:command:telefunkentv_avail
+# -> ping_hosts.sh telefunkentv -> /etc/ping_hosts_4oh2.sh 192.168.30.11).
+# telefunken_avail_map mirrors it to the sitemap switches; the buggy/dead MQTT
+# feeds (telefunkentv_online always-0, smarttv_telefunken_up never published)
+# were unlinked. Probe interval cut 300s -> 30s to reduce detection lag.
+@rule("Telefunken availability map", description="Map exec probe Telefunkentv_avail_Output to display switches", tags=["Telefunken", "TV", "detection"])
+@when("Item Telefunkentv_avail_Output changed")
+def telefunken_avail_map(event):
+	cmd = "ON" if is_state(items["Telefunkentv_avail_Output"], "1") else "OFF"
+	events.sendCommand("ScriptParrot_Telefunkentv_online", cmd)
+	events.sendCommand("ScriptParrot_Smarttv_telefunken_up", cmd)
+
+# Samsung TV detection consolidated 2026-09-03 (same pattern as Telefunken):
+# Samsungtv_avail_Output ("1"=up/"0"=down; exec:command:samsungtv_avail ->
+# ping_hosts.sh samsungtv -> direct ping 192.168.30.10 from OH). Mirrors to the
+# sitemap switches; buggy/dead MQTT feeds (samsungtv_online always-0,
+# smarttv_samsung_up never published) unlinked.
+@rule("Samsung TV availability map", description="Map exec probe Samsungtv_avail_Output to display switches", tags=["Samsung", "TV", "detection"])
+@when("Item Samsungtv_avail_Output changed")
+def samsung_avail_map(event):
+	cmd = "ON" if is_state(items["Samsungtv_avail_Output"], "1") else "OFF"
+	events.sendCommand("ScriptParrot_Samsungtv_online", cmd)
+	events.sendCommand("ScriptParrot_Smarttv_samsung_up", cmd)
+
 @rule("Telefunken switch on", description="Telefunken_Sw changed to OFF", tags=["Stop", "Telefunken"])
 @when("Item Telefunken_Sw changed")
 def telefunken_stop(event):
 	if is_state(event.itemState, OFF):
 		#telefunken_stop = executeCommandLine("/etc/openhab2/scripts/telefunkenoff.sh", 10000)
-		if is_state(items["ScriptParrot_Smarttv_telefunken_up"], ON):
+		# 2026-09-03: read exec probe directly ("1"=up); was dead ScriptParrot_Smarttv_telefunken_up (NULL)
+		if is_state(items["Telefunkentv_avail_Output"], "1"):
 			# FIX: postUpdateCheckFirst removed (broken import). sendCommand below already sends the IR signal.
 			events.sendCommand("Irbridge_IRSend", "irsend 0,890,910,860,910,1750,910,860,910,860,910,860,1780,1725,935,860,1780,865,910,1725,940,860")
 		if is_state(items["Logging"], ON):
