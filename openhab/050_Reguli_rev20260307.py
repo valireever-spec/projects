@@ -554,17 +554,30 @@ def samsung_avail_map(event):
 	events.sendCommand("ScriptParrot_Samsungtv_online", cmd)
 	events.sendCommand("ScriptParrot_Smarttv_samsung_up", cmd)
 
-@rule("Telefunken switch on", description="Telefunken_Sw changed to OFF", tags=["Stop", "Telefunken"])
+@rule("Telefunken switch on", description="Telefunken_Sw changed - IR power toggle gated on detection", tags=["Stop", "Telefunken"])
 @when("Item Telefunken_Sw changed")
 def telefunken_stop(event):
+	# The Telefunken POWER code is a single RC5-style TOGGLE (not discrete on/off),
+	# so each direction is gated on the live detection state
+	# (Telefunkentv_avail_Output "1"=up / "0"=down): only toggle when a real state
+	# change is needed. This also stops the detection-driven postUpdate of
+	# Telefunken_Sw (099 telefunkentv_online / 050 telefunken_stat) from re-firing IR.
+	POWER_IR = "irsend 0,890,910,860,910,1750,910,860,910,860,910,860,1780,1725,935,860,1780,865,910,1725,940,860"
 	if is_state(event.itemState, OFF):
 		#telefunken_stop = executeCommandLine("/etc/openhab2/scripts/telefunkenoff.sh", 10000)
 		# 2026-09-03: read exec probe directly ("1"=up); was dead ScriptParrot_Smarttv_telefunken_up (NULL)
-		if is_state(items["Telefunkentv_avail_Output"], "1"):
-			# FIX: postUpdateCheckFirst removed (broken import). sendCommand below already sends the IR signal.
-			events.sendCommand("Irbridge_IRSend", "irsend 0,890,910,860,910,1750,910,860,910,860,910,860,1780,1725,935,860,1780,865,910,1725,940,860")
+		if is_state(items["Telefunkentv_avail_Output"], "1"):  # TV up -> toggle OFF
+			events.sendCommand("Irbridge_IRSend", POWER_IR)
 		if is_state(items["Logging"], ON):
 			telefunken_stop.log.info("Telefunken switch off")
+	if is_state(event.itemState, ON):
+		# 2026-09-03: ON half wired with the SAME toggle; only when TV detected DOWN,
+		# so it can't double-toggle an already-on TV or echo the auto-postUpdate.
+		# IR (not the network API) so it works from cold standby.
+		if is_state(items["Telefunkentv_avail_Output"], "0"):  # TV down -> toggle ON
+			events.sendCommand("Irbridge_IRSend", POWER_IR)
+		if is_state(items["Logging"], ON):
+			telefunken_stop.log.info("Telefunken switch on")
 
 @rule("Kodi restart", description="Item Kodi_restart changed to OFF", tags=["Stop", "Kodi"])
 @when("Item Kodi_restart changed")
