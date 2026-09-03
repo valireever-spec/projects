@@ -4,7 +4,7 @@ from backend.core.config import SESSIONS_DIR
 from backend.analytics.financial_model import build_projections
 from backend.analytics.confidence_scorer import calculate_confidence_score
 from backend.analytics.sensitivity_analyzer import build_sensitivity_matrix
-from backend.services.domain_service import get_domain_details
+from backend.services.domain_service import get_domain_details, get_domain_score
 
 
 def get_financial_projections(session_id: str, revenue_model: str, monthly_revenue: float) -> dict:
@@ -317,9 +317,15 @@ def get_confidence_assessment(session_id: str, revenue_model: str, monthly_reven
             session = json.load(f)
 
         projection = _get_or_build_projection(session_id, revenue_model, monthly_revenue)
-        domain_score = session.get("domain_score", {})
-        risk_assessment = session.get("risk_assessment", {})
         profile = session.get("profile", {})
+
+        # session["domain_score"] is not persisted, so score the selected domain
+        # on demand; fall back to whatever the session may carry.
+        domain_score = session.get("domain_score") or {}
+        if not domain_score:
+            domain_score = get_domain_score(profile.get("domain_slug", "")) or {}
+
+        risk_assessment = session.get("risk_assessment", {})
 
         return calculate_confidence_score(domain_score, projection, risk_assessment, profile)
     except Exception as e:

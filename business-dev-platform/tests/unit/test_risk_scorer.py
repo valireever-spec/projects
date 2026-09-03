@@ -19,7 +19,7 @@ class TestRiskAssessmentStructure:
         assert "risk_score" in result
         assert "risk_factors" in result
         assert "top_3_risks" in result
-        assert "mitigation_strategies" in result
+        assert "mitigation_plan" in result
 
     def test_risk_level_values(self):
         """Test that risk level is one of valid values."""
@@ -303,18 +303,24 @@ class TestRiskPlausibility:
         assert result["risk_score"] < 50
 
     def test_worst_case_scenario_high_risk(self):
-        """Test that challenging scenario has higher risk."""
-        result = assess_risks(
+        """Test that a challenging scenario scores riskier than an ideal one."""
+        worst = assess_risks(
             domain="manufacturing",
             legal_form="AG",
             city="Berlin",
             financial_projection={"break_even_month": 36}
         )
+        best = assess_risks(
+            domain="online-coaching",
+            legal_form="Freiberufler",
+            city="Dresden",
+            financial_projection={"break_even_month": 2}
+        )
 
-        # Should be medium or high risk
-        assert result["overall_risk_level"] in ["medium", "high"]
-        # Score should be substantial
-        assert result["risk_score"] > 20
+        # risk_score is a 0-25 mean; the "medium" band starts at 8.
+        assert worst["overall_risk_level"] in ["medium", "high"]
+        assert worst["risk_score"] >= 8
+        assert worst["risk_score"] > best["risk_score"]
 
     def test_consistent_assessment(self):
         """Test that same inputs produce same risk assessment."""

@@ -4,599 +4,1697 @@
     "name_de": "Online-Ernährungsberatung",
     "name_en": "Online Nutrition Consulting",
     "nace_r2_code": "86.90",
-    "google_trends_keywords": ["Ernährungsberatung online", "Ernährungsplan individuell"],
+    "google_trends_keywords": [
+      "Ernährungsberatung online",
+      "Ernährungsplan individuell"
+    ],
     "wikipedia_query": "Ernährungsberatung Deutschland",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.75, "ebitda_margin_pct": 0.35}
+    "sector_margins": {
+      "gross_margin_pct": 0.75,
+      "ebitda_margin_pct": 0.35
+    },
+    "skill_tags": [
+      "healthcare",
+      "consulting",
+      "teaching"
+    ],
+    "channels": [
+      "content",
+      "network"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "medium",
+    "language_leverage": true
   },
   {
     "slug": "virtueller-assistent",
     "name_de": "Virtueller Assistent für Unternehmen",
     "name_en": "Virtual Assistant Services",
     "nace_r2_code": "82.19",
-    "google_trends_keywords": ["virtueller Assistent", "VA Dienstleistung"],
+    "google_trends_keywords": [
+      "virtueller Assistent",
+      "VA Dienstleistung"
+    ],
     "wikipedia_query": "Virtueller Assistent",
-    "typical_legal_forms": ["Einzelunternehmen", "UG"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "UG"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.85, "ebitda_margin_pct": 0.55}
+    "sector_margins": {
+      "gross_margin_pct": 0.85,
+      "ebitda_margin_pct": 0.55
+    },
+    "skill_tags": [
+      "operations",
+      "writing"
+    ],
+    "channels": [
+      "marketplace",
+      "network",
+      "cold_outreach"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": true
   },
   {
     "slug": "social-media-agentur",
     "name_de": "Social Media Agentur",
     "name_en": "Social Media Agency",
     "nace_r2_code": "73.11",
-    "google_trends_keywords": ["Social Media Agentur", "Instagram Marketing"],
+    "google_trends_keywords": [
+      "Social Media Agentur",
+      "Instagram Marketing"
+    ],
     "wikipedia_query": "Social Media Marketing",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.70, "ebitda_margin_pct": 0.40}
+    "sector_margins": {
+      "gross_margin_pct": 0.7,
+      "ebitda_margin_pct": 0.4
+    },
+    "skill_tags": [
+      "marketing",
+      "design",
+      "writing"
+    ],
+    "channels": [
+      "content",
+      "network",
+      "cold_outreach"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "online-fitness-coaching",
     "name_de": "Online-Fitness-Coaching",
     "name_en": "Online Fitness Coaching",
     "nace_r2_code": "85.41",
-    "google_trends_keywords": ["Fitness Coaching online", "Personal Trainer online"],
+    "google_trends_keywords": [
+      "Fitness Coaching online",
+      "Personal Trainer online"
+    ],
     "wikipedia_query": "Fitness Training",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.80, "ebitda_margin_pct": 0.50}
+    "sector_margins": {
+      "gross_margin_pct": 0.8,
+      "ebitda_margin_pct": 0.5
+    },
+    "skill_tags": [
+      "healthcare",
+      "teaching"
+    ],
+    "channels": [
+      "content",
+      "network"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "medium",
+    "language_leverage": true
   },
   {
     "slug": "webshop-erstellung",
     "name_de": "Webshop-Erstellung und Verwaltung",
     "name_en": "E-Commerce Shop Development",
     "nace_r2_code": "62.01",
-    "google_trends_keywords": ["Webshop erstellen", "E-Commerce Agentur"],
+    "google_trends_keywords": [
+      "Webshop erstellen",
+      "E-Commerce Agentur"
+    ],
     "wikipedia_query": "E-Commerce",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.65, "ebitda_margin_pct": 0.30}
+    "sector_margins": {
+      "gross_margin_pct": 0.65,
+      "ebitda_margin_pct": 0.3
+    },
+    "skill_tags": [
+      "coding",
+      "design"
+    ],
+    "channels": [
+      "cold_outreach",
+      "network",
+      "marketplace"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "medium",
+    "language_leverage": false
   },
   {
     "slug": "seo-beratung",
     "name_de": "SEO-Beratung und Optimierung",
     "name_en": "SEO Consulting",
     "nace_r2_code": "73.11",
-    "google_trends_keywords": ["SEO Agentur", "Suchmaschinenoptimierung"],
+    "google_trends_keywords": [
+      "SEO Agentur",
+      "Suchmaschinenoptimierung"
+    ],
     "wikipedia_query": "Search Engine Optimization",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.72, "ebitda_margin_pct": 0.38}
+    "sector_margins": {
+      "gross_margin_pct": 0.72,
+      "ebitda_margin_pct": 0.38
+    },
+    "skill_tags": [
+      "marketing",
+      "data_science"
+    ],
+    "channels": [
+      "content",
+      "cold_outreach",
+      "network"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "medium",
+    "language_leverage": false
   },
   {
     "slug": "content-agentur",
     "name_de": "Content Marketing Agentur",
     "name_en": "Content Marketing Agency",
     "nace_r2_code": "73.11",
-    "google_trends_keywords": ["Content Marketing", "Textschreiben online"],
+    "google_trends_keywords": [
+      "Content Marketing",
+      "Textschreiben online"
+    ],
     "wikipedia_query": "Content Marketing",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.70, "ebitda_margin_pct": 0.36}
+    "sector_margins": {
+      "gross_margin_pct": 0.7,
+      "ebitda_margin_pct": 0.36
+    },
+    "skill_tags": [
+      "writing",
+      "marketing"
+    ],
+    "channels": [
+      "content",
+      "network",
+      "cold_outreach"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": true
   },
   {
     "slug": "online-sprachkurs",
     "name_de": "Online-Sprachkurs",
     "name_en": "Online Language Tutoring",
     "nace_r2_code": "85.59",
-    "google_trends_keywords": ["Sprachkurs online", "Englisch lernen online"],
+    "google_trends_keywords": [
+      "Sprachkurs online",
+      "Englisch lernen online"
+    ],
     "wikipedia_query": "Language Learning",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.82, "ebitda_margin_pct": 0.52}
+    "sector_margins": {
+      "gross_margin_pct": 0.82,
+      "ebitda_margin_pct": 0.52
+    },
+    "skill_tags": [
+      "teaching",
+      "languages"
+    ],
+    "channels": [
+      "content",
+      "marketplace"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "medium",
+    "language_leverage": true
   },
   {
     "slug": "grafik-design",
     "name_de": "Grafik-Design und Branding",
     "name_en": "Graphic Design Services",
     "nace_r2_code": "74.10",
-    "google_trends_keywords": ["Grafikdesigner", "Logo Design"],
+    "google_trends_keywords": [
+      "Grafikdesigner",
+      "Logo Design"
+    ],
     "wikipedia_query": "Graphic Design",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.75, "ebitda_margin_pct": 0.45}
+    "sector_margins": {
+      "gross_margin_pct": 0.75,
+      "ebitda_margin_pct": 0.45
+    },
+    "skill_tags": [
+      "design"
+    ],
+    "channels": [
+      "marketplace",
+      "network",
+      "cold_outreach"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "consulting-gastronomie",
     "name_de": "Gastronomie-Consulting",
     "name_en": "Restaurant Consulting",
     "nace_r2_code": "70.22",
-    "google_trends_keywords": ["Restaurant Beratung", "Gastronomie Consulting"],
+    "google_trends_keywords": [
+      "Restaurant Beratung",
+      "Gastronomie Consulting"
+    ],
     "wikipedia_query": "Restaurant Management",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.60, "ebitda_margin_pct": 0.25}
+    "sector_margins": {
+      "gross_margin_pct": 0.6,
+      "ebitda_margin_pct": 0.25
+    },
+    "skill_tags": [
+      "consulting",
+      "hospitality",
+      "operations"
+    ],
+    "channels": [
+      "network",
+      "local",
+      "cold_outreach"
+    ],
+    "remote_capable": false,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "it-support",
     "name_de": "IT-Support und Systemadministration",
     "name_en": "IT Support Services",
     "nace_r2_code": "62.02",
-    "google_trends_keywords": ["IT-Support", "Systemadministration"],
+    "google_trends_keywords": [
+      "IT-Support",
+      "Systemadministration"
+    ],
     "wikipedia_query": "IT Support",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.30, "Berlin": 1.10, "Hamburg": 1.20, "Frankfurt": 1.25,
-      "Cologne": 1.12, "Dresden": 0.98, "Düsseldorf": 1.15
+      "München": 1.3,
+      "Berlin": 1.1,
+      "Hamburg": 1.2,
+      "Frankfurt": 1.25,
+      "Cologne": 1.12,
+      "Dresden": 0.98,
+      "Düsseldorf": 1.15
     },
-    "sector_margins": {"gross_margin_pct": 0.65, "ebitda_margin_pct": 0.35}
+    "sector_margins": {
+      "gross_margin_pct": 0.65,
+      "ebitda_margin_pct": 0.35
+    },
+    "skill_tags": [
+      "coding",
+      "operations"
+    ],
+    "channels": [
+      "local",
+      "cold_outreach",
+      "network"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "psychologische-beratung",
     "name_de": "Online Psychologische Beratung",
     "name_en": "Online Psychology Counseling",
     "nace_r2_code": "86.90",
-    "google_trends_keywords": ["Psychologe online", "Therapeut Beratung"],
+    "google_trends_keywords": [
+      "Psychologe online",
+      "Therapeut Beratung"
+    ],
     "wikipedia_query": "Psychology",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
-    "required_licenses": ["Psychologische Ausbildung oder Approbation"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
+    "required_licenses": [
+      "Psychologische Ausbildung oder Approbation"
+    ],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.78, "ebitda_margin_pct": 0.48}
+    "sector_margins": {
+      "gross_margin_pct": 0.78,
+      "ebitda_margin_pct": 0.48
+    },
+    "skill_tags": [
+      "healthcare",
+      "consulting"
+    ],
+    "channels": [
+      "content",
+      "network",
+      "local"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": true
   },
   {
     "slug": "accounting-dienstleistung",
     "name_de": "Buchhaltung und Steuerberatung",
     "name_en": "Accounting Services",
     "nace_r2_code": "69.20",
-    "google_trends_keywords": ["Buchhaltung Freelancer", "Steuererklarung"],
+    "google_trends_keywords": [
+      "Buchhaltung Freelancer",
+      "Steuererklarung"
+    ],
     "wikipedia_query": "Accounting",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
-    "required_licenses": ["Steuerberate Erlaubnis"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
+    "required_licenses": [
+      "Steuerberate Erlaubnis"
+    ],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.25,
-      "Cologne": 1.10, "Dresden": 0.98, "Düsseldorf": 1.12
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.25,
+      "Cologne": 1.1,
+      "Dresden": 0.98,
+      "Düsseldorf": 1.12
     },
-    "sector_margins": {"gross_margin_pct": 0.68, "ebitda_margin_pct": 0.40}
+    "sector_margins": {
+      "gross_margin_pct": 0.68,
+      "ebitda_margin_pct": 0.4
+    },
+    "skill_tags": [
+      "finance",
+      "operations"
+    ],
+    "channels": [
+      "network",
+      "cold_outreach",
+      "local"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": true
   },
   {
     "slug": "immobilien-makler",
     "name_de": "Immobilienmakler",
     "name_en": "Real Estate Agent",
     "nace_r2_code": "68.31",
-    "google_trends_keywords": ["Immobilienmakler", "Wohnungsvermietung"],
+    "google_trends_keywords": [
+      "Immobilienmakler",
+      "Wohnungsvermietung"
+    ],
     "wikipedia_query": "Real Estate",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
-    "required_licenses": ["Maklererlaubnis (Gewerbeanmeldung)"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
+    "required_licenses": [
+      "Maklererlaubnis (Gewerbeanmeldung)"
+    ],
     "city_wage_indices": {
-      "München": 1.35, "Berlin": 1.15, "Hamburg": 1.25, "Frankfurt": 1.30,
-      "Cologne": 1.12, "Dresden": 1.05, "Düsseldorf": 1.20
+      "München": 1.35,
+      "Berlin": 1.15,
+      "Hamburg": 1.25,
+      "Frankfurt": 1.3,
+      "Cologne": 1.12,
+      "Dresden": 1.05,
+      "Düsseldorf": 1.2
     },
-    "sector_margins": {"gross_margin_pct": 0.85, "ebitda_margin_pct": 0.70}
+    "sector_margins": {
+      "gross_margin_pct": 0.85,
+      "ebitda_margin_pct": 0.7
+    },
+    "skill_tags": [
+      "sales",
+      "real_estate"
+    ],
+    "channels": [
+      "local",
+      "network",
+      "paid_ads"
+    ],
+    "remote_capable": false,
+    "capital_intensity": "medium",
+    "operational_drag": "high",
+    "language_leverage": true
   },
   {
     "slug": "event-organisation",
     "name_de": "Event-Organisation und Planung",
     "name_en": "Event Planning",
     "nace_r2_code": "82.99",
-    "google_trends_keywords": ["Event Planner", "Eventmanagement"],
+    "google_trends_keywords": [
+      "Event Planner",
+      "Eventmanagement"
+    ],
     "wikipedia_query": "Event Management",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.50, "ebitda_margin_pct": 0.20}
+    "sector_margins": {
+      "gross_margin_pct": 0.5,
+      "ebitda_margin_pct": 0.2
+    },
+    "skill_tags": [
+      "operations",
+      "hospitality",
+      "sales"
+    ],
+    "channels": [
+      "network",
+      "local"
+    ],
+    "remote_capable": false,
+    "capital_intensity": "medium",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "copywriting",
     "name_de": "Copywriting und Werbetexte",
     "name_en": "Copywriting Services",
     "nace_r2_code": "73.11",
-    "google_trends_keywords": ["Copywriter", "Werbetexte schreiben"],
+    "google_trends_keywords": [
+      "Copywriter",
+      "Werbetexte schreiben"
+    ],
     "wikipedia_query": "Copywriting",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.82, "ebitda_margin_pct": 0.55}
+    "sector_margins": {
+      "gross_margin_pct": 0.82,
+      "ebitda_margin_pct": 0.55
+    },
+    "skill_tags": [
+      "writing",
+      "marketing"
+    ],
+    "channels": [
+      "content",
+      "network",
+      "marketplace",
+      "cold_outreach"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": true
   },
   {
     "slug": "maschinell-lernen-beratung",
     "name_de": "Machine Learning und AI-Beratung",
     "name_en": "AI and Machine Learning Consulting",
     "nace_r2_code": "62.01",
-    "google_trends_keywords": ["Machine Learning", "KI Anwendung"],
+    "google_trends_keywords": [
+      "Machine Learning",
+      "KI Anwendung"
+    ],
     "wikipedia_query": "Machine Learning",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.35, "Berlin": 1.15, "Hamburg": 1.25, "Frankfurt": 1.30,
-      "Cologne": 1.12, "Dresden": 1.00, "Düsseldorf": 1.18
+      "München": 1.35,
+      "Berlin": 1.15,
+      "Hamburg": 1.25,
+      "Frankfurt": 1.3,
+      "Cologne": 1.12,
+      "Dresden": 1.0,
+      "Düsseldorf": 1.18
     },
-    "sector_margins": {"gross_margin_pct": 0.75, "ebitda_margin_pct": 0.45}
+    "sector_margins": {
+      "gross_margin_pct": 0.75,
+      "ebitda_margin_pct": 0.45
+    },
+    "skill_tags": [
+      "data_science",
+      "coding",
+      "consulting"
+    ],
+    "channels": [
+      "network",
+      "cold_outreach"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "medium",
+    "language_leverage": false
   },
   {
     "slug": "affiliate-marketing",
     "name_de": "Affiliate Marketing",
     "name_en": "Affiliate Marketing",
     "nace_r2_code": "73.11",
-    "google_trends_keywords": ["Affiliate Marketing", "Partnerprogramm"],
+    "google_trends_keywords": [
+      "Affiliate Marketing",
+      "Partnerprogramm"
+    ],
     "wikipedia_query": "Affiliate Marketing",
-    "typical_legal_forms": ["Einzelunternehmen", "UG"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "UG"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.70, "ebitda_margin_pct": 0.35}
+    "sector_margins": {
+      "gross_margin_pct": 0.7,
+      "ebitda_margin_pct": 0.35
+    },
+    "skill_tags": [
+      "marketing",
+      "writing",
+      "data_science"
+    ],
+    "channels": [
+      "content",
+      "paid_ads"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "low",
+    "language_leverage": true
   },
   {
     "slug": "video-produktion",
     "name_de": "Video-Produktion und Editing",
     "name_en": "Video Production",
     "nace_r2_code": "74.20",
-    "google_trends_keywords": ["Video Produktion", "Video Marketing"],
+    "google_trends_keywords": [
+      "Video Produktion",
+      "Video Marketing"
+    ],
     "wikipedia_query": "Video Production",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.65, "ebitda_margin_pct": 0.35}
+    "sector_margins": {
+      "gross_margin_pct": 0.65,
+      "ebitda_margin_pct": 0.35
+    },
+    "skill_tags": [
+      "video",
+      "design"
+    ],
+    "channels": [
+      "network",
+      "marketplace",
+      "local"
+    ],
+    "remote_capable": false,
+    "capital_intensity": "medium",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "pflanzenzucht",
     "name_de": "Nachhaltige Pflanzenzucht",
     "name_en": "Sustainable Plant Nursery",
     "nace_r2_code": "02.30",
-    "google_trends_keywords": ["Urban Gardening", "Pflanzenzucht nachhaltig"],
+    "google_trends_keywords": [
+      "Urban Gardening",
+      "Pflanzenzucht nachhaltig"
+    ],
     "wikipedia_query": "Horticulture",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.15, "Berlin": 0.95, "Hamburg": 1.05, "Frankfurt": 1.10,
-      "Cologne": 0.98, "Dresden": 0.85, "Düsseldorf": 1.00
+      "München": 1.15,
+      "Berlin": 0.95,
+      "Hamburg": 1.05,
+      "Frankfurt": 1.1,
+      "Cologne": 0.98,
+      "Dresden": 0.85,
+      "Düsseldorf": 1.0
     },
-    "sector_margins": {"gross_margin_pct": 0.55, "ebitda_margin_pct": 0.22}
+    "sector_margins": {
+      "gross_margin_pct": 0.55,
+      "ebitda_margin_pct": 0.22
+    },
+    "skill_tags": [
+      "agriculture",
+      "science"
+    ],
+    "channels": [
+      "local",
+      "marketplace"
+    ],
+    "remote_capable": false,
+    "capital_intensity": "high",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "verpackungsdesign",
     "name_de": "Nachhaltige Verpackungen",
     "name_en": "Sustainable Packaging Design",
     "nace_r2_code": "74.10",
-    "google_trends_keywords": ["Nachhaltige Verpackung", "Öko-Verpackung"],
+    "google_trends_keywords": [
+      "Nachhaltige Verpackung",
+      "Öko-Verpackung"
+    ],
     "wikipedia_query": "Packaging Design",
-    "typical_legal_forms": ["GmbH", "AG"],
+    "typical_legal_forms": [
+      "GmbH",
+      "AG"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.48, "ebitda_margin_pct": 0.18}
+    "sector_margins": {
+      "gross_margin_pct": 0.48,
+      "ebitda_margin_pct": 0.18
+    },
+    "skill_tags": [
+      "design"
+    ],
+    "channels": [
+      "cold_outreach",
+      "network"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "medium",
+    "language_leverage": false
   },
   {
     "slug": "blockchain-consulting",
     "name_de": "Blockchain und Crypto-Beratung",
     "name_en": "Blockchain Consulting",
     "nace_r2_code": "62.01",
-    "google_trends_keywords": ["Blockchain", "Cryptocurrency Deutschland"],
+    "google_trends_keywords": [
+      "Blockchain",
+      "Cryptocurrency Deutschland"
+    ],
     "wikipedia_query": "Blockchain",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.30, "Berlin": 1.10, "Hamburg": 1.20, "Frankfurt": 1.25,
-      "Cologne": 1.12, "Dresden": 1.00, "Düsseldorf": 1.15
+      "München": 1.3,
+      "Berlin": 1.1,
+      "Hamburg": 1.2,
+      "Frankfurt": 1.25,
+      "Cologne": 1.12,
+      "Dresden": 1.0,
+      "Düsseldorf": 1.15
     },
-    "sector_margins": {"gross_margin_pct": 0.72, "ebitda_margin_pct": 0.40}
+    "sector_margins": {
+      "gross_margin_pct": 0.72,
+      "ebitda_margin_pct": 0.4
+    },
+    "skill_tags": [
+      "coding",
+      "consulting",
+      "security"
+    ],
+    "channels": [
+      "network",
+      "cold_outreach",
+      "content"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "medium",
+    "language_leverage": false
   },
   {
     "slug": "wellness-coaching",
     "name_de": "Wellness und Stress-Management Coaching",
     "name_en": "Wellness Coaching",
     "nace_r2_code": "85.59",
-    "google_trends_keywords": ["Wellness Coaching", "Stress Management"],
+    "google_trends_keywords": [
+      "Wellness Coaching",
+      "Stress Management"
+    ],
     "wikipedia_query": "Wellness",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.80, "ebitda_margin_pct": 0.50}
+    "sector_margins": {
+      "gross_margin_pct": 0.8,
+      "ebitda_margin_pct": 0.5
+    },
+    "skill_tags": [
+      "healthcare",
+      "teaching",
+      "consulting"
+    ],
+    "channels": [
+      "content",
+      "network",
+      "local"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": true
   },
   {
     "slug": "podcast-agentur",
     "name_de": "Podcast-Produktion",
     "name_en": "Podcast Production",
     "nace_r2_code": "74.30",
-    "google_trends_keywords": ["Podcast Produktion", "Audio Podcasting"],
+    "google_trends_keywords": [
+      "Podcast Produktion",
+      "Audio Podcasting"
+    ],
     "wikipedia_query": "Podcast",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.70, "ebitda_margin_pct": 0.40}
+    "sector_margins": {
+      "gross_margin_pct": 0.7,
+      "ebitda_margin_pct": 0.4
+    },
+    "skill_tags": [
+      "audio",
+      "marketing",
+      "writing"
+    ],
+    "channels": [
+      "content",
+      "network"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": true
   },
   {
     "slug": "uebersetzungsdienste",
     "name_de": "Spezialisierte Übersetzungsdienste",
     "name_en": "Professional Translation Services",
     "nace_r2_code": "74.30",
-    "google_trends_keywords": ["Übersetzer freiberuflich", "technische Übersetzung"],
+    "google_trends_keywords": [
+      "Übersetzer freiberuflich",
+      "technische Übersetzung"
+    ],
     "wikipedia_query": "Translation",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.75, "ebitda_margin_pct": 0.45}
+    "sector_margins": {
+      "gross_margin_pct": 0.75,
+      "ebitda_margin_pct": 0.45
+    },
+    "skill_tags": [
+      "languages",
+      "writing"
+    ],
+    "channels": [
+      "marketplace",
+      "network",
+      "cold_outreach"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": true
   },
   {
     "slug": "career-coaching",
     "name_de": "Career Coaching und Karriereberatung",
     "name_en": "Career Coaching",
     "nace_r2_code": "85.59",
-    "google_trends_keywords": ["Career Coaching", "Jobvermittlung"],
+    "google_trends_keywords": [
+      "Career Coaching",
+      "Jobvermittlung"
+    ],
     "wikipedia_query": "Career Counseling",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.82, "ebitda_margin_pct": 0.52}
+    "sector_margins": {
+      "gross_margin_pct": 0.82,
+      "ebitda_margin_pct": 0.52
+    },
+    "skill_tags": [
+      "consulting",
+      "teaching",
+      "hr"
+    ],
+    "channels": [
+      "content",
+      "network"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": true
   },
   {
     "slug": "interior-design",
     "name_de": "Interior Design und Raumgestaltung",
     "name_en": "Interior Design Services",
     "nace_r2_code": "74.10",
-    "google_trends_keywords": ["Interior Designer", "Raumgestaltung"],
+    "google_trends_keywords": [
+      "Interior Designer",
+      "Raumgestaltung"
+    ],
     "wikipedia_query": "Interior Design",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.30, "Berlin": 1.08, "Hamburg": 1.18, "Frankfurt": 1.25,
-      "Cologne": 1.10, "Dresden": 0.98, "Düsseldorf": 1.12
+      "München": 1.3,
+      "Berlin": 1.08,
+      "Hamburg": 1.18,
+      "Frankfurt": 1.25,
+      "Cologne": 1.1,
+      "Dresden": 0.98,
+      "Düsseldorf": 1.12
     },
-    "sector_margins": {"gross_margin_pct": 0.60, "ebitda_margin_pct": 0.28}
+    "sector_margins": {
+      "gross_margin_pct": 0.6,
+      "ebitda_margin_pct": 0.28
+    },
+    "skill_tags": [
+      "design"
+    ],
+    "channels": [
+      "local",
+      "network",
+      "content"
+    ],
+    "remote_capable": false,
+    "capital_intensity": "medium",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "handwerk-handelsplattform",
     "name_de": "Handwerk-Vermittlungsplattform",
     "name_en": "Skilled Trades Marketplace",
     "nace_r2_code": "78.30",
-    "google_trends_keywords": ["Handwerker Vermittlung", "Handwerk App"],
+    "google_trends_keywords": [
+      "Handwerker Vermittlung",
+      "Handwerk App"
+    ],
     "wikipedia_query": "Handwerk",
-    "typical_legal_forms": ["GmbH", "AG"],
+    "typical_legal_forms": [
+      "GmbH",
+      "AG"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.30, "ebitda_margin_pct": 0.10}
+    "sector_margins": {
+      "gross_margin_pct": 0.3,
+      "ebitda_margin_pct": 0.1
+    },
+    "skill_tags": [
+      "coding",
+      "operations",
+      "marketing"
+    ],
+    "channels": [
+      "marketplace",
+      "content"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "medium",
+    "operational_drag": "medium",
+    "language_leverage": false
   },
   {
     "slug": "webinar-plattform",
     "name_de": "Webinar und Online-Kurse Plattform",
     "name_en": "Webinar Platform",
     "nace_r2_code": "62.01",
-    "google_trends_keywords": ["Webinar Plattform", "Online Kurse"],
+    "google_trends_keywords": [
+      "Webinar Plattform",
+      "Online Kurse"
+    ],
     "wikipedia_query": "Webinar",
-    "typical_legal_forms": ["GmbH", "AG"],
+    "typical_legal_forms": [
+      "GmbH",
+      "AG"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.72, "ebitda_margin_pct": 0.42}
+    "sector_margins": {
+      "gross_margin_pct": 0.72,
+      "ebitda_margin_pct": 0.42
+    },
+    "skill_tags": [
+      "coding",
+      "teaching",
+      "marketing"
+    ],
+    "channels": [
+      "content",
+      "marketplace"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "medium",
+    "operational_drag": "low",
+    "language_leverage": false
   },
   {
     "slug": "handarbeit-ecommerce",
     "name_de": "Handmade Produkte eCommerce",
     "name_en": "Handmade Products Shop",
     "nace_r2_code": "47.91",
-    "google_trends_keywords": ["Handmade verkaufen", "DIY Produkte"],
+    "google_trends_keywords": [
+      "Handmade verkaufen",
+      "DIY Produkte"
+    ],
     "wikipedia_query": "Handmade",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.58, "ebitda_margin_pct": 0.25}
+    "sector_margins": {
+      "gross_margin_pct": 0.58,
+      "ebitda_margin_pct": 0.25
+    },
+    "skill_tags": [
+      "crafts",
+      "design",
+      "marketing"
+    ],
+    "channels": [
+      "marketplace",
+      "content",
+      "paid_ads"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "medium",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "recruiting-agentur",
     "name_de": "Executive Recruiting und Headhunting",
     "name_en": "Recruiting Agency",
     "nace_r2_code": "78.10",
-    "google_trends_keywords": ["Headhunter", "Personalvermittlung"],
+    "google_trends_keywords": [
+      "Headhunter",
+      "Personalvermittlung"
+    ],
     "wikipedia_query": "Recruitment",
-    "typical_legal_forms": ["GmbH", "AG"],
-    "required_licenses": ["Vermittlerlizenz"],
+    "typical_legal_forms": [
+      "GmbH",
+      "AG"
+    ],
+    "required_licenses": [
+      "Vermittlerlizenz"
+    ],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.25,
-      "Cologne": 1.10, "Dresden": 0.98, "Düsseldorf": 1.15
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.25,
+      "Cologne": 1.1,
+      "Dresden": 0.98,
+      "Düsseldorf": 1.15
     },
-    "sector_margins": {"gross_margin_pct": 0.28, "ebitda_margin_pct": 0.12}
+    "sector_margins": {
+      "gross_margin_pct": 0.28,
+      "ebitda_margin_pct": 0.12
+    },
+    "skill_tags": [
+      "hr",
+      "sales",
+      "operations"
+    ],
+    "channels": [
+      "network",
+      "cold_outreach"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": true
   },
   {
     "slug": "kryptographische-sicherheit",
     "name_de": "Cybersecurity und Penetration Testing",
     "name_en": "Cybersecurity Consulting",
     "nace_r2_code": "62.01",
-    "google_trends_keywords": ["Cybersecurity", "Penetration Testing"],
+    "google_trends_keywords": [
+      "Cybersecurity",
+      "Penetration Testing"
+    ],
     "wikipedia_query": "Cybersecurity",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
-    "required_licenses": ["Zertifizierungen wie CEH, OSCP"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
+    "required_licenses": [
+      "Zertifizierungen wie CEH, OSCP"
+    ],
     "city_wage_indices": {
-      "München": 1.30, "Berlin": 1.10, "Hamburg": 1.20, "Frankfurt": 1.30,
-      "Cologne": 1.15, "Dresden": 1.02, "Düsseldorf": 1.20
+      "München": 1.3,
+      "Berlin": 1.1,
+      "Hamburg": 1.2,
+      "Frankfurt": 1.3,
+      "Cologne": 1.15,
+      "Dresden": 1.02,
+      "Düsseldorf": 1.2
     },
-    "sector_margins": {"gross_margin_pct": 0.78, "ebitda_margin_pct": 0.48}
+    "sector_margins": {
+      "gross_margin_pct": 0.78,
+      "ebitda_margin_pct": 0.48
+    },
+    "skill_tags": [
+      "security",
+      "coding",
+      "science"
+    ],
+    "channels": [
+      "network",
+      "cold_outreach"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "medium",
+    "language_leverage": false
   },
   {
     "slug": "nachhaltigkeit-consulting",
     "name_de": "Nachhaltigkeit Consulting und ESG",
     "name_en": "Sustainability Consulting",
     "nace_r2_code": "70.22",
-    "google_trends_keywords": ["ESG Reporting", "Nachhaltigkeitsberatung"],
+    "google_trends_keywords": [
+      "ESG Reporting",
+      "Nachhaltigkeitsberatung"
+    ],
     "wikipedia_query": "Sustainability",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.25,
-      "Cologne": 1.10, "Dresden": 0.98, "Düsseldorf": 1.12
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.25,
+      "Cologne": 1.1,
+      "Dresden": 0.98,
+      "Düsseldorf": 1.12
     },
-    "sector_margins": {"gross_margin_pct": 0.70, "ebitda_margin_pct": 0.38}
+    "sector_margins": {
+      "gross_margin_pct": 0.7,
+      "ebitda_margin_pct": 0.38
+    },
+    "skill_tags": [
+      "consulting",
+      "science",
+      "operations"
+    ],
+    "channels": [
+      "network",
+      "cold_outreach",
+      "content"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "medium",
+    "language_leverage": false
   },
   {
     "slug": "spezialzucht-tiere",
     "name_de": "Spezialzucht und Tierzucht",
     "name_en": "Specialty Animal Breeding",
     "nace_r2_code": "01.49",
-    "google_trends_keywords": ["Rasse Zucht", "Tierzucht"],
+    "google_trends_keywords": [
+      "Rasse Zucht",
+      "Tierzucht"
+    ],
     "wikipedia_query": "Animal Husbandry",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
-    "required_licenses": ["Tierschutzausbildung"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
+    "required_licenses": [
+      "Tierschutzausbildung"
+    ],
     "city_wage_indices": {
-      "München": 1.15, "Berlin": 0.95, "Hamburg": 1.05, "Frankfurt": 1.10,
-      "Cologne": 0.98, "Dresden": 0.85, "Düsseldorf": 1.00
+      "München": 1.15,
+      "Berlin": 0.95,
+      "Hamburg": 1.05,
+      "Frankfurt": 1.1,
+      "Cologne": 0.98,
+      "Dresden": 0.85,
+      "Düsseldorf": 1.0
     },
-    "sector_margins": {"gross_margin_pct": 0.45, "ebitda_margin_pct": 0.15}
+    "sector_margins": {
+      "gross_margin_pct": 0.45,
+      "ebitda_margin_pct": 0.15
+    },
+    "skill_tags": [
+      "agriculture",
+      "science"
+    ],
+    "channels": [
+      "local",
+      "marketplace"
+    ],
+    "remote_capable": false,
+    "capital_intensity": "high",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "personalisierte-medizinitaeten",
     "name_de": "Personalisierte Medizin Genomik",
     "name_en": "Personalized Medicine Services",
     "nace_r2_code": "72.19",
-    "google_trends_keywords": ["Genomik Test", "personalisierte Medizin"],
+    "google_trends_keywords": [
+      "Genomik Test",
+      "personalisierte Medizin"
+    ],
     "wikipedia_query": "Genomics",
-    "typical_legal_forms": ["GmbH", "AG"],
-    "required_licenses": ["Medizinische Zulassung"],
+    "typical_legal_forms": [
+      "GmbH",
+      "AG"
+    ],
+    "required_licenses": [
+      "Medizinische Zulassung"
+    ],
     "city_wage_indices": {
-      "München": 1.30, "Berlin": 1.10, "Hamburg": 1.20, "Frankfurt": 1.30,
-      "Cologne": 1.15, "Dresden": 1.05, "Düsseldorf": 1.20
+      "München": 1.3,
+      "Berlin": 1.1,
+      "Hamburg": 1.2,
+      "Frankfurt": 1.3,
+      "Cologne": 1.15,
+      "Dresden": 1.05,
+      "Düsseldorf": 1.2
     },
-    "sector_margins": {"gross_margin_pct": 0.65, "ebitda_margin_pct": 0.30}
+    "sector_margins": {
+      "gross_margin_pct": 0.65,
+      "ebitda_margin_pct": 0.3
+    },
+    "skill_tags": [
+      "healthcare",
+      "science",
+      "data_science"
+    ],
+    "channels": [
+      "network",
+      "cold_outreach"
+    ],
+    "remote_capable": false,
+    "capital_intensity": "high",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "energieeffizienz-audit",
     "name_de": "Energieeffizienz-Audits",
     "name_en": "Energy Efficiency Auditing",
     "nace_r2_code": "71.20",
-    "google_trends_keywords": ["Energieaudit", "Energieberatung"],
+    "google_trends_keywords": [
+      "Energieaudit",
+      "Energieberatung"
+    ],
     "wikipedia_query": "Energy Efficiency",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
-    "required_licenses": ["DIN EN ISO 50001"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
+    "required_licenses": [
+      "DIN EN ISO 50001"
+    ],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.68, "ebitda_margin_pct": 0.38}
+    "sector_margins": {
+      "gross_margin_pct": 0.68,
+      "ebitda_margin_pct": 0.38
+    },
+    "skill_tags": [
+      "science",
+      "consulting",
+      "operations"
+    ],
+    "channels": [
+      "cold_outreach",
+      "local",
+      "network"
+    ],
+    "remote_capable": false,
+    "capital_intensity": "medium",
+    "operational_drag": "medium",
+    "language_leverage": false
   },
   {
     "slug": "iot-loesungen",
     "name_de": "IoT Lösungen für Industrie 4.0",
     "name_en": "IoT Solutions for Industry 4.0",
     "nace_r2_code": "62.01",
-    "google_trends_keywords": ["IoT Lösung", "Industrie 4.0"],
+    "google_trends_keywords": [
+      "IoT Lösung",
+      "Industrie 4.0"
+    ],
     "wikipedia_query": "Internet of Things",
-    "typical_legal_forms": ["GmbH", "AG"],
+    "typical_legal_forms": [
+      "GmbH",
+      "AG"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.35, "Berlin": 1.15, "Hamburg": 1.25, "Frankfurt": 1.30,
-      "Cologne": 1.15, "Dresden": 1.05, "Düsseldorf": 1.20
+      "München": 1.35,
+      "Berlin": 1.15,
+      "Hamburg": 1.25,
+      "Frankfurt": 1.3,
+      "Cologne": 1.15,
+      "Dresden": 1.05,
+      "Düsseldorf": 1.2
     },
-    "sector_margins": {"gross_margin_pct": 0.68, "ebitda_margin_pct": 0.35}
+    "sector_margins": {
+      "gross_margin_pct": 0.68,
+      "ebitda_margin_pct": 0.35
+    },
+    "skill_tags": [
+      "coding",
+      "hardware",
+      "consulting"
+    ],
+    "channels": [
+      "cold_outreach",
+      "network"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "medium",
+    "operational_drag": "medium",
+    "language_leverage": false
   },
   {
     "slug": "fertigungstechnik",
     "name_de": "Spezialisierte Fertigungstechnik",
     "name_en": "Custom Manufacturing",
     "nace_r2_code": "25.62",
-    "google_trends_keywords": ["CNC Bearbeitung", "3D Druck Services"],
+    "google_trends_keywords": [
+      "CNC Bearbeitung",
+      "3D Druck Services"
+    ],
     "wikipedia_query": "Manufacturing",
-    "typical_legal_forms": ["GmbH", "AG"],
+    "typical_legal_forms": [
+      "GmbH",
+      "AG"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.20, "Berlin": 0.98, "Hamburg": 1.10, "Frankfurt": 1.15,
-      "Cologne": 1.03, "Dresden": 0.90, "Düsseldorf": 1.05
+      "München": 1.2,
+      "Berlin": 0.98,
+      "Hamburg": 1.1,
+      "Frankfurt": 1.15,
+      "Cologne": 1.03,
+      "Dresden": 0.9,
+      "Düsseldorf": 1.05
     },
-    "sector_margins": {"gross_margin_pct": 0.38, "ebitda_margin_pct": 0.15}
+    "sector_margins": {
+      "gross_margin_pct": 0.38,
+      "ebitda_margin_pct": 0.15
+    },
+    "skill_tags": [
+      "hardware",
+      "science",
+      "operations"
+    ],
+    "channels": [
+      "cold_outreach",
+      "network"
+    ],
+    "remote_capable": false,
+    "capital_intensity": "high",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "musikproduktion",
     "name_de": "Musikproduktion und Beatmaking",
     "name_en": "Music Production",
     "nace_r2_code": "74.20",
-    "google_trends_keywords": ["Beat Maker", "Musikproduktion online"],
+    "google_trends_keywords": [
+      "Beat Maker",
+      "Musikproduktion online"
+    ],
     "wikipedia_query": "Music Production",
-    "typical_legal_forms": ["Einzelunternehmen", "GmbH"],
+    "typical_legal_forms": [
+      "Einzelunternehmen",
+      "GmbH"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.75, "ebitda_margin_pct": 0.45}
+    "sector_margins": {
+      "gross_margin_pct": 0.75,
+      "ebitda_margin_pct": 0.45
+    },
+    "skill_tags": [
+      "audio",
+      "design"
+    ],
+    "channels": [
+      "marketplace",
+      "network",
+      "content"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "medium",
+    "operational_drag": "high",
+    "language_leverage": false
   },
   {
     "slug": "digitales-marketing",
     "name_de": "Digitales Marketing Full-Service",
     "name_en": "Digital Marketing Agency",
     "nace_r2_code": "73.11",
-    "google_trends_keywords": ["Digital Marketing Agentur", "PPC Werbung"],
+    "google_trends_keywords": [
+      "Digital Marketing Agentur",
+      "PPC Werbung"
+    ],
     "wikipedia_query": "Digital Marketing",
-    "typical_legal_forms": ["GmbH", "AG"],
+    "typical_legal_forms": [
+      "GmbH",
+      "AG"
+    ],
     "required_licenses": [],
     "city_wage_indices": {
-      "München": 1.25, "Berlin": 1.05, "Hamburg": 1.15, "Frankfurt": 1.20,
-      "Cologne": 1.08, "Dresden": 0.95, "Düsseldorf": 1.10
+      "München": 1.25,
+      "Berlin": 1.05,
+      "Hamburg": 1.15,
+      "Frankfurt": 1.2,
+      "Cologne": 1.08,
+      "Dresden": 0.95,
+      "Düsseldorf": 1.1
     },
-    "sector_margins": {"gross_margin_pct": 0.60, "ebitda_margin_pct": 0.28}
+    "sector_margins": {
+      "gross_margin_pct": 0.6,
+      "ebitda_margin_pct": 0.28
+    },
+    "skill_tags": [
+      "marketing",
+      "data_science",
+      "writing"
+    ],
+    "channels": [
+      "content",
+      "cold_outreach",
+      "network",
+      "paid_ads"
+    ],
+    "remote_capable": true,
+    "capital_intensity": "low",
+    "operational_drag": "high",
+    "language_leverage": true
   }
 ]

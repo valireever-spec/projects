@@ -1,363 +1,150 @@
-"""Unit tests for domain scoring algorithm with plausibility validation."""
+"""Unit tests for the domain scoring algorithm with plausibility validation.
+
+Validates the *shipping* API: score_domains(domain_data, trend_data,
+sector_stats, registrations) -> sorted list[DomainScore], plus the pure
+component helpers it delegates to.
+"""
 import pytest
 from backend.analytics.domain_scorer import (
     score_domains,
-    score_single_domain,
-    _calculate_trend_momentum,
+    _grade_score,
     _calculate_market_growth,
-    _calculate_competition_density,
+    _calculate_competition_score,
     _calculate_registration_momentum,
-    _grade_score
 )
 
 
-class TestDomainScoringAlgorithm:
-    """Test the core domain scoring algorithm."""
+def _domains(*slugs):
+    """Minimal domain_data records keyed by slug, each with its own nace code."""
+    return [{"slug": s, "name_de": s, "name_en": s, "nace_r2_code": s} for s in slugs]
 
-    def test_score_single_domain_returns_valid_structure(self):
-        """Test that scoring returns all required fields."""
-        domain = {
-            "slug": "test-domain",
-            "name_de": "Test Domain",
-            "market_size_estimate": "€10M",
-            "trend_momentum": 20.0,
-            "market_growth": 15.0,
-            "competition_density": 5.0,
-            "registration_momentum": 10.0,
-        }
 
-        score = score_single_domain(domain)
+def _reg(latest, previous):
+    """A two-point registration history (previous, latest)."""
+    return [{"registrations": previous}, {"registrations": latest}]
 
-        assert "total_score" in score
-        assert "components" in score
-        assert "grade" in score
-        assert 0 <= score["total_score"] <= 100
 
-    def test_total_score_composition(self):
-        """Test that total score is sum of components."""
-        domain = {
-            "slug": "test",
-            "name_de": "Test",
-            "trend_momentum": 10.0,
-            "market_growth": 10.0,
-            "competition_density": 10.0,
-            "registration_momentum": 10.0,
-        }
+class TestCompositeScoring:
+    """Test the end-to-end scoring via the public API."""
 
-        score = score_single_domain(domain)
-        components = score["components"]
+    def test_returns_all_fields_and_bounded(self):
+        scored = score_domains(_domains("a"), {"a": 50}, {"a": {}}, {})
+        s = scored[0]
+        assert 0 <= s.composite_score <= 100
+        assert s.grade in {"Excellent", "Good", "Moderate", "Saturated"}
+        assert s.trend_momentum + s.market_growth + s.competition_density + \
+            s.registration_momentum == pytest.approx(s.composite_score, abs=0.3)
 
-        expected_total = (
-            components["trend"] +
-            components["market"] +
-            components["competition"] +
-            components["registration"]
-        )
+    def test_trend_momentum_scales_0_to_30(self):
+        # trend interest 100 -> full 30; interest 0 -> 0.
+        full = score_domains(_domains("a"), {"a": 100}, {"a": {}}, {})[0]
+        none = score_domains(_domains("a"), {"a": 0}, {"a": {}}, {})[0]
+        assert full.trend_momentum == pytest.approx(30)
+        assert none.trend_momentum == pytest.approx(0)
 
-        assert score["total_score"] == expected_total
+    def test_maximum_and_minimum_bounded(self):
+        best = score_domains(
+            _domains("best"),
+            {"best": 100},
+            {"best": {"growth_rate": 0.20, "enterprise_count": 10}},
+            {"best": _reg(200, 100)},
+        )[0]
+        worst = score_domains(
+            _domains("worst"),
+            {"worst": 0},
+            {"worst": {"growth_rate": -0.1, "enterprise_count": 5_000_000}},
+            {"worst": _reg(50, 100)},
+        )[0]
+        assert 0 <= worst.composite_score <= best.composite_score <= 100
 
-    def test_maximum_possible_score(self):
-        """Test that maximum score is 100."""
-        domain = {
-            "slug": "perfect",
-            "name_de": "Perfect",
-            "trend_momentum": 100.0,  # Max trend
-            "market_growth": 100.0,   # Max market growth
-            "competition_density": 0.0,   # Min competition (best case)
-            "registration_momentum": 100.0,  # Max registration
-        }
 
-        score = score_single_domain(domain)
-        assert score["total_score"] <= 100
-
-    def test_minimum_possible_score(self):
-        """Test that minimum score is 0."""
-        domain = {
-            "slug": "worst",
-            "name_de": "Worst",
-            "trend_momentum": 0.0,
-            "market_growth": 0.0,
-            "competition_density": 1000.0,  # Very high competition
-            "registration_momentum": 0.0,
-        }
-
-        score = score_single_domain(domain)
-        assert score["total_score"] >= 0
-
-    def test_competition_density_inverted(self):
-        """Test that higher competition yields lower score."""
-        domain_low_competition = {
-            "slug": "low-comp",
-            "name_de": "Low Competition",
-            "competition_density": 1.0,
-            "trend_momentum": 50.0,
-            "market_growth": 50.0,
-            "registration_momentum": 50.0,
-        }
-
-        domain_high_competition = {
-            "slug": "high-comp",
-            "name_de": "High Competition",
-            "competition_density": 100.0,
-            "trend_momentum": 50.0,
-            "market_growth": 50.0,
-            "registration_momentum": 50.0,
-        }
-
-        score_low = score_single_domain(domain_low_competition)
-        score_high = score_single_domain(domain_high_competition)
-
-        assert score_low["total_score"] > score_high["total_score"], \
-            "Lower competition should yield higher score"
-
-    def test_grading_boundaries(self):
-        """Test that grade boundaries are correct."""
-        # Excellent (≥80)
-        domain_excellent = {
-            "slug": "excellent",
-            "name_de": "Excellent",
-            "trend_momentum": 30.0,
-            "market_growth": 25.0,
-            "competition_density": 0.0,
-            "registration_momentum": 20.0,
-        }
+class TestGrading:
+    def test_grade_boundaries(self):
         assert _grade_score(80) == "Excellent"
-
-        # Good (≥60, <80)
-        assert _grade_score(70) == "Good"
-
-        # Moderate (≥40, <60)
+        assert _grade_score(79.9) == "Good"
+        assert _grade_score(60) == "Good"
         assert _grade_score(50) == "Moderate"
-
-        # Saturated (<40)
-        assert _grade_score(30) == "Saturated"
-
-
-class TestComponentCalculations:
-    """Test individual scoring components."""
-
-    def test_trend_momentum_bounds(self):
-        """Test that trend momentum is bounded 0-30."""
-        score = _calculate_trend_momentum(0.0)
-        assert 0 <= score <= 30
-
-        score = _calculate_trend_momentum(100.0)
-        assert 0 <= score <= 30
-
-        score = _calculate_trend_momentum(50.0)
-        assert 0 <= score <= 30
-
-    def test_market_growth_bounds(self):
-        """Test that market growth is bounded 0-25."""
-        score = _calculate_market_growth(0.0)
-        assert 0 <= score <= 25
-
-        score = _calculate_market_growth(100.0)
-        assert 0 <= score <= 25
-
-    def test_competition_density_bounds(self):
-        """Test that competition density is bounded 0-25."""
-        score = _calculate_competition_density(0.0)
-        assert 0 <= score <= 25
-
-        score = _calculate_competition_density(1000.0)
-        assert 0 <= score <= 25
-
-    def test_registration_momentum_bounds(self):
-        """Test that registration momentum is bounded 0-20."""
-        score = _calculate_registration_momentum(0.0)
-        assert 0 <= score <= 20
-
-        score = _calculate_registration_momentum(100.0)
-        assert 0 <= score <= 20
-
-    def test_component_monotonicity(self):
-        """Test that components increase monotonically (except competition)."""
-        # Trend should increase with input
-        trend_low = _calculate_trend_momentum(10.0)
-        trend_high = _calculate_trend_momentum(50.0)
-        assert trend_low <= trend_high, "Trend should increase with momentum"
-
-        # Competition should decrease with input (inverted)
-        comp_low = _calculate_competition_density(10.0)
-        comp_high = _calculate_competition_density(100.0)
-        assert comp_low >= comp_high, "Competition should decrease with density"
+        assert _grade_score(40) == "Moderate"
+        assert _grade_score(39.9) == "Saturated"
+        assert _grade_score(0) == "Saturated"
 
 
-class TestScoringPlausibility:
-    """Test plausibility of scoring results."""
+class TestMarketGrowthComponent:
+    def test_bounds(self):
+        assert 0 <= _calculate_market_growth({"x": {"growth_rate": 0.0}}, "x") <= 25
+        assert 0 <= _calculate_market_growth({"x": {"growth_rate": 1.0}}, "x") <= 25
 
-    def test_similar_inputs_similar_scores(self):
-        """Test that similar domain inputs produce similar scores."""
-        domain1 = {
-            "slug": "domain-1",
-            "name_de": "Domain 1",
-            "trend_momentum": 50.0,
-            "market_growth": 40.0,
-            "competition_density": 20.0,
-            "registration_momentum": 30.0,
-        }
+    def test_caps_at_12_percent(self):
+        assert _calculate_market_growth({"x": {"growth_rate": 0.12}}, "x") == 25
+        assert _calculate_market_growth({"x": {"growth_rate": 0.50}}, "x") == 25
 
-        domain2 = {
-            "slug": "domain-2",
-            "name_de": "Domain 2",
-            "trend_momentum": 51.0,  # Slightly different
-            "market_growth": 41.0,
-            "competition_density": 21.0,
-            "registration_momentum": 31.0,
-        }
-
-        score1 = score_single_domain(domain1)["total_score"]
-        score2 = score_single_domain(domain2)["total_score"]
-
-        # Scores should be very close (within 5 points)
-        assert abs(score1 - score2) < 5, \
-            "Similar inputs should produce similar scores"
-
-    def test_no_negative_scores(self):
-        """Test that scores are never negative."""
-        domain = {
-            "slug": "any",
-            "name_de": "Any",
-            "trend_momentum": 0.0,
-            "market_growth": 0.0,
-            "competition_density": 1000.0,
-            "registration_momentum": 0.0,
-        }
-
-        score = score_single_domain(domain)
-        assert score["total_score"] >= 0, "Score should never be negative"
-
-    def test_component_weights_correct(self):
-        """Test that component weights are within expected ranges."""
-        domain = {
-            "slug": "test",
-            "name_de": "Test",
-            "trend_momentum": 50.0,
-            "market_growth": 50.0,
-            "competition_density": 50.0,
-            "registration_momentum": 50.0,
-        }
-
-        score = score_single_domain(domain)
-        components = score["components"]
-
-        # Check weights sum to 100 total
-        total_weight = (
-            (components["trend"] / 30) +  # trend is 0-30
-            (components["market"] / 25) +  # market is 0-25
-            (components["competition"] / 25) +  # competition is 0-25
-            (components["registration"] / 20)  # registration is 0-20
-        )
-
-        # Total should be roughly proportional to input values
-        assert total_weight > 0, "Components should have weight"
+    def test_monotonic_in_growth(self):
+        low = _calculate_market_growth({"x": {"growth_rate": 0.03}}, "x")
+        high = _calculate_market_growth({"x": {"growth_rate": 0.09}}, "x")
+        assert low < high
 
 
-class TestEdgeCases:
-    """Test edge cases and boundary conditions."""
+class TestCompetitionComponent:
+    """Competition is inverted: more enterprises -> lower score."""
 
-    def test_zero_values(self):
-        """Test that zero values are handled correctly."""
-        domain = {
-            "slug": "zero",
-            "name_de": "Zero",
-            "trend_momentum": 0.0,
-            "market_growth": 0.0,
-            "competition_density": 0.0,
-            "registration_momentum": 0.0,
-        }
+    def test_bounds(self):
+        assert 0 <= _calculate_competition_score({"x": {"enterprise_count": 10}}, "x") <= 25
+        assert 0 <= _calculate_competition_score({"x": {"enterprise_count": 5_000_000}}, "x") <= 25
 
-        score = score_single_domain(domain)
-        assert 0 <= score["total_score"] <= 100
+    def test_inverted(self):
+        low_comp = _calculate_competition_score({"x": {"enterprise_count": 100}}, "x")
+        high_comp = _calculate_competition_score({"x": {"enterprise_count": 5_000_000}}, "x")
+        assert low_comp > high_comp
 
-    def test_extreme_high_values(self):
-        """Test that extreme high values are capped correctly."""
-        domain = {
-            "slug": "extreme",
-            "name_de": "Extreme",
-            "trend_momentum": 10000.0,
-            "market_growth": 10000.0,
-            "competition_density": 0.0,
-            "registration_momentum": 10000.0,
-        }
+    def test_1000x_bug_is_fixed(self):
+        # 5000 enterprises across 83M people is ~0.06 per 1000 residents = very
+        # low competition. Before the fix this returned 0 (saturated); it should
+        # now score near the top of the 0-25 range.
+        score = _calculate_competition_score({"x": {"enterprise_count": 5000}}, "x")
+        assert score >= 20
 
-        score = score_single_domain(domain)
-        assert score["total_score"] <= 100, "Score should be capped at 100"
 
-    def test_negative_values_handled(self):
-        """Test that negative input values are handled gracefully."""
-        domain = {
-            "slug": "negative",
-            "name_de": "Negative",
-            "trend_momentum": -10.0,
-            "market_growth": -5.0,
-            "competition_density": -100.0,
-            "registration_momentum": -20.0,
-        }
+class TestRegistrationComponent:
+    def test_bounds(self):
+        assert 0 <= _calculate_registration_momentum({"x": _reg(100, 100)}, "x") <= 20
+        assert 0 <= _calculate_registration_momentum({"x": _reg(300, 100)}, "x") <= 20
 
-        # Should not crash
-        score = score_single_domain(domain)
-        assert 0 <= score["total_score"] <= 100
+    def test_default_when_no_history(self):
+        assert _calculate_registration_momentum({}, "x") == 10
+
+    def test_growth_beats_decline(self):
+        growth = _calculate_registration_momentum({"x": _reg(130, 100)}, "x")
+        decline = _calculate_registration_momentum({"x": _reg(80, 100)}, "x")
+        assert growth > decline
 
 
 class TestRankingConsistency:
-    """Test that ranking is consistent."""
+    def test_sorted_descending(self):
+        domain_data = _domains("low", "high")
+        trend = {"low": 5, "high": 95}
+        sector = {
+            "low": {"growth_rate": 0.0, "enterprise_count": 5_000_000},
+            "high": {"growth_rate": 0.15, "enterprise_count": 50},
+        }
+        scored = score_domains(domain_data, trend, sector, {})
+        scores = [d.composite_score for d in scored]
+        assert scores == sorted(scores, reverse=True)
+        assert scored[0].slug == "high"
 
-    def test_ranking_order(self):
-        """Test that domains are ranked correctly."""
-        domains = [
-            {
-                "slug": "low",
-                "name_de": "Low Score",
-                "trend_momentum": 10.0,
-                "market_growth": 10.0,
-                "competition_density": 100.0,
-                "registration_momentum": 10.0,
-            },
-            {
-                "slug": "medium",
-                "name_de": "Medium Score",
-                "trend_momentum": 50.0,
-                "market_growth": 50.0,
-                "competition_density": 50.0,
-                "registration_momentum": 50.0,
-            },
-            {
-                "slug": "high",
-                "name_de": "High Score",
-                "trend_momentum": 90.0,
-                "market_growth": 90.0,
-                "competition_density": 10.0,
-                "registration_momentum": 90.0,
-            },
-        ]
+    def test_consistent_across_runs(self):
+        domain_data = _domains(*[f"d{i}" for i in range(5)])
+        trend = {f"d{i}": i * 20 for i in range(5)}
+        a = score_domains(domain_data, trend, {}, {})
+        b = score_domains(domain_data, trend, {}, {})
+        assert [d.slug for d in a] == [d.slug for d in b]
 
-        scored = score_domains(domains)
-        scores = [d["total_score"] for d in scored]
 
-        # Should be sorted in descending order
-        assert scores == sorted(scores, reverse=True), \
-            "Domains should be ranked highest score first"
+class TestEdgeCases:
+    def test_missing_trend_uses_default(self):
+        # No trend entry for the slug -> default interest of 20 -> non-zero, bounded.
+        s = score_domains(_domains("a"), {}, {}, {})[0]
+        assert 0 <= s.composite_score <= 100
+        assert s.trend_momentum == pytest.approx(6)  # (20/100)*30
 
-    def test_consistent_ranking_order(self):
-        """Test that re-scoring produces same order."""
-        domains = [
-            {
-                "slug": f"domain-{i}",
-                "name_de": f"Domain {i}",
-                "trend_momentum": float(i * 10),
-                "market_growth": float(i * 5),
-                "competition_density": float(100 - i * 10),
-                "registration_momentum": float(i * 3),
-            }
-            for i in range(1, 6)
-        ]
-
-        scored1 = score_domains(domains)
-        scored2 = score_domains(domains)
-
-        order1 = [d["slug"] for d in scored1]
-        order2 = [d["slug"] for d in scored2]
-
-        assert order1 == order2, "Ranking should be consistent across runs"
+    def test_empty_domain_list(self):
+        assert score_domains([], {}, {}, {}) == []

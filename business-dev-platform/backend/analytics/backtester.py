@@ -59,7 +59,7 @@ def run_backtest(dataset_path: str = None) -> dict:
                 employees=1
             )
 
-            predicted_year_1_net = result.get("year_1_net", 0)
+            predicted_year_1_net = _year1_metric(result, "net_income")
             actual_year_1_net = record.get("actual_year_1_net", 0)
             predictions.append(predicted_year_1_net)
             actuals.append(actual_year_1_net)
@@ -71,7 +71,7 @@ def run_backtest(dataset_path: str = None) -> dict:
             break_even_actuals.append(actual_breakeven)
 
             # Revenue accuracy
-            predicted_revenue = result.get("year_1_revenue", 0)
+            predicted_revenue = _year1_metric(result, "total_revenue")
             actual_revenue = record.get("actual_year_1_revenue", 0)
             revenue_predictions.append(predicted_revenue)
             revenue_actuals.append(actual_revenue)
@@ -127,6 +127,15 @@ def run_backtest(dataset_path: str = None) -> dict:
         },
         "survival_accuracy": round(survival_rate, 2)
     }
+
+
+def _year1_metric(result: dict, field: str) -> float:
+    """Pull a Year-1 metric from build_projections output (key_metrics.year_1.*).
+
+    These live nested under key_metrics; reading them off the top level (as this
+    module used to) silently yielded 0 for every prediction.
+    """
+    return result.get("key_metrics", {}).get("year_1", {}).get(field, 0)
 
 
 def calculate_accuracy_metrics(predictions: list, actuals: list) -> dict:

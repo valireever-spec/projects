@@ -329,6 +329,26 @@
                 width: 100%;
             }
         }
+        .intake { margin-bottom: 2rem; }
+        .chip-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+        .chip {
+            display: inline-block; padding: 0.4rem 0.8rem; border-radius: 20px;
+            border: 1px solid #cbd5e1; background: white; color: #334155;
+            font-size: 0.85rem; cursor: pointer; user-select: none; transition: all 0.15s ease;
+        }
+        .chip:hover { border-color: #3b82f6; }
+        .chip.selected { background: #3b82f6; border-color: #3b82f6; color: white; }
+        label small { color: #94a3b8; font-weight: normal; }
+        .fit-grade { font-size: 0.8rem; font-weight: 600; color: #059669; margin-bottom: 0.75rem; }
+        .fit-bars { margin-bottom: 0.75rem; }
+        .fit-bar { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #555; padding: 0.1rem 0; }
+        .fit-bar-label { width: 90px; flex-shrink: 0; }
+        .fit-bar-track { flex: 1; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+        .fit-bar-fill { display: block; height: 100%; background: #3b82f6; }
+        .fit-bar-val { width: 32px; text-align: right; flex-shrink: 0; color: #334155; }
+        .fit-reasons { list-style: none; padding: 0; margin: 0; font-size: 0.8rem; color: #475569; }
+        .fit-reasons li { padding: 0.15rem 0 0.15rem 1rem; position: relative; }
+        .fit-reasons li::before { content: "\2022"; position: absolute; left: 0; color: #94a3b8; }
     </style>
 </head>
 <body>
@@ -349,13 +369,46 @@
         </div>
 
         <div class="main-content">
-            <!-- Step 1: Domain Discovery -->
+            <!-- Step 1: Edge-First Domain Match -->
             <div class="step active" data-step="1">
-                <h1 class="step-title">Geschäftsdomäne wählen</h1>
-                <p class="step-description">Entdecken Sie trendige Geschäftsmöglichkeiten mit niedriger Konkurrenz in Deutschland</p>
+                <h1 class="step-title">Passende Geschäftsdomäne finden</h1>
+                <p class="step-description">Wir starten bei <strong>Ihnen</strong>, nicht beim Markt: Ihre Fähigkeiten, Ihre Kanäle und Ihre Grenzen entscheiden das Ranking. Markt-Attraktivität ist nur ein kleiner Tiebreaker.</p>
 
-                <div id="loading-domains" class="alert alert-info">
-                    Lade trendige Domänen...
+                <div class="intake">
+                    <div class="form-group">
+                        <label>Ihre Fähigkeiten <small>(Wofür haben Sie schon Geld bekommen — oder was können Sie schneller als andere?)</small></label>
+                        <div id="intake-skills" class="chip-group" data-select="multi"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Wie erreichen Sie Kunden? <small>(Welche Kanäle beherrschen Sie wirklich?)</small></label>
+                        <div id="intake-channels" class="chip-group" data-select="multi"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Sprachen <small>(eine Nicht-Deutsch-Sprache ist ein echter, seltener Vorteil)</small></label>
+                        <div id="intake-languages" class="chip-group" data-select="multi"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Verfügbares Kapital</label>
+                            <div id="intake-capital" class="chip-group" data-select="single"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Gewünschter Aufwand</label>
+                            <div id="intake-maintenance" class="chip-group" data-select="single"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><input type="checkbox" id="intake-remote"> Nur Remote (kein Vor-Ort-Geschäft)</label>
+                    </div>
+                    <div class="buttons">
+                        <button class="button button-primary" id="btn-find-matches">
+                            Passende Domänen finden →
+                        </button>
+                    </div>
+                </div>
+
+                <div id="loading-domains" class="alert alert-info" style="display: none;">
+                    Passende Domänen werden berechnet...
                 </div>
 
                 <div id="domain-list" class="domain-grid"></div>
@@ -906,7 +959,7 @@
         // Initialize
         document.addEventListener("DOMContentLoaded", () => {
             initializeSession();
-            loadDomains();
+            setupIntake();
             setupFormHandlers();
             setupNavigationHandlers();
             updateProgressBar();
@@ -933,59 +986,165 @@
             }
         }
 
-        async function loadDomains() {
-            try {
-                const response = await fetch(`${API_BASE}/domains/trending`);
-                const domains = await response.json();
+        // Edge-first intake: options use the controlled vocab the backend matches on.
+        const INTAKE_OPTIONS = {
+            "intake-skills": [["writing","Texten/Schreiben"],["marketing","Marketing"],["design","Design"],["coding","Programmierung"],["sales","Vertrieb"],["teaching","Lehren/Coaching"],["consulting","Beratung"],["finance","Finanzen"],["operations","Orga/Ops"],["data_science","Data Science"],["security","IT-Sicherheit"],["hr","HR/Recruiting"],["healthcare","Gesundheit"],["languages","Sprachen"],["video","Video"],["audio","Audio"],["crafts","Handwerk"],["hardware","Hardware"],["real_estate","Immobilien"],["hospitality","Gastro/Hotel"],["agriculture","Landwirtschaft"],["science","Wissenschaft"]],
+            "intake-channels": [["content","Content/Inbound"],["network","Netzwerk/Empfehlung"],["local","Lokal/Regional"],["cold_outreach","Kaltakquise"],["marketplace","Plattformen"],["paid_ads","Bezahlte Werbung"]],
+            "intake-languages": [["de","Deutsch"],["en","Englisch"],["ro","Rumänisch"],["tr","Türkisch"],["ru","Russisch"],["pl","Polnisch"],["ar","Arabisch"],["it","Italienisch"],["fr","Französisch"],["es","Spanisch"]],
+            "intake-capital": [["low","Gering (<10k€)"],["medium","Mittel (10–50k€)"],["high","Hoch (>50k€)"]],
+            "intake-maintenance": [["low","Wenig (nebenbei)"],["medium","Mittel"],["high","Vollzeit ok"]],
+        };
 
-                document.getElementById("loading-domains").style.display = "none";
+        const FIT_CLASS = {
+            "Strong fit": "score-excellent",
+            "Good fit": "score-good",
+            "Possible": "score-moderate",
+            "Weak fit": "score-saturated",
+        };
 
-                const gridHTML = domains.map(domain => `
-                    <div class="domain-card" data-slug="${domain.slug}">
-                        <div class="domain-header">
-                            <div class="domain-name">${domain.name_de}</div>
-                            <span class="domain-score-badge score-${domain.grade.toLowerCase()}">
-                                ${domain.composite_score}/100
-                            </span>
-                        </div>
-                        <div class="domain-stats">
-                            <div class="domain-stat">
-                                <span>Trend:</span>
-                                <strong>${domain.trend_momentum.toFixed(1)}</strong>
-                            </div>
-                            <div class="domain-stat">
-                                <span>Markt:</span>
-                                <strong>${domain.market_growth.toFixed(1)}</strong>
-                            </div>
-                            <div class="domain-stat">
-                                <span>Konkurrenz:</span>
-                                <strong>${domain.competition_density.toFixed(1)}</strong>
-                            </div>
-                        </div>
-                        <p style="font-size: 0.85rem; color: #666;">
-                            ${domain.market_size_estimate || "Marktgröße: Berechnung läuft..."}
-                        </p>
-                    </div>
-                `).join("");
+        function setupIntake() {
+            // Build chips from the option lists.
+            Object.entries(INTAKE_OPTIONS).forEach(([id, opts]) => {
+                document.getElementById(id).innerHTML = opts
+                    .map(([v, label]) => `<span class="chip" data-value="${v}">${label}</span>`)
+                    .join("");
+            });
 
-                document.getElementById("domain-list").innerHTML = gridHTML;
-
-                // Add click handlers
-                document.querySelectorAll(".domain-card").forEach(card => {
-                    card.addEventListener("click", () => selectDomain(card));
+            // Toggle behaviour (single- vs multi-select per group).
+            document.querySelectorAll(".chip-group").forEach(group => {
+                const single = group.dataset.select === "single";
+                group.querySelectorAll(".chip").forEach(chip => {
+                    chip.addEventListener("click", () => {
+                        if (single) group.querySelectorAll(".chip").forEach(c => c.classList.remove("selected"));
+                        chip.classList.toggle("selected");
+                    });
                 });
+            });
 
-                // Restore selection if exists
-                if (SELECTED_DOMAIN) {
-                    const selectedCard = document.querySelector(`[data-slug="${SELECTED_DOMAIN}"]`);
-                    if (selectedCard) {
-                        selectedCard.classList.add("selected");
-                        document.getElementById("btn-next-step2").disabled = false;
-                    }
-                }
+            document.getElementById("btn-find-matches").addEventListener("click", findMatches);
+
+            // Restore a previous profile and re-run the match, or set sensible defaults.
+            const saved = localStorage.getItem("founder_profile");
+            if (saved) {
+                applyProfile(JSON.parse(saved));
+                findMatches();
+            } else {
+                ["intake-languages:de", "intake-capital:medium", "intake-maintenance:medium"].forEach(sel => {
+                    const [id, v] = sel.split(":");
+                    const c = document.querySelector(`#${id} .chip[data-value="${v}"]`);
+                    if (c) c.classList.add("selected");
+                });
+            }
+        }
+
+        function collectChips(id) {
+            return Array.from(document.querySelectorAll(`#${id} .chip.selected`)).map(c => c.dataset.value);
+        }
+
+        function collectSingle(id, fallback) {
+            const el = document.querySelector(`#${id} .chip.selected`);
+            return el ? el.dataset.value : fallback;
+        }
+
+        function getFounderProfile() {
+            return {
+                skills: collectChips("intake-skills"),
+                channels: collectChips("intake-channels"),
+                languages: collectChips("intake-languages"),
+                capital_level: collectSingle("intake-capital", "medium"),
+                maintenance_preference: collectSingle("intake-maintenance", "medium"),
+                remote_only: document.getElementById("intake-remote").checked,
+            };
+        }
+
+        function applyProfile(p) {
+            const setChip = (id, v) => {
+                const c = document.querySelector(`#${id} .chip[data-value="${v}"]`);
+                if (c) c.classList.add("selected");
+            };
+            (p.skills || []).forEach(v => setChip("intake-skills", v));
+            (p.channels || []).forEach(v => setChip("intake-channels", v));
+            (p.languages || []).forEach(v => setChip("intake-languages", v));
+            setChip("intake-capital", p.capital_level || "medium");
+            setChip("intake-maintenance", p.maintenance_preference || "medium");
+            document.getElementById("intake-remote").checked = !!p.remote_only;
+        }
+
+        async function findMatches() {
+            const profile = getFounderProfile();
+            if (profile.skills.length === 0) {
+                alert("Bitte wählen Sie mindestens eine Fähigkeit — Ihr Vorteil ist der Ausgangspunkt.");
+                return;
+            }
+            localStorage.setItem("founder_profile", JSON.stringify(profile));
+
+            const loading = document.getElementById("loading-domains");
+            loading.style.display = "block";
+            loading.textContent = "Passende Domänen werden berechnet...";
+
+            try {
+                const response = await fetch(`${API_BASE}/domains/matched?limit=10`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(profile),
+                });
+                const domains = await response.json();
+                loading.style.display = "none";
+                renderMatches(domains);
             } catch (error) {
-                console.error("Error loading domains:", error);
-                document.getElementById("loading-domains").innerHTML = "Fehler beim Laden der Domänen. Bitte versuchen Sie es später erneut.";
+                console.error("Error matching domains:", error);
+                loading.textContent = "Fehler beim Berechnen der Domänen. Bitte versuchen Sie es später erneut.";
+            }
+        }
+
+        function fitBar(label, val, max) {
+            const pct = max ? Math.round((val / max) * 100) : 0;
+            return `<div class="fit-bar">
+                <span class="fit-bar-label">${label}</span>
+                <span class="fit-bar-track"><span class="fit-bar-fill" style="width:${pct}%"></span></span>
+                <span class="fit-bar-val">${val}</span>
+            </div>`;
+        }
+
+        function renderMatches(domains) {
+            const list = document.getElementById("domain-list");
+            if (!domains || domains.length === 0) {
+                list.innerHTML = `<div class="alert alert-info">Keine passenden Domänen gefunden. Passen Sie Ihr Profil an.</div>`;
+                return;
+            }
+
+            list.innerHTML = domains.map(d => `
+                <div class="domain-card" data-slug="${d.slug}">
+                    <div class="domain-header">
+                        <div class="domain-name">${d.name_de}</div>
+                        <span class="domain-score-badge ${FIT_CLASS[d.fit_grade] || "score-moderate"}">
+                            ${d.fit_score}/100
+                        </span>
+                    </div>
+                    <div class="fit-grade">${d.fit_grade}</div>
+                    <div class="fit-bars">
+                        ${fitBar("Fähigkeiten", d.skill_match, 35)}
+                        ${fitBar("Kanäle", d.channel_match, 15)}
+                        ${fitBar("Sprache", d.language_leverage, 5)}
+                        ${fitBar("Passung", d.constraint_fit, 30)}
+                        ${fitBar("Markt", d.market_signal, 15)}
+                    </div>
+                    <ul class="fit-reasons">
+                        ${d.reasons.map(r => `<li>${r}</li>`).join("")}
+                    </ul>
+                </div>
+            `).join("");
+
+            document.querySelectorAll(".domain-card").forEach(card => {
+                card.addEventListener("click", () => selectDomain(card));
+            });
+
+            if (SELECTED_DOMAIN) {
+                const selectedCard = document.querySelector(`[data-slug="${SELECTED_DOMAIN}"]`);
+                if (selectedCard) {
+                    selectedCard.classList.add("selected");
+                    document.getElementById("btn-next-step2").disabled = false;
+                }
             }
         }
 

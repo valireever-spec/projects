@@ -4,7 +4,8 @@ from backend.core.config import DATA_DIR
 from backend.data.cache import get, set
 from backend.core.config import CACHE_TTL
 from backend.analytics.domain_scorer import score_domains as score_domains_func
-from backend.models.domain import TrendingDomain
+from backend.analytics.founder_fit import score_founder_fit
+from backend.models.domain import TrendingDomain, MatchedDomain
 
 
 def get_trending_domains(limit: int = 10) -> list[TrendingDomain]:
@@ -63,6 +64,63 @@ def get_trending_domains(limit: int = 10) -> list[TrendingDomain]:
         return trending_domains
     except Exception as e:
         print(f"Error getting trending domains: {e}")
+        return []
+
+
+def get_domain_score(slug: str) -> dict | None:
+    """
+    Score a single domain by slug and return its score components as a dict.
+
+    Used to feed the confidence scorer, which needs grade + competition_density
+    for the selected domain. Returns None if the slug is unknown.
+    """
+    try:
+        domain_data = _load_domain_data()
+        trend_data = _prepare_trend_data(domain_data)
+        sector_stats = _prepare_sector_stats(domain_data)
+        registrations = _prepare_registrations(domain_data)
+        scored = score_domains_func(domain_data, trend_data, sector_stats, registrations)
+
+        for s in scored:
+            if s.slug == slug:
+                return {
+                    "slug": s.slug,
+                    "grade": s.grade,
+                    "composite_score": s.composite_score,
+                    "competition_density": s.competition_density,
+                }
+        return None
+    except Exception as e:
+        print(f"Error scoring domain {slug}: {e}")
+        return None
+
+
+def get_matched_domains(profile: dict, limit: int = 10) -> list[MatchedDomain]:
+    """
+    Rank domains edge-first for a given founder profile.
+
+    Market heat is computed with the original scorer but demoted to a 15-point
+    tiebreaker; the ranking is driven by fit to the founder's skills, channels,
+    and constraints. Not cached — output is profile-specific.
+
+    Returns:
+        List of MatchedDomain, highest fit first.
+    """
+    try:
+        domain_data = _load_domain_data()
+
+        # Reuse the original market scorer, but only as a tiebreaker signal.
+        trend_data = _prepare_trend_data(domain_data)
+        sector_stats = _prepare_sector_stats(domain_data)
+        registrations = _prepare_registrations(domain_data)
+        market_scored = score_domains_func(domain_data, trend_data, sector_stats, registrations)
+        market_scores = {s.slug: s.composite_score for s in market_scored}
+
+        fits = score_founder_fit(profile, domain_data, market_scores)
+
+        return [MatchedDomain(**fit._asdict()) for fit in fits[:limit]]
+    except Exception as e:
+        print(f"Error matching domains: {e}")
         return []
 
 

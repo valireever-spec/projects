@@ -58,14 +58,7 @@ def score_domains(
         )
 
         # Grade based on score
-        if composite_score >= 80:
-            grade = "Excellent"
-        elif composite_score >= 60:
-            grade = "Good"
-        elif composite_score >= 40:
-            grade = "Moderate"
-        else:
-            grade = "Saturated"
+        grade = _grade_score(composite_score)
 
         scores.append(
             DomainScore(
@@ -85,6 +78,18 @@ def score_domains(
     scores.sort(key=lambda x: x.composite_score, reverse=True)
 
     return scores
+
+
+def _grade_score(composite_score: float) -> str:
+    """Map a 0-100 composite score to a grade band."""
+    if composite_score >= 80:
+        return "Excellent"
+    elif composite_score >= 60:
+        return "Good"
+    elif composite_score >= 40:
+        return "Moderate"
+    else:
+        return "Saturated"
 
 
 def _calculate_market_growth(sector_stats: dict, nace_code: str) -> float:
@@ -114,10 +119,11 @@ def _calculate_competition_score(sector_stats: dict, nace_code: str) -> float:
     # Get enterprise count per sector
     enterprise_count = sector_stats.get(nace_code, {}).get("enterprise_count", 5000)
 
-    # German population ~83 million
-    # Lower bound: 100 enterprises = very low competition (25 points)
-    # Upper bound: 50000 enterprises = saturated (0 points)
-    enterprises_per_1k = (enterprise_count / 83_000) * 1000
+    # German population ~83 million → 83,000 groups of 1,000 residents.
+    # enterprise_count / 83_000 is already "enterprises per 1,000 residents".
+    # (Previously multiplied by 1000 again, inflating the figure 1000x and
+    #  forcing almost every real sector into the "saturated → 0" branch.)
+    enterprises_per_1k = enterprise_count / 83_000
 
     if enterprises_per_1k <= 0.5:
         return 25  # Very low competition

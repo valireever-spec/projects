@@ -1,5 +1,8 @@
 from datetime import datetime, timedelta
-import math
+
+# Revenue ramp-up: 30/50/70/90/100% over the first five months, 100% thereafter.
+# Shared by the break-even calc and the month-by-month projection so they agree.
+RAMP_CURVE = [0.30, 0.50, 0.70, 0.90, 1.0] + [1.0] * 31  # 36 months
 
 
 def build_projections(
@@ -260,18 +263,17 @@ def _calculate_break_even(
 
     monthly_revenue_needed = monthly_fixed_costs / cm_ratio
 
-    # How many months to reach BEP?
+    # Operational break-even = first month whose ramped revenue covers the
+    # revenue needed to cover costs. If even full (100%) revenue never reaches
+    # it, the business never operationally breaks even (achievable = False).
+    # (The old else-branch divided needed/estimate — a ratio, not a month count —
+    #  which reported a break-even for businesses that never actually reach it.)
+    break_even_month = 99
     if monthly_revenue_estimate > 0:
-        # Assume linear ramp-up: month 1 = 30%, month 2 = 50%, month 3+ = 100%
-        if monthly_revenue_estimate * 0.30 >= monthly_revenue_needed:
-            break_even_month = 1
-        elif monthly_revenue_estimate * 0.50 >= monthly_revenue_needed:
-            break_even_month = 2
-        else:
-            months_needed = monthly_revenue_needed / monthly_revenue_estimate
-            break_even_month = math.ceil(months_needed)
-    else:
-        break_even_month = 99
+        for month, ramp in enumerate(RAMP_CURVE, start=1):
+            if monthly_revenue_estimate * ramp >= monthly_revenue_needed:
+                break_even_month = month
+                break
 
     achievable = break_even_month <= 36  # Achievable within 3 years
 
@@ -294,11 +296,8 @@ def _build_36_month_projections(
 
     cumulative_cf = -startup_costs["total"]  # Start with negative (upfront investment)
 
-    # Revenue ramp-up curve: 30%, 50%, 70%, 90%, 100% over first 5 months
-    ramp_curve = [0.30, 0.50, 0.70, 0.90, 1.0] + [1.0] * 31
-
     for month in range(1, 37):
-        ramp_factor = ramp_curve[month - 1]
+        ramp_factor = RAMP_CURVE[month - 1]
         revenue = monthly_revenue * ramp_factor
 
         # Variable costs scale with revenue
@@ -424,12 +423,10 @@ def _calculate_key_metrics(
     # Final month profitability
     final_month = year_3[-1] if year_3 else year_1[-1]
 
-    # Payback period (months to recover initial investment)
-    final_cf = final_month["cumulative_cf"]
-    if final_cf > 0:
-        payback_months = break_even_data["break_even_month"]
-    else:
-        payback_months = 37
+    # Payback period = first month cumulative cash flow turns non-negative
+    # (upfront investment recovered), or 37 if never within 3 years. This is
+    # distinct from operational break-even, which is reported separately below.
+    payback_months = _find_break_even_month(projections)
 
     return {
         "year_1": {

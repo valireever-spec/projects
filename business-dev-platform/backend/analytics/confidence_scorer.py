@@ -57,8 +57,11 @@ def calculate_confidence_score(domain_score: dict, financial_projection: dict, r
     revenue_score = revenue_maturity.get(revenue_model, 50)
 
     # 3. Competition Certainty (20%)
-    # Infer from domain score competition component
-    competition_component = domain_score.get("competition_component", 12.5)
+    # Real domain scores expose `competition_density` (0-25). Older callers/tests
+    # passed `competition_component`; accept either, then a neutral default.
+    competition_component = domain_score.get("competition_density")
+    if competition_component is None:
+        competition_component = domain_score.get("competition_component", 12.5)
     if competition_component >= 20:
         competition_certainty = 90
     elif competition_component >= 15:

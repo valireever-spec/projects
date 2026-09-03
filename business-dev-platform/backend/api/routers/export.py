@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import Response, HTMLResponse
 from backend.core.config import SESSIONS_DIR
 from backend.services.plan_service import assemble_plan
 from backend.reports.markdown_generator import render_markdown
@@ -36,7 +36,7 @@ async def export_plan_markdown(session_id: str):
         business_name = plan.get("metadata", {}).get("business_name", "Geschaeftsplan")
         filename = f"{business_name.replace(' ', '_')}_plan.md"
 
-        return FileResponse(
+        return Response(
             content=markdown_content.encode("utf-8"),
             media_type="text/markdown; charset=utf-8",
             headers={"Content-Disposition": f"attachment; filename={filename}"},

@@ -19,7 +19,9 @@ def assess_risks(
     Returns:
         Dict with {
             overall_risk_level: "low" | "medium" | "high",
-            risk_score: 0-100,
+            risk_score: mean of the 8 dimension scores (each likelihood×impact,
+                        1-25), so roughly 0-25 — NOT a 0-100 scale. Level bands:
+                        <8 low, <15 medium, else high.
             risk_factors: [list of 8 RiskFactor dicts],
             top_3_risks: [top 3 by score],
             mitigation_plan: [list of strategies]

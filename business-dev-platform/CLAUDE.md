@@ -472,29 +472,35 @@ sudo /home/vali/projects/business-dev-platform/manage_service.sh enable
 
 ---
 
-## Testing Framework: 130+ Tests
+## Testing Framework: 144 Tests
 
-### Unit Tests (90 tests)
+### Unit Tests (114 tests)
 Located in `tests/unit/`:
-- **test_domain_scorer.py** (25 tests): Algorithm correctness, bounds, monotonicity, grading
-- **test_financial_model.py** (35 tests): Break-even formula, revenue ramp, tax, scenarios, plausibility
-- **test_risk_scorer.py** (30 tests): 8-dimension structure, color mapping, break-even influence
+- **test_domain_scorer.py** (17 tests): Algorithm correctness, bounds, monotonicity, grading
+- **test_financial_model.py** (20 tests): Break-even formula, revenue ramp, tax, scenarios, plausibility
+- **test_risk_scorer.py** (22 tests): 8-dimension structure, color mapping, break-even influence
+- **test_founder_fit.py** (12 tests): Edge-first domain matching, constraint fit, market demotion
+- **test_sensitivity_analyzer.py** (13 tests): Revenue/cost/margin variance, monotonicity, key driver
+- **test_confidence_scorer.py** (15 tests): Confidence tiers and bands
+- **test_backtester.py** (15 tests): Accuracy metrics (MAPE, bias, within-20%)
 
 Each test validates both **correctness** (formula works) and **plausibility** (result makes business sense).
 
-### Integration Tests (40 tests)
+### Integration Tests (30 tests)
 Located in `tests/integration/`:
 - **test_export.py** (12 tests): Markdown/HTML export, session not found errors, file headers
-- **test_system_validation.py** (15+ tests): End-to-end workflow, data plausibility, consistency
+- **test_system_validation.py** (14 tests): End-to-end workflow, data plausibility, consistency
+- **test_validation.py** (4 tests): Error handling / empty-session behaviour
 
 ### Run Tests
 ```bash
 ./run_validation.sh                                # All tests + coverage
 pytest tests/unit/test_domain_scorer.py -v        # Single module
-pytest tests/unit/test_domain_scorer.py::test_total_score_composition -v  # Single test
+pytest tests/unit/test_founder_fit.py::TestMarketDemotion -v  # Single class
 ```
 
-**Expected:** 130 tests pass, 82% coverage. Code quality is validated before any merge.
+**Expected:** 141 pass + 3 xfail, ~51% backend line coverage (measure with
+`pytest --cov=backend`). Code quality is validated before any merge.
 
 ---
 
@@ -504,7 +510,7 @@ pytest tests/unit/test_domain_scorer.py::test_total_score_composition -v  # Sing
 
 1. ✅ Run all validation tests
    ```bash
-   ./run_validation.sh  # Expect: 130+ tests, 82%+ coverage
+   ./run_validation.sh  # Expect: 141 pass + 3 xfail, ~51% backend coverage
    ```
 
 2. ✅ Generate phase completion report
@@ -517,8 +523,8 @@ pytest tests/unit/test_domain_scorer.py::test_total_score_composition -v  # Sing
    ════════════════════════════════════════
    Phase X: [Name] ✅ COMPLETE
    ════════════════════════════════════════
-   ✅ Tests: 130/130 passing
-   ✅ Coverage: 82%
+   ✅ Tests: 141 passing (+3 xfail)
+   ✅ Coverage: ~51% (backend)
    ✅ Status: [MVP/Credible MVP/Enterprise]
    
    📈 Path to High-Maturity:
@@ -619,7 +625,7 @@ Ensure `tests/unit/` and `tests/integration/` have `__init__.py`. Already presen
 - **Phase 5 Completion:** May 18, 2026
 - **Current Status:** MVP-Grade (⭐⭐⭐⭐)
 - **Codebase Size:** ~4,000 lines (backend) + 1,500 lines (frontend) + 2,000 lines (tests)
-- **Test Count:** 130+ (82% coverage)
+- **Test Count:** 144 (141 pass + 3 xfail, ~51% backend coverage)
 - **API Endpoints:** 25+
 - **External APIs:** 7 (all with graceful fallback)
 - **Wizard Steps:** 6 (all complete)
@@ -670,7 +676,7 @@ API rate limits are strict. File cache with TTL (google_trends: 6h, eurostat: 24
 APIs fail. All data/ modules return cached/fallback values. `german_domains.json` provides seed data if APIs unavailable. Platform never crashes due to external API failures.
 
 ### Why Pure Analytics Functions?
-domain_scorer.py, financial_model.py, risk_scorer.py take inputs → return outputs, no I/O. Testable (130+ unit tests), composable, no hidden state.
+domain_scorer.py, financial_model.py, risk_scorer.py take inputs → return outputs, no I/O. Testable (114 unit tests), composable, no hidden state.
 
 ---
 
