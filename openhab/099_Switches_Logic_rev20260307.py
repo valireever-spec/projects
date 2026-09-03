@@ -110,23 +110,67 @@ def sonoffmini1_active(event):
 		events.sendCommand("Sonoffmini1_Active", "OFF")
 		LogAction.logInfo("{}", "{} a dezactivat Sonoffmini1_Active", event.itemName)
 
+# ---------------------------------------------------------------------------
+# Sonoffmini2 availability debounce (added 2026-09-03)
+# A marginal/rebooting Sonoff2 (192.168.30.152) flapped its reachability signals
+# ~every 70s, chattering Sonoffmini2_Alive -> Striplight_Alex ->
+# Led_Contr_Alex_Power (physical wifiled controller). Mark Alive OFF only after
+# the device stays down across ALL availability sources for
+# SONOFF2_ALIVE_OFF_DEBOUNCE_S; recover to ON immediately. One change here
+# protects every downstream rule (017_Prize logic_lightstrip_dormp_alive/_off).
+# ---------------------------------------------------------------------------
+SONOFF2_ALIVE_OFF_DEBOUNCE_S = 120
+_sonoff2_alive_off_timer = None
+
+def _sonoff2_confirm_off():
+	global _sonoff2_alive_off_timer
+	_sonoff2_alive_off_timer = None
+	# Only mark down if STILL unreachable on every availability source.
+	up = (items["Sonoffmini2_Reachable"] == ON or
+	      items["Sonoff2_Online"] == ON or
+	      items["ScriptParrot_Sonoff2_up"] == ON)
+	if up:
+		LogAction.logInfo("Sonoff2_Debounce", "Sonoffmini2 recovered within debounce - Alive kept ON")
+		return
+	if items["Sonoffmini2_Alive"] != OFF:
+		events.sendCommand("Sonoffmini2_Alive", "OFF")
+		LogAction.logInfo("Sonoff2_Debounce", "Sonoffmini2 confirmed down - Alive OFF")
+
 @rule("Sonoffmini2 a activat Sonoffmini2_Alive", description="Sonoffmini2_Reachable este activ", tags=["forced", "Sonoffmini2"])
 @when("Item Sonoffmini2_Reachable changed to ON")
 @when("Item Sonoff2_Online changed to ON")
 @when("Item ScriptParrot_Sonoff2_up changed to ON")
 def sonoffmini2_alive_on(event):
+	global _sonoff2_alive_off_timer
+	# Device is back - cancel any pending "confirm down" timer.
+	if _sonoff2_alive_off_timer is not None:
+		try:
+			if not _sonoff2_alive_off_timer.hasTerminated():
+				_sonoff2_alive_off_timer.cancel()
+		except:
+			pass
+		_sonoff2_alive_off_timer = None
 	LogAction.logInfo("{}", "{} este activ", event.itemName)
-	events.sendCommand("Sonoffmini2_Alive", "ON")
-	LogAction.logInfo("{}", "{} a activat Sonoffmini2_Alive", event.itemName)
+	if items["Sonoffmini2_Alive"] != ON:
+		events.sendCommand("Sonoffmini2_Alive", "ON")
+		LogAction.logInfo("{}", "{} a activat Sonoffmini2_Alive", event.itemName)
 
 @rule("Sonoffmini2 a dezactivat Sonoffmini2_Alive", description="Sonoffmini2_Reachable este inactiv", tags=["forced", "Sonoffmini2"])
 @when("Item Sonoffmini2_Reachable changed to OFF")
 @when("Item Sonoff2_Online changed to OFF")
 @when("Item ScriptParrot_Sonoff2_up changed to OFF")
 def sonoffmini2_alive_off(event):
-	LogAction.logInfo("{}", "{} este inactiv", event.itemName)
-	events.sendCommand("Sonoffmini2_Alive", "OFF")
-	LogAction.logInfo("{}", "{} a dezactivat Sonoffmini2_Alive", event.itemName)
+	global _sonoff2_alive_off_timer
+	# Anti-flap: do NOT flip Alive immediately. Start/refresh a single confirm
+	# timer; _sonoff2_confirm_off re-checks all sources before marking down.
+	LogAction.logInfo("Sonoff2_Debounce", "%s inactiv - confirm down in %ss" % (event.itemName, SONOFF2_ALIVE_OFF_DEBOUNCE_S))
+	if _sonoff2_alive_off_timer is not None:
+		try:
+			if not _sonoff2_alive_off_timer.hasTerminated():
+				_sonoff2_alive_off_timer.cancel()
+		except:
+			pass
+	_sonoff2_alive_off_timer = createTimer(DateTime.now().plusSeconds(SONOFF2_ALIVE_OFF_DEBOUNCE_S), _sonoff2_confirm_off)
 
 ####Test 02.04.2022###
 @rule("Sonoff2_Latency a activat Sonoffmini2_Alive", description="Sonoffmini2_Alive changed", tags=["Sonoffmini2_Alive", "Sonoffmini2"])
