@@ -349,8 +349,9 @@ def house_off(event):
 	if is_state(items["Logging"], ON):
 		house_off.log.info("House switch off")
 
-@rule("Rule when Pi_Fireplace is on", description="mqtt_state", tags=["mqtt", "state"])
-@when("Item ScriptParrot_Pi_fireplace changed")
+# [DISABLED 2026-08-29] duplicate of 098_fireplace — fireplace owned solely by 098 to stop double-trigger
+#@rule("Rule when Pi_Fireplace is on", description="mqtt_state", tags=["mqtt", "state"])
+#@when("Item ScriptParrot_Pi_fireplace changed")
 def fireplacemqtt(event):
 	# FIX 2026-08-28 (#2): str(event.itemState) == ON compared a Python str to the Java
 	# OnOffType enum -> always False, so this branch was dead. Use the is_state helper.
@@ -360,8 +361,9 @@ def fireplacemqtt(event):
 		events.postUpdate("Fireplace", "ON")
 		events.postUpdate("Fireplace_restart", "OFF")
 
-@rule("Rule Pi_fireplace", description="Pi_fireplace_state", tags=["onoff", "state"])
-@when("Item Pi_fireplace changed")
+# [DISABLED 2026-08-29] duplicate of 098_fireplace — fireplace owned solely by 098 to stop double-trigger
+#@rule("Rule Pi_fireplace", description="Pi_fireplace_state", tags=["onoff", "state"])
+#@when("Item Pi_fireplace changed")
 def pifireplace(event):
 	#global shutdownpifireplace
 	#global startpifireplace
@@ -374,8 +376,9 @@ def pifireplace(event):
 	if is_state(event.itemState, ON):
 		startpifireplace = executeCommandLine("/etc/openhab2/scripts/fireplace.sh", 10000)
 
-@rule("Rule Pi_fireplace_restart", description="Pi_fireplace_restart", tags=["restart", "state"])
-@when("Item Pi_fireplace_restart changed")
+# [DISABLED 2026-08-29] duplicate of 098_fireplace — fireplace owned solely by 098 to stop double-trigger
+#@rule("Rule Pi_fireplace_restart", description="Pi_fireplace_restart", tags=["restart", "state"])
+#@when("Item Pi_fireplace_restart changed")
 def pifireplacerestart(event):
 	#global restartpifireplace
 	# FIX 2026-08-28 (#2): str(state) == OnOffType enum is always False. Use is_state.
@@ -395,8 +398,9 @@ def timer2_fireplace():
 	if FireplaceTimerOff is not None:
 		FireplaceTimerOff.cancel()
 
-@rule("Rule when Fireplace changes", description="onoff", tags=["onoff", "state"])
-@when("Item Fireplace changed")
+# [DISABLED 2026-08-29] duplicate of 098_fireplace — fireplace owned solely by 098 to stop double-trigger
+#@rule("Rule when Fireplace changes", description="onoff", tags=["onoff", "state"])
+#@when("Item Fireplace changed")
 def fireplace(event):
 	global FireplaceTimerOff
 	global FireplaceTimerOn
@@ -424,8 +428,9 @@ def timer3_fireplace():
 	if Fireplace_startTimer is None or Fireplace_startTimer.hasTerminated():
 		Fireplace_startTimer = ScriptExecution.createTimer(DateTime.now().plusSeconds(10), timer4_fireplace)
 
-@rule("Rule when Fireplace_restart changes", description="onoff", tags=["onoff", "state"])
-@when("Item Fireplace_restart changed")
+# [DISABLED 2026-08-29] duplicate of 098_fireplace — fireplace owned solely by 098 to stop double-trigger
+#@rule("Rule when Fireplace_restart changes", description="onoff", tags=["onoff", "state"])
+#@when("Item Fireplace_restart changed")
 def fireplace_restart(event):
 	global Fireplace_restartTimer
 	if is_state(event.itemState, ON):
