@@ -83,7 +83,10 @@ def _get(url: str, timeout: int = 12) -> bytes | None:
         req = urllib.request.Request(url, headers=UA)
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return r.read()
-    except Exception as e:                       # noqa: BLE001 — best-effort source
+    except urllib.error.HTTPError as e:          # best-effort source
+        print(f"  · skip {url.split('//')[-1][:40]} (HTTP {e.code})", file=sys.stderr)
+        return None
+    except Exception as e:                        # noqa: BLE001 — best-effort source
         print(f"  · skip {url.split('//')[-1][:40]} ({type(e).__name__})", file=sys.stderr)
         return None
 
@@ -101,25 +104,37 @@ def _recency_weight(ts: float, now: float) -> float:
 
 
 def fetch_reddit(subs: list[str]) -> list[Item]:
+    # Reddit's public *.json endpoint now 403s unauthenticated/datacenter
+    # requests, but the per-subreddit Atom feed (/top/.rss) still serves. The
+    # tradeoff: Atom carries no ups/comments, so items score as topic mentions
+    # (score=1) like any RSS source — not the engagement-weighted virality the
+    # .json feed gave us. Restore true weighting only via Reddit OAuth.
+    ATOM = "{http://www.w3.org/2005/Atom}"
     out: list[Item] = []
-    for sub in subs:
-        raw = _get(f"https://www.reddit.com/r/{sub}/top.json?limit=25&t=day")
+    for i, sub in enumerate(subs):
+        raw = _get(f"https://www.reddit.com/r/{sub}/top/.rss?t=day")
         if not raw:
             continue
         try:
-            data = json.loads(raw)
-            for c in data.get("data", {}).get("children", []):
-                d = c.get("data", {})
-                out.append(Item(
-                    title=d.get("title", "").strip(),
-                    url="https://reddit.com" + d.get("permalink", ""),
-                    source=f"r/{sub}",
-                    score=int(d.get("ups", 0)) + int(d.get("num_comments", 0)),
-                    ts=float(d.get("created_utc", 0) or 0),
-                ))
-        except Exception as e:                   # noqa: BLE001
+            root = ET.fromstring(raw)
+            for e in root.iter(f"{ATOM}entry"):
+                title = (e.findtext(f"{ATOM}title") or "").strip()
+                link_el = e.find(f"{ATOM}link")
+                link = link_el.get("href", "") if link_el is not None else ""
+                ts = 0.0
+                stamp = e.findtext(f"{ATOM}updated") or e.findtext(f"{ATOM}published")
+                if stamp:
+                    try:
+                        ts = datetime.fromisoformat(stamp.strip()).timestamp()
+                    except ValueError:
+                        pass
+                if title:
+                    out.append(Item(title=title, url=link, source=f"r/{sub}",
+                                    score=1, ts=ts))
+        except ET.ParseError as e:               # noqa: BLE001
             print(f"  · reddit parse {sub}: {e}", file=sys.stderr)
-        time.sleep(0.5)                          # be polite, avoid 429
+        if i < len(subs) - 1:
+            time.sleep(4)                        # Reddit RSS 429s on tight spacing
     return out
 
 
@@ -258,9 +273,12 @@ def main() -> None:
     args = ap.parse_args()
 
     print("Scanning free sources (Reddit + Google Trends + RO news + diaspora)...", file=sys.stderr)
-    items = fetch_reddit(["romania", "europe", "worldnews"])
+    # Only r/romania: Reddit's no-auth RSS rate-limits this IP to ~1 request per
+    # window, so europe/worldnews reliably 429 behind it and just add noise.
+    # r/romania is the channel-relevant sub anyway. Re-add the others via OAuth.
+    items = fetch_reddit(["romania"])
     items += fetch_rss({
-        "GoogleTrends-RO": "https://trends.google.com/trends/trendingsearches/daily/rss?geo=RO",
+        "GoogleTrends-RO": "https://trends.google.com/trending/rss?geo=RO",
         "Digi24":          "https://www.digi24.ro/rss",
         "G4Media":         "https://www.g4media.ro/feed",
         "HotNews":         "https://hotnews.ro/feed",
