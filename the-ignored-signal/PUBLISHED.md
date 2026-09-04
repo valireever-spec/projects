@@ -31,7 +31,7 @@ duration ~28s**. Retention target for stat-heavy Shorts: **>60%**.
 > of truth; table below is historical). Daily 19:00 RO (16:00Z), gap-free:**
 > 09-05 `Bf74MFSgqvk` 16 poluare · 09-06 `tu0yw3clUhY` 14 tezaur ·
 > 09-07 `wRpNTAFFE0c` 18 Polonia · 09-08 `arsXkGsJfMw` 22 remese ·
-> 09-09 `KmS5huTI2l8` 23 copii-rămași · 09-10 `bLUMD8BDvPY` 20 imigranți ·
+> 09-09 `KmS5huTI2l8` 23 copii-rămași · 09-10 `bLUMD8BDvPY` 24 pensionari-vs-salariați ·
 > 09-11 `RNcz_80FtS4` 25 sate · 09-12 `Yz0LV4uPunU` 26 întorc ·
 > 09-13 `2b8IDJS0iP0` 27 pensii-speciale · **09-14 `8vuX0s8g3Qc` 21 instabilitate 🆕** ·
 > 09-15 `6jdlrpOwC_4` 28 PNRR · **09-16 `dhWc5XEjou4` 30 SOTEU 🆕** ·
@@ -40,9 +40,11 @@ duration ~28s**. Retention target for stat-heavy Shorts: **>60%**.
 > (26 PM vs 4) and added **30 SOTEU** at 09-16 — both via `upload.py --publish-at`
 > (schedule_uploads.sh maps date by queue position, can't target a single day).
 > Bulk 09-05→09-13/15/17 were scheduled in the 2026-09-02 upload batch.
-> **Still rendered-but-unscheduled:** `24_cine_iti_plateste_pensia` (pension/
-> demographics) — publish when a slot is wanted (kept off 09-14 to avoid two
-> pension videos next to 09-13's pensii-speciale).
+> **Pipeline fully scheduled 09-05→09-17, gap-free — nothing rendered-but-
+> unscheduled remains.** (`24_cine_iti_plateste_pensia` is scheduled 09-10 —
+> earlier mislabeled here as "20 imigranți"; video 20 is already public/live.)
+> ⚠️ Match uploaded videos to scripts by **headline**, not truncated titles —
+> `bLUMD8BDvPY`'s title ("…mai mulți pensionari") is 24, not 20.
 > **MANUAL for every scheduled video before its publish time:** set
 > Altered content = Yes (AI voice); pin the auto-posted debate comment.
 
