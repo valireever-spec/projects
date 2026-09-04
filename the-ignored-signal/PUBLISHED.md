@@ -27,23 +27,24 @@ duration ~28s**. Retention target for stat-heavy Shorts: **>60%**.
 
 ## Scheduled — auto-publish one per day (all uploaded 2026-08-22)
 
-> **LIVE QUEUE (verified via API 2026-08-29 — source of truth; table below is historical):**
-> 08-29 `jpxavB1Q2oM` 11 pensii · **08-30 `x3s9jk861E4` 19 PNRR-pierdut 🆕** ·
-> 08-31 `IiCjOT0Q480` 12 · 09-01 `TjsASUa2jVw` 13 · 09-02 `tJwHFSIyJhI` 17 ·
-> 09-03 `t-_rsypj4Z8` 15 · 09-04 `Bf74MFSgqvk` 16 · 09-05 `tu0yw3clUhY` 14 ·
-> 09-06 `wRpNTAFFE0c` 18.
-> **Reshuffle 2026-08-29:** inserted hot clip **19 PNRR losses** (€6.3bn at risk;
-> ties to Poland/18) at 08-30; shifted the 7 evergreen videos +1 day. Newsjacking
-> per the hot_topics detector. MANUAL for 19: set AI flag; pin auto-comment.
-> **Ready but unscheduled drafts:** `20_populatie_imigranti` (diaspora-direct:
-> imigranții țin populația; INS) and `21_instabilitate_guverne` (26 premieri vs
-> Germania 4) — rendered 2026-08-29, publish when a slot is wanted.
-> **09-16 → `30_soteu_romania` `dhWc5XEjou4` (SOTEU newsjack) 🆕 — UPLOADED.**
-> Build-ahead for von der Leyen's State of the Union (16 Sep, Strasbourg);
-> verified, Russia-clean. Uploaded 2026-09-04 (private, publishAt 09-16 16:00Z)
-> via `upload.py --publish-at` (not schedule_uploads.sh — its queue maps date by
-> position, can't target a single arbitrary day). MANUAL: set AI flag, pin
-> auto-comment.
+> **UPCOMING SCHEDULE (private + publishAt, verified via API 2026-09-04 — source
+> of truth; table below is historical). Daily 19:00 RO (16:00Z), gap-free:**
+> 09-05 `Bf74MFSgqvk` 16 poluare · 09-06 `tu0yw3clUhY` 14 tezaur ·
+> 09-07 `wRpNTAFFE0c` 18 Polonia · 09-08 `arsXkGsJfMw` 22 remese ·
+> 09-09 `KmS5huTI2l8` 23 copii-rămași · 09-10 `bLUMD8BDvPY` 20 imigranți ·
+> 09-11 `RNcz_80FtS4` 25 sate · 09-12 `Yz0LV4uPunU` 26 întorc ·
+> 09-13 `2b8IDJS0iP0` 27 pensii-speciale · **09-14 `8vuX0s8g3Qc` 21 instabilitate 🆕** ·
+> 09-15 `6jdlrpOwC_4` 28 PNRR · **09-16 `dhWc5XEjou4` 30 SOTEU 🆕** ·
+> 09-17 `CXKuSNII1kM` 29 Neptun-Deep.
+> **2026-09-04:** filled the only gap (09-14) with **21 instabilitate guverne**
+> (26 PM vs 4) and added **30 SOTEU** at 09-16 — both via `upload.py --publish-at`
+> (schedule_uploads.sh maps date by queue position, can't target a single day).
+> Bulk 09-05→09-13/15/17 were scheduled in the 2026-09-02 upload batch.
+> **Still rendered-but-unscheduled:** `24_cine_iti_plateste_pensia` (pension/
+> demographics) — publish when a slot is wanted (kept off 09-14 to avoid two
+> pension videos next to 09-13's pensii-speciale).
+> **MANUAL for every scheduled video before its publish time:** set
+> Altered content = Yes (AI voice); pin the auto-posted debate comment.
 
 Re-rendered 2026-08-22 with question-hooks + quality pass (loudnorm −14 LUFS,
 crf 20 encode); stat videos (05/06/10) also got faster ~4s pacing. Uploaded as
