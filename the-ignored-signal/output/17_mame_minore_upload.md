@@ -8,7 +8,7 @@
 ## ▶️ YouTube Shorts
 
 **Titlu:**
-Aproape jumătate dintre toate fetițele sub 15 ani care nasc în Uniunea Europeană sunt #Shorts
+Aproape jumătate dintre toate fetițele sub 15 ani care nasc în Uniunea Europeană sunt în România
 
 **Descriere:**
 Aproape jumătate dintre toate fetițele sub 15 ani care nasc în Uniunea Europeană sunt în România — deși țara are doar o mică parte din nașterile UE.
@@ -22,9 +22,9 @@ Aproape jumătate dintre toate fetițele sub 15 ani care nasc în Uniunea Europe
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
 
-#SubRadar #Romania #Shorts #stiri #news
+#SubRadar #Romania #mameminore #natalitate #saracie #Eurostat #adolescente #social #Shorts #stiri #news
 
-**Tags (câmpul Tags, fără #):** SubRadar, Romania, Shorts, stiri, news
+**Tags (câmpul Tags, fără #):** SubRadar, Romania, mameminore, natalitate, saracie, Eurostat, adolescente, social, Shorts, stiri, news
 
 > La publicare setează 'Altered content = Yes' (voce AI).
 
@@ -33,7 +33,7 @@ Aproape jumătate dintre toate fetițele sub 15 ani care nasc în Uniunea Europe
 ## 🎵 TikTok
 
 **Caption:**
-45% DIN MAMELE SUB 15 ANI DIN UE SUNT ÎN ROMÂNIA #SubRadar #Romania #fyp #foryou #stiri
+45% DIN MAMELE SUB 15 ANI DIN UE SUNT ÎN ROMÂNIA #SubRadar #Romania #mameminore #natalitate #saracie #Eurostat #adolescente #social #fyp #foryou #stiri
 
 ⚠️ Narațiune cu voce generată de AI. Imaginile și clipurile sunt ilustrative (surse: Pexels, Wikimedia Commons).
 
