@@ -38,6 +38,10 @@ duration ~28s**. Retention target for stat-heavy Shorts: **>60%**.
 > **Ready but unscheduled drafts:** `20_populatie_imigranti` (diaspora-direct:
 > imigranții țin populația; INS) and `21_instabilitate_guverne` (26 premieri vs
 > Germania 4) — rendered 2026-08-29, publish when a slot is wanted.
+> **Slotted 09-16 → `30_soteu_romania` (SOTEU newsjack) 🆕 — NOT yet uploaded.**
+> Build-ahead for von der Leyen's State of the Union (16 Sep, Strasbourg);
+> verified, Russia-clean. Needs `schedule_uploads.sh` with publishAt 09-16 to
+> get a video ID; MANUAL: set AI flag, pin auto-comment.
 
 Re-rendered 2026-08-22 with question-hooks + quality pass (loudnorm −14 LUFS,
 crf 20 encode); stat videos (05/06/10) also got faster ~4s pacing. Uploaded as
@@ -63,6 +67,7 @@ Europe/Bucharest). YouTube flips them to Public at that time.
 | 2026-09-05         | `18_romania_polonia`           | wRpNTAFFE0c  | custom  | ☐       | Romania vs Poland — **continuity angle** from a user-supplied video, all claims re-verified (S&P/FTSE developed-market reclassification, highways 5.200 vs 1.418 km CNAIR/GDDKiA, EU-funds absorption, VAT gap). AI concrete stills; stat overlay km (unit-bug fixed). Uploaded 2026-08-28, publishAt 09-05 16:00Z. ⚠️ reconfirm exact km + €250bn before publish. MANUAL: set AI flag. Debate comment auto-posts → Pin |
 | 2026-09-04         | `14_tezaurul_romaniei`         | tu0yw3clUhY  | custom  | ☐       | Displaced from 09-01 by 17. **Re-uploaded 2026-08-26**, publishAt 09-04 16:00Z. **Russia-flagged** (1916 gold to Moscow) — enhanced-verification gate initially blocked it (only 1 authoritative source); added a 2nd (`[STUDIU]` Romașcanu monograph) → passes with BNR primary + study. **Piper/Mihai voice**, Rusia/URSS fix, real Cloșca. MANUAL: set AI flag + human review (Russia 24h). Debate comment auto-posts → Pin |
 | 2026-09-03         | `16_poluare_aer`               | Bf74MFSgqvk  | custom  | ☐       | Re-uploaded 2026-08-27 (stat unit fix: bars showed "%" instead of µg/m³ — old draft YtAGQf9Ixco deleted). Air pollution (~18k deaths/yr, EEA + CJUE C-638/18, Ploiești refinery angle). Built 2026-08-26 with **all migration-video Studio feedback**: ~34s, +7% pace, front-loaded stake, stat overlay on Bucharest line (~12.5–15s), debate-CTA close. **People-free / location-neutral b-roll** (no city/skyline/faces). Uploaded 2026-08-26 as private draft, publishAt 09-03 16:00Z. MANUAL: set AI flag. Debate comment auto-posts via `post_comment.py` → click ⋮ → Pin |
+| 2026-09-16         | `30_soteu_romania`             | ⏳ NOT UPLOADED | custom | ☐    | **Build-ahead SOTEU newsjack** — "partea despre România pe care n-o auzi" pegs von der Leyen's State of the Union (16 Sep, Strasbourg). `verified=true`; **Russia-clean** (no 24h hold). Rendered 2026-09-04 (36.8s, Piper/mihai, people-free AI stills, deficit **8,4% vs plafon 3%** stat overlay). 4 figures web-verified: SOTEU date, ECB Convergence Report iunie 2026 (euro "progres limitat"), EC deficit forecast, Eurostat tertiary 23,2% vs 44,8%. Title set **payoff-first** (per the 17 truncation fix). ⚠️ **Needs `schedule_uploads.sh` (publishAt 09-16)** to get a video ID. MANUAL: set AI flag; pin auto-comment. Optional: after 16 Sep add one line on whether RO was mentioned. |
 
 **Thumbnails:** ✅ all six custom (verified via API 2026-08-22). The five that
 initially 429'd on the thumbnail API were set manually in Studio.
