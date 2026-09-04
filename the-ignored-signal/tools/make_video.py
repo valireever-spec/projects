@@ -1312,8 +1312,16 @@ def youtube_fields(data: dict, out_dir: Path, slug: str) -> tuple[str, str, list
     headline = data.get("headline", slug).strip()
     tags     = [t.lstrip("#") for t in _hashtags(data, "youtube")]
 
+    # Build the title from the full main clause (YouTube allows 100 chars) and
+    # append " #Shorts" ONLY if it still fits. The payoff of a Romanian headline
+    # sits at the end ("…sunt în România"), so reserving space for the suffix and
+    # blind-trimming used to chop the punchline off ("…sunt #Shorts"). #Shorts is
+    # redundant anyway — YouTube detects Shorts by aspect+duration, and the tag
+    # still rides along in the description hashtags.
     suffix = " #Shorts"
-    title  = _headline_title(headline, 100 - len(suffix)) + suffix
+    title  = _headline_title(headline, 100)
+    if len(title) + len(suffix) <= 100:
+        title += suffix
 
     sources = [_clean_source(s) for s in data.get("sources", [])]
     if not sources and data.get("source_onscreen"):
