@@ -27,6 +27,18 @@ duration ~28s**. Retention target for stat-heavy Shorts: **>60%**.
 
 ## Scheduled — auto-publish one per day (all uploaded 2026-08-22)
 
+> **LIVE QUEUE (verified via API 2026-08-29 — source of truth; table below is historical):**
+> 08-29 `jpxavB1Q2oM` 11 pensii · **08-30 `x3s9jk861E4` 19 PNRR-pierdut 🆕** ·
+> 08-31 `IiCjOT0Q480` 12 · 09-01 `TjsASUa2jVw` 13 · 09-02 `tJwHFSIyJhI` 17 ·
+> 09-03 `t-_rsypj4Z8` 15 · 09-04 `Bf74MFSgqvk` 16 · 09-05 `tu0yw3clUhY` 14 ·
+> 09-06 `wRpNTAFFE0c` 18.
+> **Reshuffle 2026-08-29:** inserted hot clip **19 PNRR losses** (€6.3bn at risk;
+> ties to Poland/18) at 08-30; shifted the 7 evergreen videos +1 day. Newsjacking
+> per the hot_topics detector. MANUAL for 19: set AI flag; pin auto-comment.
+> **Ready but unscheduled drafts:** `20_populatie_imigranti` (diaspora-direct:
+> imigranții țin populația; INS) and `21_instabilitate_guverne` (26 premieri vs
+> Germania 4) — rendered 2026-08-29, publish when a slot is wanted.
+
 Re-rendered 2026-08-22 with question-hooks + quality pass (loudnorm −14 LUFS,
 crf 20 encode); stat videos (05/06/10) also got faster ~4s pacing. Uploaded as
 private drafts via `tools/schedule_uploads.sh`, each with a `publishAt` (19:00
@@ -46,7 +58,7 @@ Europe/Bucharest). YouTube flips them to Public at that time.
 | 2026-08-29         | `11_pensii`                    | jpxavB1Q2oM  | PENDING | ☐       | footage QC'd clean (AI+dedup+geo-guard) |
 | 2026-08-30         | `12_atunci_speranta_viata`     | IiCjOT0Q480  | PENDING | ☐       | footage QC'd clean; thumb via retry cron |
 | 2026-08-31         | `13_ceausescu_datoria`         | TjsASUa2jVw  | PENDING | ☐       | audio fix (+5% pace, no gaps); thumb via finish_pending cron |
-| 2026-09-01         | `17_mame_minore`               | tJwHFSIyJhI  | custom  | ☐       | Teen/underage mothers (Eurostat: ~45% of EU under-15 births are RO; 746 girls 10-14 in 2022). All Studio feedback + **AI-generated people-free stills** (`ai:` terms — stock kept leaking people of various ethnicities + off-topic shots; also swapped an uncanny teddy-bear render for baby shoes). `music: false`; narration pause fix ("a șaptea, cresc"). Uploaded 2026-08-26, publishAt 09-01 16:00Z. Sensitive → possible limited-ads. MANUAL: set AI flag. Debate comment auto-posts → Pin |
+| 2026-09-01         | `17_mame_minore`               | tJwHFSIyJhI  | custom  | ☐       | Teen/underage mothers (Eurostat: ~45% of EU under-15 births are RO; 746 girls 10-14 in 2022). All Studio feedback + **AI-generated people-free stills** (`ai:` terms — stock kept leaking people of various ethnicities + off-topic shots; also swapped an uncanny teddy-bear render for baby shoes). `music: false`; narration pause fix ("a șaptea, cresc"). Uploaded 2026-08-26, publishAt 09-01 16:00Z. Sensitive → possible limited-ads. MANUAL: set AI flag. ✅ Debate comment POSTED (`Ugx4GXSyg-Ovhq63Pap4AaABAg`) — **click ⋮ → Pin in Studio**. ✅ Title fixed 09-04 (payoff "în România" restored; was truncated to "…sunt #Shorts"). |
 | 2026-09-02         | `15_propaganda_rusa`           | t-_rsypj4Z8  | custom  | ☐       | **NEW-FORMAT PILOT** (catchphrase hook, karaoke, ~3.5s cuts, stat overlay); Russia 24h hold (verified 2026-08-24, clears 08-25); MANUAL: set AI flag. Debate comment AUTO-POSTS on publish (cron → `post_comment.py`); you only click ⋮ → Pin |
 | 2026-09-05         | `18_romania_polonia`           | wRpNTAFFE0c  | custom  | ☐       | Romania vs Poland — **continuity angle** from a user-supplied video, all claims re-verified (S&P/FTSE developed-market reclassification, highways 5.200 vs 1.418 km CNAIR/GDDKiA, EU-funds absorption, VAT gap). AI concrete stills; stat overlay km (unit-bug fixed). Uploaded 2026-08-28, publishAt 09-05 16:00Z. ⚠️ reconfirm exact km + €250bn before publish. MANUAL: set AI flag. Debate comment auto-posts → Pin |
 | 2026-09-04         | `14_tezaurul_romaniei`         | tu0yw3clUhY  | custom  | ☐       | Displaced from 09-01 by 17. **Re-uploaded 2026-08-26**, publishAt 09-04 16:00Z. **Russia-flagged** (1916 gold to Moscow) — enhanced-verification gate initially blocked it (only 1 authoritative source); added a 2nd (`[STUDIU]` Romașcanu monograph) → passes with BNR primary + study. **Piper/Mihai voice**, Rusia/URSS fix, real Cloșca. MANUAL: set AI flag + human review (Russia 24h). Debate comment auto-posts → Pin |
@@ -306,6 +318,18 @@ a trailing `.0` ("5200.0") — cosmetic.
 over an abstract grid", "economy concept" rendered as abstract blobs (flagged on
 18). Use concrete, photographic scene descriptions (real highways, trains, ports,
 cracked roads) — drop "concept/abstract/grid/glowing".
+
+**Footage for abstract/economic topics (from clip 19 PNRR — screen every clip).**
+Free stock (and AI) can't reliably show **euro cash, hospitals, or schools**: those
+queries return US-dollar finance graphics, metro plazas, arty derelict buildings,
+and even a road selfie that reappears for any generic "road" query. AI renders
+abstract shells + illegible currency. **What free stock DOES deliver cleanly:**
+aerial highways, construction sites, tower cranes, unfinished/under-construction
+buildings, bridges. So for money/infrastructure stories: build b-roll from those
+categories + let the **stat overlay carry the € figure**; avoid "euro banknotes",
+"hospital", "school", "road construction" terms. **Always screen each clip** (grab
+a frame per `clip_<slug>_N.mp4`) — and NEVER upload before the user reviews.
+Process note: uploaded clip 19 unreviewed with mismatched footage → had to re-do.
 
 **Topic sourcing.** YouTube Studio's **Inspiration / Research tab** is a good
 source of channel-fit topic ideas but is **not exposed by any public API** — it
