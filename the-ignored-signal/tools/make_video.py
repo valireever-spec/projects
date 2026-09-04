@@ -17,6 +17,7 @@ import json
 import os
 import random
 import re
+import shutil
 import subprocess
 import sys
 import urllib.parse
@@ -481,6 +482,31 @@ PEXELS_KEY    = os.environ.get("PEXELS_API_KEY", "").strip()
 PIXABAY_KEY   = os.environ.get("PIXABAY_API_KEY", "").strip()   # free, no attribution
 USE_WIKIMEDIA = True
 
+# ── Local VETTED b-roll library ────────────────────────────────────────────
+# assets/broll/<category>/*.mp4|jpg — hand-checked, people-free, colour-safe
+# clips imported via tools/add_asset.py. A script term "asset:<category>" draws
+# from here instead of Pexels, ending the wrong-people / wrong-currency roulette
+# (and, because imports are colour-normalised, the "Invalid color range" crash).
+# Assets are reused across videos on purpose; a random pick per slot rotates the
+# look so the channel doesn't trip duplicate-pattern suppression.
+ASSETS_DIR = Path(__file__).resolve().parent.parent / "assets" / "broll"
+_ASSET_VIDEO_EXTS = {".mp4", ".mov", ".webm", ".m4v"}
+_ASSET_EXTS = _ASSET_VIDEO_EXTS | {".jpg", ".jpeg", ".png"}
+
+
+def _pick_asset(category: str):
+    """Pick a vetted clip from assets/broll/<category>/, preferring one not yet
+    used in this run (dedup by content hash). None if the folder is missing/empty."""
+    d = ASSETS_DIR / category
+    if not d.is_dir():
+        return None
+    files = sorted(p for p in d.iterdir()
+                   if p.suffix.lower() in _ASSET_EXTS and not p.name.startswith("."))
+    if not files:
+        return None
+    unused = [p for p in files if _img_hash(p) not in _USED_IMG_HASHES]
+    return random.choice(unused or files)
+
 # Media dedup so footage never repeats. _USED_IMG_HASHES = within one run;
 # _MEDIA_REGISTRY (hash→slug, persisted to output/.media_registry.json) spans
 # ALL renders, so a clip used in one video never reappears in another — the main
@@ -755,6 +781,34 @@ def _fetch_pixabay(term: str, dest: Path) -> bool:
     return False
 
 
+def _video_query_variants(term: str, country: str = "") -> list[str]:
+    """Progressively broader motion queries so a specific phrase that returns no
+    video (e.g. 'aerial night highway traffic') retries as a broader one
+    ('highway traffic' → 'traffic') before we concede to a still image.
+
+    Order: original → without a leading country word → last two words → last word.
+    English adjective-noun order puts the head noun near the end, so trimming from
+    the front keeps the subject. Deduped, case-insensitive.
+    """
+    variants: list[str] = []
+
+    def add(q: str) -> None:
+        q = q.strip()
+        if q and q.lower() not in {v.lower() for v in variants}:
+            variants.append(q)
+
+    add(term)
+    words = term.split()
+    if country and words and words[0].lower() == country.lower():
+        words = words[1:]
+        add(" ".join(words))
+    if len(words) > 2:
+        add(" ".join(words[-2:]))
+    if len(words) > 1:
+        add(words[-1])
+    return variants
+
+
 _WIKI_OK = ("cc ", "cc0", "public domain", "no restrictions")
 
 
@@ -847,6 +901,24 @@ def get_scene_media(search_terms: list[str], out_dir: Path, slug: str,
         dest_a = out_dir / f"img_{slug}_{i}a.jpg"    # legacy AI pair cache
         dest   = out_dir / f"img_{slug}_{i}.jpg"     # AI cache
 
+        # "asset:<cat>" pulls from the local VETTED library (assets/broll/<cat>/)
+        # — hand-checked, people-free, colour-normalised clips. No network, no
+        # Pexels roulette, no foreign faces. Falls through to a normal search on
+        # the bare category only if that folder is empty (with a loud warning).
+        if term.lower().startswith("asset:"):
+            cat = term.split(":", 1)[1].strip().lower()
+            picked = _pick_asset(cat)
+            if picked is not None:
+                kind, cache = (("video", clip)
+                               if picked.suffix.lower() in _ASSET_VIDEO_EXTS
+                               else ("image", photo))
+                shutil.copyfile(picked, cache); use(kind, cache)
+                print(f"  [{i+1}/{len(search_terms)}] asset:{cat} → {picked.name} ✓")
+                continue
+            print(f"  [{i+1}/{len(search_terms)}] asset:{cat} — LIBRARY EMPTY, "
+                  f"falling back to search on {cat!r}")
+            term = cat
+
         # "ai:" prefix forces AI generation — for scenes free stock can't serve
         # (gold bars, vaults, treasure) or where foreign leakage is a real risk.
         ai_forced = term.lower().startswith("ai:")
@@ -903,13 +975,22 @@ def get_scene_media(search_terms: list[str], out_dir: Path, slug: str,
                 print("    place AI failed — skipped")
             continue
 
-        # Motion b-roll (concept terms only past this point)
-        if _fetch_pexels_video(term, clip):
-            use("video", clip)
-            print(f"    Pexels video ✓ ({clip.stat().st_size // 1024} KB)"); continue
-        if _fetch_pixabay_video(term, clip):
-            use("video", clip)
-            print(f"    Pixabay video ✓ ({clip.stat().st_size // 1024} KB)"); continue
+        # Motion b-roll (concept terms only past this point). Try the full term,
+        # then progressively broader queries so we keep REAL motion instead of
+        # dropping to a still the moment a specific phrase has no video match.
+        motion_found = False
+        for q in _video_query_variants(term, country):
+            tag = "" if q == term else f" (broadened: {q!r})"
+            if _fetch_pexels_video(q, clip):
+                use("video", clip)
+                print(f"    Pexels video ✓{tag} ({clip.stat().st_size // 1024} KB)")
+                motion_found = True; break
+            if _fetch_pixabay_video(q, clip):
+                use("video", clip)
+                print(f"    Pixabay video ✓{tag} ({clip.stat().st_size // 1024} KB)")
+                motion_found = True; break
+        if motion_found:
+            continue
         if _fetch_pexels(term, photo):
             use("image", photo)
             print(f"    Pexels photo ✓ ({photo.stat().st_size // 1024} KB)"); continue
