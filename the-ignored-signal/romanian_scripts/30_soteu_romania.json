@@ -1,0 +1,63 @@
+{
+  "slug": "30_soteu_romania",
+  "headline": "Pe 16 septembrie, șefa Comisiei Europene ține marele discurs despre „Starea Uniunii”. Iată partea despre România pe care n-o vei auzi.",
+  "voice": "mihai",
+  "voice_rate": "+7%",
+  "channel": "Sub Radar",
+  "source_onscreen": "Comisia Europeană / BCE / Eurostat",
+  "country": "Romania",
+  "hook_card": "PARTEA DESPRE ROMÂNIA\nPE CARE N-O AUZI",
+  "cta_question": "Ne-am integrat cu adevărat, sau doar am aderat?",
+  "music": true,
+  "verified": true,
+  "verification_note": "Verificat 2026-09 (căutare web + surse instituționale). Build-ahead pentru discursul SOTEU din 16 sept. 2026; teza „ce nu spune discursul despre România” se sprijină pe cifre valabile indiferent de conținutul discursului. (1) SOTEU 2026 = 16 sept. 2026, Strasbourg (Comisia Europeană + Parlamentul European). (2) BCE, Raportul de convergență din iunie 2026: România a făcut progres limitat spre euro din 2024 — inflație ridicată, deficit peste 3%, dobândă pe termen lung 6,7% peste referință, Legea 312 privind Statutul BNR incompatibilă cu art. 131 TFUE. (3) Comisia Europeană — deficit bugetar RO: 8,4% (2025, cel mai mare din UE), 6,2% (2026), 5,9% (2027), toate peste plafonul de 3%. Am folosit cifra de 8,4% (2025), unde superlativul „cel mai mare din UE” este clar susținut. (4) Eurostat / Education and Training Monitor 2025: absolvenți învățământ superior 25–34 ani — România 23,2% (2024), cel mai scăzut din UE; media UE 44,8% (2025). Subiect comparativ, non-sensibil, strict despre convergența economică internă → fără declanșatori de verificare sporită, fără hold de 24h. OPȚIONAL newsjack după 16 sept.: se poate adăuga o propoziție despre dacă România/convergența a fost menționată în discurs — clipul stă în picioare și fără ea.",
+  "narration": "Pe șaisprezece septembrie, șefa Comisiei Europene ține marele discurs despre „Starea Uniunii” — unitate, forță, un viitor comun. Iată partea despre România pe care n-o vei auzi. Suntem în Uniune de aproape douăzeci de ani, dar tot în afara zonei euro — Banca Centrală Europeană spune: progres limitat. Avem cel mai mare deficit bugetar din UE: opt virgulă patru la sută, când regula Uniunii e trei. Și cei mai puțini tineri cu facultate din toată Uniunea. Discursul sărbătorește Uniunea. Despre locul nostru în ea — tăcere. Ne-am integrat cu adevărat, sau doar am aderat?",
+  "sources": [
+    "[PRIMARĂ] Comisia Europeană — Starea Uniunii 2026: discursul președintei von der Leyen, 16 sept. 2026, Strasbourg → commission.europa.eu/strategy-and-policy/state-union_en",
+    "[PRIMARĂ] Banca Centrală Europeană — Raportul de convergență, iunie 2026: România înregistrează progres limitat spre adoptarea euro → ecb.europa.eu",
+    "[INSTITUȚIONAL] Comisia Europeană — prognoză economică: deficitul bugetar al României 8,4% (2025, cel mai mare din UE), 6,2% (2026), 5,9% (2027), peste plafonul de 3% → economy-finance.ec.europa.eu",
+    "[PRIMARĂ] Eurostat / Education and Training Monitor 2025 — absolvenți de învățământ superior, 25–34 ani: România 23,2% (2024), cel mai scăzut din UE; media UE 44,8% → ec.europa.eu/eurostat"
+  ],
+  "stat_windows": [
+    {
+      "window_idx": 5,
+      "unit": "%",
+      "values": [
+        {
+          "label": "România",
+          "value": 8.4,
+          "color": "#c0392b"
+        },
+        {
+          "label": "Plafon UE",
+          "value": 3.0,
+          "color": "#1a6bb5"
+        }
+      ],
+      "metric": "Deficit bugetar 2025: România, cel mai mare din UE — de aproape 3× peste plafon",
+      "source": "Comisia Europeană 2026"
+    }
+  ],
+  "video_search_terms": [
+    "ai:the European Union flag with gold stars waving against a blue sky, no people",
+    "ai:an empty grand parliamentary chamber with rows of blue seats, no people",
+    "ai:a row of national flags on poles outside a modern glass institutional building, no people",
+    "ai:a lone empty podium with microphones in a large formal hall, no people",
+    "ai:stacks of euro coins and banknotes on a dark wooden table, close up",
+    "ai:the Romanian flag waving alone against an overcast grey sky, no people",
+    "ai:a modern glass government building facade at dusk, no people",
+    "ai:an empty university lecture hall with rows of wooden seats, no people",
+    "ai:a red descending arrow line chart on a dark screen, no people",
+    "ai:an empty polished marble institutional corridor with tall columns, no people",
+    "ai:a European map with a single country highlighted, abstract, no people",
+    "ai:a heavy closed ornate wooden door in an official building, no people"
+  ],
+  "hashtags": [
+    "StareaUniunii",
+    "SOTEU",
+    "Romania",
+    "UE",
+    "euro",
+    "deficit"
+  ]
+}

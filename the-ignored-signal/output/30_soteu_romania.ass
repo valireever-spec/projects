@@ -1,0 +1,48 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 1
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Caption,DejaVu Sans,54,&H00DAE5E9,&H00776063,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,4,2,2,80,80,430,1
+Style: Header,DejaVu Sans,38,&H00776063,&H00776063,&H00000000,&H00000000,0,0,0,0,100,100,3,0,1,2,0,8,60,60,170,1
+Style: Source,DejaVu Sans,34,&H002B39C0,&H002B39C0,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,60,60,340,1
+Style: HookCard,DejaVu Sans,82,&H00DAE5E9,&H00DAE5E9,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+Style: EndCard,DejaVu Sans,68,&H002B39C0,&H002B39C0,&H00000000,&H440F0909,-1,0,0,0,100,100,2,0,3,0,0,5,80,80,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 1,0:00:00.00,0:00:02.00,HookCard,,0,0,0,,PARTEA DESPRE ROMÂNIA\NPE CARE N-O AUZI
+Dialogue: 0,0:00:00.00,0:00:36.78,Header,,0,0,0,,SUB RADAR
+Dialogue: 0,0:00:00.00,0:00:36.78,Source,,0,0,0,,Comisia Europeană / BCE / Eurostat
+Dialogue: 0,0:00:02.00,0:00:03.25,Caption,,0,0,0,,{\k32}ȘEFA {\k31}COMISIEI {\k31}EUROPENE {\k31}ȚINE
+Dialogue: 0,0:00:03.25,0:00:05.10,Caption,,0,0,0,,{\k47}MARELE {\k46}DISCURS {\k46}DESPRE {\k46}„STAREA
+Dialogue: 0,0:00:05.10,0:00:06.03,Caption,,0,0,0,,{\k93}UNIUNII”
+Dialogue: 0,0:00:06.03,0:00:06.96,Caption,,0,0,0,,{\k47}UNITATE, {\k46}FORȚĂ
+Dialogue: 0,0:00:06.96,0:00:08.35,Caption,,0,0,0,,{\k47}UN {\k46}VIITOR {\k46}COMUN
+Dialogue: 0,0:00:08.35,0:00:09.74,Caption,,0,0,0,,{\k35}IATĂ {\k35}PARTEA {\k35}DESPRE {\k34}ROMÂNIA
+Dialogue: 0,0:00:09.74,0:00:11.48,Caption,,0,0,0,,{\k35}PE {\k35}CARE {\k35}N-O {\k35}VEI {\k34}AUZI
+Dialogue: 0,0:00:11.48,0:00:13.01,Caption,,0,0,0,,{\k39}SUNTEM {\k38}ÎN {\k38}UNIUNE {\k38}DE
+Dialogue: 0,0:00:13.01,0:00:14.53,Caption,,0,0,0,,{\k39}APROAPE {\k38}DOUĂZECI {\k38}DE {\k38}ANI
+Dialogue: 0,0:00:14.53,0:00:16.06,Caption,,0,0,0,,{\k39}DAR {\k38}TOT {\k38}ÎN {\k38}AFARA
+Dialogue: 0,0:00:16.06,0:00:17.21,Caption,,0,0,0,,{\k58}ZONEI {\k57}EURO
+Dialogue: 0,0:00:17.21,0:00:18.73,Caption,,0,0,0,,{\k39}BANCA {\k38}CENTRALĂ {\k38}EUROPEANĂ {\k38}SPUNE
+Dialogue: 0,0:00:18.73,0:00:19.50,Caption,,0,0,0,,{\k38}PROGRES {\k38}LIMITAT
+Dialogue: 0,0:00:19.50,0:00:20.89,Caption,,0,0,0,,{\k35}AVEM {\k35}CEL {\k35}MAI {\k34}MARE
+Dialogue: 0,0:00:20.89,0:00:22.28,Caption,,0,0,0,,{\k35}DEFICIT {\k35}BUGETAR {\k35}DIN {\k34}UE
+Dialogue: 0,0:00:22.28,0:00:23.67,Caption,,0,0,0,,{\k35}OPT {\k35}VIRGULĂ {\k35}PATRU {\k34}LA
+Dialogue: 0,0:00:23.67,0:00:25.06,Caption,,0,0,0,,{\k35}SUTĂ, {\k35}CÂND {\k35}REGULA {\k34}UNIUNII
+Dialogue: 0,0:00:25.06,0:00:25.76,Caption,,0,0,0,,{\k35}E {\k35}TREI
+Dialogue: 0,0:00:25.76,0:00:27.22,Caption,,0,0,0,,{\k37}ȘI {\k37}CEI {\k36}MAI {\k36}PUȚINI
+Dialogue: 0,0:00:27.22,0:00:28.68,Caption,,0,0,0,,{\k37}TINERI {\k37}CU {\k36}FACULTATE {\k36}DIN
+Dialogue: 0,0:00:28.68,0:00:29.41,Caption,,0,0,0,,{\k37}TOATĂ {\k36}UNIUNEA
+Dialogue: 0,0:00:29.41,0:00:31.43,Caption,,0,0,0,,{\k68}DISCURSUL {\k67}SĂRBĂTOREȘTE {\k67}UNIUNEA
+Dialogue: 0,0:00:31.43,0:00:32.74,Caption,,0,0,0,,{\k33}DESPRE {\k33}LOCUL {\k32}NOSTRU {\k32}ÎN
+Dialogue: 0,0:00:32.74,0:00:33.39,Caption,,0,0,0,,{\k65}EA
+Dialogue: 0,0:00:33.39,0:00:33.72,Caption,,0,0,0,,{\k33}TĂCERE
+Dialogue: 0,0:00:33.72,0:00:35.25,Caption,,0,0,0,,{\k39}NE-AM {\k38}INTEGRAT {\k38}CU {\k38}ADEVĂRAT
+Dialogue: 0,0:00:35.25,0:00:36.78,Caption,,0,0,0,,{\k39}SAU {\k38}DOAR {\k38}AM {\k38}ADERAT?
+Dialogue: 1,0:00:32.78,0:00:36.78,EndCard,,0,0,0,,SUB RADAR\NNe-am integrat cu adevărat, sau doar am aderat?
