@@ -1,0 +1,146 @@
+sitemap states label="states sitemap"
+{
+Frame label="States"
+  {
+    Switch item=HD1 label="HD DormP" icon=light
+//	Switch item=HD2preswitch icon=light
+    Switch item=HD2 label="HD DormC" icon=light
+//	Switch item=HD3preswitch icon=light
+	Switch item=HD3 label="HD Sufragerie" icon=light
+	Switch item=HD4 label="HD Bucatarie" icon=light
+	Switch item=Telefunken_HDMI1
+	Switch item=Telefunken_Kodi
+	Switch item=HomePresence icon=presence
+	Switch item=SNZB1_Presence label="Prezenta Hol" icon=motion
+	Switch item=SNZB2_Presence label="Prezenta Baie" icon=motion
+	Switch item=Priza4_Power label="Priza Laptop"  icon=poweroutlet_eu
+	Switch item=Priza9_Power label="Priza filtru acvariu"  icon=poweroutlet_eu
+	Text item=ScriptParrot_OH2_Avail_RAM label="OH2 Available RAM" icon=line
+	//Text item=ScriptParrot_Oh2_Fail_Flag label="OH2 Mqtt Fail" icon=error
+	Switch item=ScriptParrot_Telefunkentv_online label="Telefunken" icon=screen
+	Switch item=ScriptParrot_Sonoff1_up label="Sonoff1_up" icon=light
+	Switch item=ScriptParrot_Sonoff2_up label="Sonoff2_up" icon=light
+	Switch item=ScriptParrot_Sonoff3_up label="Sonoff3_up" icon=light
+//	Switch item=ScriptParrot_S7edge_up label="S7Edge" icon=network
+//	Switch item=ScriptParrot_Samsung_alex_up label="Samsung Alex" icon=network
+//	Switch item=ScriptParrot_Samsung_adina_up label="Samsung Adina" icon=network
+//	Switch item=ScriptParrot_Xiaomi_ancuta_up label="Xiaomi Ancuta" icon=network
+	Text item=ScriptParrot_Os_uptime label="Linux uptime" icon=settings
+	Text item=ScriptParrot_Openhab2_uptime label="Openhab2 service uptime" icon=settings
+	Text item=ScriptParrot_Samsungs20_batterycharging label="Samsungs20_batterycharging" icon=battery
+	Text item=ScriptParrot_Samsunga12_batterycharging label="Samsunga12_batterycharging" icon=battery
+  }
+  
+Frame label="Iluminare"
+  {
+//  Text item=SufragerieSenzorMiscare_Illuminance label="Sufragerie1 [%.17f lux]" icon=light
+//	Text item=Sufragerie2SenzorMiscare_Illuminance label="Sufragerie2 [%.17f lux]" icon=light
+//	Text item=DormitorPSenzorMiscare_Illuminance label="DormitorP1 [%.17f lux]" icon=light
+//	Text item=HolSenzorMiscare_Illuminance label="DormitorP2 [%.17f lux]" icon=light
+//	Text item=DormitorCSenzorMiscare_Illuminance label="DormitorC1 [%.17f lux]" icon=light
+//	Text item=BaieSenzorMiscare_Illuminance label="DormitorC2 [%.17f lux]" icon=light
+//	Text item=Bucatarie1_Illuminance label="Bucatarie1 [%.2f lux]" icon=light
+    Text item=Sufra1_Light_Illuminance label="Sufragerie1 [%.1f lux]" icon=light
+	Text item=Sufra2_Light_Illuminance label="Sufragerie2 [%.1f lux]" icon=light
+	Text item=DormP1_Light_Illuminance label="DormitorP1 [%.1f lux]" icon=light
+	Text item=DormP2_Light_Illuminance label="DormitorP2 [%.1f lux]" icon=light
+	Text item=DormC1_Light_Illuminance label="DormitorC1 [%.1f lux]" icon=light
+	Text item=DormC2_Light_Illuminance label="DormitorC2 [%.1f lux]" icon=light
+	Text item=Bucatarie1_Illuminance label="Bucatarie1 [%.1f lux]" icon=light
+  }
+
+
+Frame label="Chart Home Presence Selection"	icon="line"
+	{
+	Switch item=gChart_Presence_intervall label="Home presence"	icon="line"	mappings=[0="1h", 1="12h", 2="Tag", 3="Woche", 4="Monat", 5="Year"]
+	Chart item=gChart_presence		period=h   refresh=60000 		visibility=[gChart_Presence_intervall==0, gChart_Presence_intervall=="Uninitialized"]	service="rrd4j"
+	Chart item=gChart_presence 		period=12h  refresh=60000 		visibility=[gChart_Presence_intervall==1]	service="rrd4j"
+	Chart item=gChart_presence		period=D 	refresh=60000     	visibility=[gChart_Presence_intervall==2]	service="rrd4j"
+	Chart item=gChart_presence		period=W 	refresh=60000     	visibility=[gChart_Presence_intervall==3]	service="rrd4j"
+	Chart item=gChart_presence		period=M 	refresh=60000     	visibility=[gChart_Presence_intervall==4]	service="rrd4j"
+	Chart item=gChart_presence		period=Y 	refresh=60000     	visibility=[gChart_Presence_intervall==5]	service="rrd4j"
+	}
+  
+Frame label="Chart Current Prize Selection"	icon="line"
+	{
+	Switch item=gChart_I_intervall label="Current consumption"	icon="line"	mappings=[0="1h", 1="12h", 2="Tag", 3="Woche", 4="Monat", 5="Year"]
+	Chart item=gChart_I		period=h   refresh=60000 		visibility=[gChart_I_intervall==0, gChart_I_intervall=="Uninitialized"]	service="rrd4j"
+	Chart item=gChart_I 	period=12h  refresh=60000 		visibility=[gChart_I_intervall==1]	service="rrd4j"
+	Chart item=gChart_I		period=D 	refresh=60000     	visibility=[gChart_I_intervall==2]	service="rrd4j"
+	Chart item=gChart_I		period=W 	refresh=60000     	visibility=[gChart_I_intervall==3]	service="rrd4j"
+	Chart item=gChart_I		period=M 	refresh=60000     	visibility=[gChart_I_intervall==4]	service="rrd4j"
+	Chart item=gChart_I		period=Y 	refresh=60000     	visibility=[gChart_I_intervall==5]	service="rrd4j"
+	}
+	
+Frame label="Chart TV-Sufra Active"	icon="line"
+	{
+	Switch item=gChart_TV_intervall label="Telefunken online"	icon="line"	mappings=[0="1h", 1="12h", 2="Tag", 3="Woche", 4="Monat", 5="Year"]
+	Chart item=ScriptParrot_Telefunkentv_online		period=h   refresh=60000 		visibility=[gChart_TV_intervall==0, gChart_TV_intervall=="Uninitialized"]	service="rrd4j"
+	Chart item=ScriptParrot_Telefunkentv_online 		period=12h  refresh=60000 		visibility=[gChart_TV_intervall==1]	service="rrd4j"
+	Chart item=ScriptParrot_Telefunkentv_online		period=D 	refresh=60000     	visibility=[gChart_TV_intervall==2]	service="rrd4j"
+	Chart item=ScriptParrot_Telefunkentv_online		period=W 	refresh=60000     	visibility=[gChart_TV_intervall==3]	service="rrd4j"
+	Chart item=ScriptParrot_Telefunkentv_online		period=M 	refresh=60000     	visibility=[gChart_TV_intervall==4]	service="rrd4j"
+	Chart item=ScriptParrot_Telefunkentv_online		period=Y 	refresh=60000     	visibility=[gChart_TV_intervall==5]	service="rrd4j"
+	}
+
+
+Frame label="Battery status" icon="line"
+{
+	Switch item=Sufra1_pir_LowBattery  label="Sufra1_LowBatt" icon=lowbattery
+	Switch item=Sufra2_pir_LowBattery  label="Sufra2_LowBatt" icon=lowbattery
+	Switch item=DormC1_pir_LowBattery  label="DormC1_LowBatt" icon=lowbattery
+	Switch item=DormC2_pir_LowBattery  label="DormC2_LowBatt" icon=lowbattery
+	Switch item=DormP1_pir_LowBattery  label="DormP1_LowBatt" icon=lowbattery
+	Switch item=DormP2_pir_LowBattery  label="DormP2_LowBatt" icon=lowbattery
+	Switch item=Bucatarie2_LowBattery  label="Bucatarie_LowBatt" icon=lowbattery
+	Switch item=SNZB1_LowBattery  label="Hol SNZB1_LowBattery" icon=lowbattery
+	Switch item=SNZB2_LowBattery  label="Baie SNZB2_LowBattery" icon=lowbattery
+	Switch item=CUB1_LowBattery  label="CUB1_LowBatt" icon=lowbattery
+	Switch item=CUB2_LowBattery  label="CUB2_LowBatt" icon=lowbattery
+	Switch item=CUB3_LowBattery  label="CUB3_LowBatt" icon=lowbattery
+}
+Frame label="Battery Levels PIR"	icon="line"
+	{
+	Switch item=gChart_BattLevel_PIR_intervall label="Battery Levels PIR"	icon="line"	mappings=[0="1h", 1="12h", 2="Tag", 3="Woche", 4="Monat", 5="Year"]
+	Chart item=gChart_BattLevel_PIR		period=h   refresh=60000 		visibility=[gChart_BattLevel_PIR_intervall==0, gChart_BattLevel_PIR_intervall=="Uninitialized"]	service="rrd4j"
+	Chart item=gChart_BattLevel_PIR 	period=12h  refresh=60000 		visibility=[gChart_BattLevel_PIR_intervall==1]	service="rrd4j"
+	Chart item=gChart_BattLevel_PIR		period=D 	refresh=60000     	visibility=[gChart_BattLevel_PIR_intervall==2]	service="rrd4j"
+	Chart item=gChart_BattLevel_PIR		period=W 	refresh=60000     	visibility=[gChart_BattLevel_PIR_intervall==3]	service="rrd4j"
+	Chart item=gChart_BattLevel_PIR		period=M 	refresh=60000     	visibility=[gChart_BattLevel_PIR_intervall==4]	service="rrd4j"
+	Chart item=gChart_BattLevel_PIR		period=Y 	refresh=60000     	visibility=[gChart_BattLevel_PIR_intervall==5]	service="rrd4j"
+	}
+	
+Frame label="Battery Levels CUB"	icon="line"
+	{
+	Switch item=gChart_BattLevel_CUB_intervall label="Battery Levels CUB"	icon="line"	mappings=[0="1h", 1="12h", 2="Tag", 3="Woche", 4="Monat", 5="Year"]
+	Chart item=gChart_BattLevel_CUB		period=h   refresh=60000 		visibility=[gChart_BattLevel_CUB_intervall==0, gChart_BattLevel_CUB_intervall=="Uninitialized"]	service="rrd4j"
+	Chart item=gChart_BattLevel_CUB 	period=12h  refresh=60000 		visibility=[gChart_BattLevel_CUB_intervall==1]	service="rrd4j"
+	Chart item=gChart_BattLevel_CUB		period=D 	refresh=60000     	visibility=[gChart_BattLevel_CUB_intervall==2]	service="rrd4j"
+	Chart item=gChart_BattLevel_CUB		period=W 	refresh=60000     	visibility=[gChart_BattLevel_CUB_intervall==3]	service="rrd4j"
+	Chart item=gChart_BattLevel_CUB		period=M 	refresh=60000     	visibility=[gChart_BattLevel_CUB_intervall==4]	service="rrd4j"
+	Chart item=gChart_BattLevel_CUB		period=Y 	refresh=60000     	visibility=[gChart_BattLevel_CUB_intervall==5]	service="rrd4j"
+	}
+
+Frame label="Temperature"	icon="line"
+	{
+	Switch item=gChart_Temperature_intervall label="Temperature"	icon="line"	mappings=[0="1h", 1="12h", 2="Tag", 3="Woche", 4="Monat", 5="Year"]
+	Chart item=gChart_Temperature		period=h   refresh=60000 		visibility=[gChart_Temperature_intervall==0, gChart_Temperature_intervall=="Uninitialized"]	service="rrd4j"
+	Chart item=gChart_Temperature 		period=12h  refresh=60000 		visibility=[gChart_Temperature_intervall==1]	service="rrd4j"
+	Chart item=gChart_Temperature		period=D 	refresh=60000     	visibility=[gChart_Temperature_intervall==2]	service="rrd4j"
+	Chart item=gChart_Temperature		period=W 	refresh=60000     	visibility=[gChart_Temperature_intervall==3]	service="rrd4j"
+	Chart item=gChart_Temperature		period=M 	refresh=60000     	visibility=[gChart_Temperature_intervall==4]	service="rrd4j"
+	Chart item=gChart_Temperature		period=Y 	refresh=60000     	visibility=[gChart_Temperature_intervall==5]	service="rrd4j"
+	}
+	
+Frame label="Available RAM"	icon="line"
+	{
+	Switch item=gChart_AvailRAM_intervall label="Available RAM"	icon="line"	mappings=[0="1h", 1="12h", 2="Tag", 3="Woche", 4="Monat", 5="Year"]
+	Chart item=gChart_AvailRAM		period=h   refresh=60000 		visibility=[gChart_AvailRAM_intervall==0, gChart_AvailRAM_intervall=="Uninitialized"]	service="rrd4j"
+	Chart item=gChart_AvailRAM 		period=12h  refresh=60000 		visibility=[gChart_AvailRAM_intervall==1]	service="rrd4j"
+	Chart item=gChart_AvailRAM		period=D 	refresh=60000     	visibility=[gChart_AvailRAM_intervall==2]	service="rrd4j"
+	Chart item=gChart_AvailRAM		period=W 	refresh=60000     	visibility=[gChart_AvailRAM_intervall==3]	service="rrd4j"
+	Chart item=gChart_AvailRAM		period=M 	refresh=60000     	visibility=[gChart_AvailRAM_intervall==4]	service="rrd4j"
+	Chart item=gChart_AvailRAM		period=Y 	refresh=60000     	visibility=[gChart_AvailRAM_intervall==5]	service="rrd4j"
+	}
+}
+

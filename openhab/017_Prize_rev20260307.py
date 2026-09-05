@@ -275,6 +275,14 @@ bed = "BED"
 
 from oh_utils import ctrl_dev, safe_float  # shared module at jsr223/python/oh_utils.py
 
+# --- Night light lockout (2026-09-04): between 22:30 and 06:30 no lamp may auto-turn-on.
+#     Driver: 019_NightLightLockout. (wake-up override removed 2026-09-05.) ---
+def _night_lockout():
+    try:
+        return items["NightLightLockout"] == ON
+    except:
+        return False
+
 # FIX: led_adina_intens = ir.getItem("Led_Contr_Adina_Color") removed.
 # It was called at module load time before item registry was ready (NameError),
 # and was unused after lightstrip functions were refactored to use ctrl_dev.
@@ -792,10 +800,10 @@ def prize_startstop(event):
             #events.sendCommand("Striplight_Alex", "OFF")
     elif items["vTimeOfDay"] == StringType(evening):
         if items["DarkSufra"] == OFF:
-            if items["HomePresence"] == ON:
+            if items["HomePresence"] == ON and not _night_lockout():
                 ctrl_dev("Priza5_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
         if items["DarkDormP"] == OFF:
-            if items["HomePresence"] == ON:
+            if items["HomePresence"] == ON and not _night_lockout():
                 #ctrl_dev("Priza6_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
                 events.sendCommand("Striplight_Alex", "ON")
     elif items["vTimeOfDay"] == StringType(night):
@@ -814,7 +822,7 @@ def sufra_daylight_priza5(event):
     if event.itemState == OFF:
         if items["vTimeOfDay"] == StringType(day):
             if items["DarkSufra"] == OFF:
-                if items["HomePresence"] == ON:
+                if items["HomePresence"] == ON and not _night_lockout():
                     ctrl_dev("Priza5_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
     if event.itemState == ON:
         ctrl_dev("Priza5_Power", "OFF", items, events, command_type="sendCommand")  ###29.03.2024
@@ -830,7 +838,7 @@ def dormp_daylight_priza6(event):
     if event.itemState == OFF:
         if items["vTimeOfDay"] == StringType(day): #dezactivat la data de 15.01.2024
             if items["DarkDormP"] == OFF:
-                if items["HomePresence"] == ON:
+                if items["HomePresence"] == ON and not _night_lockout():
                     #ctrl_dev("Priza6_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
                     events.sendCommand("Striplight_Alex", "ON")
     if event.itemState == ON:
@@ -847,7 +855,7 @@ def dormc_daylight_led(event):
     afternoon = "AFTERNOON"
     if event.itemState == OFF: #este intuneric in camera
         if items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon) or items["vTimeOfDay"] == StringType(evening): ##adaugat afternoon si evening la data de 15.01.2023
-            if items["HomePresence"] == ON:
+            if items["HomePresence"] == ON and not _night_lockout():
                 events.sendCommand("Striplight_Adina", "ON")
 
     if event.itemState == ON: #este lumina in camera
@@ -886,10 +894,11 @@ def logic_lightstrip_dormp_off(event):
             if items["DormP_Daytime"] == OFF or items["DormitorP_Illuminance_Switch"] == ON: # update 06.06.2022 #este intuneric in camera
                 if items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
                     if items["DarkDormP"] == OFF:
-                        if items["HomePresence"] == ON:
+                        if items["HomePresence"] == ON and not _night_lockout():
                             events.sendCommand("Striplight_Alex", "ON")
                 elif items["vTimeOfDay"] == StringType(morning):
-                    events.sendCommand("Striplight_Alex", "ON")
+                    if not _night_lockout():
+                        events.sendCommand("Striplight_Alex", "ON")
         if event.itemState == ON:
             if items["Sonoffmini2_Active"] == ON:
                 LogAction.logInfo(str(event.itemName), "este activ")
@@ -928,7 +937,7 @@ def logic_lightstrip_sufragerie_off(event):
     if items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
         if items["Sufragerie_Daytime"] == OFF or items["Sufragerie_Illuminance_Switch"] == ON:  # update 06.06.2022 #este intuneric in camera
             if items["DarkSufra"] == OFF:
-                if items["HomePresence"] == ON:
+                if items["HomePresence"] == ON and not _night_lockout():
                     ctrl_dev("Priza5_Power", "ON", items, events, command_type="sendCommand")  ###29.03.2024
 
 @rule("Logic Lightstrip when Sonoffmini3 alive turns on", description="Logic Lightstrip when Sonoffmini3 alive turns on", tags=["light", "Sonoffmini3", "Lightstrip Sufragerie"])
@@ -1093,3 +1102,56 @@ def priza12_logic(event):
         elif pz12 == OFF:
             priza12_owner = "EXTERNAL"
             priza12_auto_timeout = None
+
+
+# =========================================================
+# 2026-09-04: Priza4 idle watchdog
+# Priza4 (laptop outlet) only self-powers-off via the charge-curve trickle
+# detection, which needs an actual charging current in the band
+# (MinCLevel_P4_1 .. MaxCLevel). With nothing plugged in (~0 A) BatteryFull is
+# never set, so no OFF path ever fires and the outlet stays ON indefinitely
+# (startup.rules + the 09:00 cron keep re-powering it). ECO does not manage it
+# (Priza4_Power_auto stays NULL, so run_sequence skips it).
+# This watchdog turns Priza4_Power OFF after the outlet has been ON but drawing
+# below the charge threshold continuously for P4_IDLE_OFF_MINUTES. The 09:00
+# cron / next restart re-probes for a laptop; if still idle it drops again.
+# =========================================================
+P4_IDLE_OFF_MINUTES = 30
+_P4_IDLE_THRESHOLD_A = float(MinCLevel_P4_1.split()[0])  # 0.055 A
+_priza4_idle_since = None
+
+def _priza4_current_amps():
+    try:
+        return float(str(items["Priza4_Current"]).split()[0])
+    except:
+        return None
+
+@rule("Priza4 idle watchdog", description="Turn Priza4 OFF when the laptop outlet is idle (no charging current)", tags=["Priza4", "Power", "idle"])
+@when("Time cron 0 */2 * * * ? *")
+def priza4_idle_watchdog(event):
+    global _priza4_idle_since
+    # Only act while the outlet is actually powered.
+    if items["Priza4_Power"] != OnOffType.ON:
+        _priza4_idle_since = None
+        return
+    # Actively ramping up a charge → never drop.
+    if items["Priza4_Asc"] == OnOffType.ON:
+        _priza4_idle_since = None
+        return
+    amps = _priza4_current_amps()
+    if amps is None:
+        return
+    if amps > _P4_IDLE_THRESHOLD_A:
+        # Real load present → reset idle tracking.
+        _priza4_idle_since = None
+        return
+    # Below charge threshold: outlet is idle (no laptop drawing).
+    now_t = DateTime.now()
+    if _priza4_idle_since is None:
+        _priza4_idle_since = now_t
+        return
+    idle_min = (now_t.getMillis() - _priza4_idle_since.getMillis()) / 60000.0
+    if idle_min >= P4_IDLE_OFF_MINUTES:
+        events.sendCommand("Priza4_Power", "OFF")
+        LogAction.logInfo("Priza4", "idle watchdog: no charging current for %d min -> Priza4_Power OFF" % int(idle_min))
+        _priza4_idle_since = None

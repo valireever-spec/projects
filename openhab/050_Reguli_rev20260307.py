@@ -39,6 +39,8 @@ from org.eclipse.smarthome.core.types import UnDefType
 from org.eclipse.smarthome.model.script.actions.Exec import executeCommandLine
 from core.jsr223.scope import events, items
 from core.actions import LogAction
+import oh_utils
+reload(oh_utils)  # force pick-up of oh_utils edits (Jython caches lib modules in sys.modules; no auto-reload here)
 from oh_utils import room_presence_handler, room_holddown_handler
 # FIX  2026-03-07: removed 'from core.utils import sendCommandCheckFirst, postUpdateCheckFirst'
 # OPT  2026-03-07: replaced 82 sendCommand(ir.getItem("X"), val) with sendCommand("X", str(val))
@@ -136,7 +138,10 @@ _SUFRA = {
     "hd_sw": "HD3", "hd_val": "HDSufragerie",
     "dt": "DTSufragerie", "delay_timer": "DelayTimerSufragerie",
     "daytime": "Sufragerie_Daytime", "dt_default": 420,
+    "lock_end_weekday_min": 6 * 60 + 30,   # 06:30
+    "lock_end_weekend_min": 8 * 60 + 30,   # 08:30 (sleep-in)
 }
+# Sufragerie is a living room -> no motion debounce (instant light on entry).
 _DORMP = {
     "name": "DormP", "light": "Sonoffmini2_Power",
     "dark": "DarkDormP", "perm": "PermDormP",
@@ -144,6 +149,12 @@ _DORMP = {
     "hd_sw": "HD1", "hd_val": "HDDormP",
     "dt": "DTDormMic", "delay_timer": "DelayTimerDormMic",
     "daytime": "DormP_Daytime", "dt_default": 420,
+    "lock_end_weekday_min": 6 * 60 + 30,   # 06:30
+    "lock_end_weekend_min": 8 * 60 + 30,   # 08:30 (sleep-in)
+    "schulfrei": "Schulfrei_Alex",         # school-holiday flag (Halstenbek)
+    "lock_end_vacation_min": 8 * 60 + 30,  # 08:30 on holiday weekdays
+    "require_repeat_detections": 2,        # ignore single bed-movement blips
+    "repeat_window_sec": 120,
 }
 _DORMC = {
     "name": "DormC", "light": "Sonoffmini1_Power",
@@ -152,6 +163,12 @@ _DORMC = {
     "hd_sw": "HD2", "hd_val": "HDDormC",
     "dt": "DTDormCopii", "delay_timer": "DelayTimerDormCopii",
     "daytime": "DormC_Daytime", "dt_default": 600,
+    "lock_end_weekday_min": 6 * 60 + 30,    # 06:30
+    "lock_end_weekend_min": 11 * 60,        # 11:00 (kids sleep-in)
+    "schulfrei": "Schulfrei_Adina",         # school-holiday flag (Halstenbek)
+    "lock_end_vacation_min": 8 * 60 + 30,   # 08:30 on holiday weekdays
+    "require_repeat_detections": 2,         # ignore single bed-movement blips
+    "repeat_window_sec": 120,
 }
 
 # Holddown state dicts — one per room, modified in place by room_holddown_handler.
@@ -1045,7 +1062,16 @@ def lampa_sufra_presence(event):
 	night = "NIGHT"
 	bed = "BED"
 	if is_state(event.itemState, ON):
-		if items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
+		# Night light lockout (2026-09-04): 22:30-06:30 no auto-on (wake-up override removed 2026-09-05).
+		try:
+			_locked = items["NightLightLockout"] == ON
+		except:
+			_locked = False
+		if _locked:
+			events.sendCommand("OffFlagLamp", "ON")
+			events.sendCommand("gBec_LampaSufra", "OFF")
+			return
+		if items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon) or items["vTimeOfDay"] == StringType(evening):  # evening added 2026-09-04 (previously stuck in the morning wake-up branch, so it never auto-on in evening)
 			if is_state(items["DarkSufra"], OFF):
 				if is_state(items["PermSufra"], OFF):
 					if is_state(items["Sufragerie_Illuminance_Switch"], ON):
@@ -1086,15 +1112,14 @@ def lampa_sufra_presence(event):
 				if is_state(items["Logging"], ON):
 					lampa_sufra_presence.log.info("Sufra_Illuminance, Dark Mode")
 			
-		elif items["vTimeOfDay"] == StringType(morning) or items["vTimeOfDay"] == StringType(evening): ### or items["vTimeOfDay"] == StringType(bed): ### or items["vTimeOfDay"] == StringType(night):
+		elif items["vTimeOfDay"] == StringType(morning): ### evening moved to day/afternoon branch 2026-09-04 (was requiring a wake-up alarm) ### or items["vTimeOfDay"] == StringType(bed): ### or items["vTimeOfDay"] == StringType(night):
 			if is_state(items["DarkSufra"], OFF):
 				if is_state(items["PermSufra"], OFF):
 					events.sendCommand("OffFlagLamp", "OFF")	#Nou 10.02.2023
 					if is_state(items["Logging"], ON):
 						lampa_sufra_presence.log.info("Sufra_Illuminance, changed from OFF to ON")
 					if occupancyTimer7 is None or occupancyTimer7.hasTerminated():
-						if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
-							events.sendCommand("gBec_LampaSufra", "ON")
+						# wake-up lamp-on removed 2026-09-05 (no longer used)
 						if is_state(items["Logging"], ON):
 							lampa_sufra_presence.log.info("Sufra_Illuminance, Creating Timer - Nighttime")
 						occupancyTimer7 = ScriptExecution.createTimer(DateTime.now().plusSeconds(on_timer2), timer1_lampa_sufra)
@@ -1102,12 +1127,10 @@ def lampa_sufra_presence(event):
 							lampa_sufra_presence.log.info("Sufra_Illuminance, Timer Expired - Nighttime")
 					elif occupancyTimer7 is not None and not occupancyTimer7.hasTerminated():
 						occupancyTimer7.reschedule(DateTime.now().plusSeconds(on_timer2))
-						if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
-							events.sendCommand("gBec_LampaSufra", "ON")
+						# wake-up lamp-on removed 2026-09-05 (no longer used)
 				elif is_state(items["PermSufra"], ON):
 					events.sendCommand("OffFlagLamp", "OFF")	#Nou 10.02.2023
-					if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
-						events.sendCommand("gBec_LampaSufra", "ON")
+					# wake-up lamp-on removed 2026-09-05 (no longer used)
 					if is_state(items["Logging"], ON):
 						lampa_sufra_presence.log.info("Sufra_Illuminance, Permanent Mode")
 			elif is_state(items["DarkSufra"], ON):
@@ -1123,8 +1146,7 @@ def lampa_sufra_presence(event):
 					if is_state(items["Logging"], ON):
 						lampa_sufra_presence.log.info("Sufra_Illuminance, changed from OFF to ON")
 					if occupancyTimer7 is None or occupancyTimer7.hasTerminated():
-						if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
-							events.sendCommand("gBec_LampaSufra", "ON")
+						# wake-up lamp-on removed 2026-09-05 (no longer used)
 						if is_state(items["Logging"], ON):
 							lampa_sufra_presence.log.info("Sufra_Illuminance, Creating Timer - Nighttime")
 						occupancyTimer7 = ScriptExecution.createTimer(DateTime.now().plusSeconds(on_timer2), timer1_lampa_sufra)
@@ -1132,15 +1154,13 @@ def lampa_sufra_presence(event):
 							lampa_sufra_presence.log.info("Sufra_Illuminance, Timer Expired - Nighttime")
 					elif occupancyTimer7 is not None and not occupancyTimer7.hasTerminated():
 						occupancyTimer7.reschedule(DateTime.now().plusSeconds(on_timer2))
-						if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
-							events.sendCommand("gBec_LampaSufra", "ON")
+						# wake-up lamp-on removed 2026-09-05 (no longer used)
 				elif is_state(items["PermSufra"], ON):
 					events.sendCommand("OffFlagLamp", "OFF")	#Nou 10.02.2023
-					if items["Sonoffmini3_Alive"] != ON and items["Clock_alarm"] == ON:
-						events.sendCommand("gBec_LampaSufra", "ON")
+					# wake-up lamp-on removed 2026-09-05 (no longer used)
 					if is_state(items["Logging"], ON):
 						lampa_sufra_presence.log.info("Sufra_Illuminance, Permanent Mode")
-			elif items["DarkSufra"] == ON or items["Clock_alarm"] == OFF:
+			else:
 				events.sendCommand("OffFlagLamp", "ON")	#Nou 10.02.2023
 				events.sendCommand("gBec_LampaSufra", "OFF")
 				if is_state(items["Logging"], ON):

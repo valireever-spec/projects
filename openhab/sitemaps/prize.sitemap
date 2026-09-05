@@ -1,0 +1,85 @@
+sitemap prize label="prize sitemap"
+{
+	Frame label="Prize status" {
+	Switch item=Priza1_Power label="Priza1 incarcator E-Bike"  icon=poweroutlet_eu
+	Switch item=Priza1_Power_man label="Priza1_manSW"  icon=poweroutlet_eu
+	Switch item=Priza1_Power_auto label="Priza1_autoSW"  icon=poweroutlet_eu
+	Switch item=Priza2_Power label="Priza2 Gaming PC Alex"  icon=poweroutlet_eu
+	Switch item=Priza3_Power label="Priza3 incarcator Alex"  icon=poweroutlet_eu
+	Switch item=Priza4_Power label="Priza4 Laptop"  icon=poweroutlet_eu
+	Switch item=Priza5_Power label="Priza5 Lightstrip Sufragerie"  icon=poweroutlet_eu
+	Switch item=Priza6_Power label="Priza6 Lightstrip Dormitor mic"  icon=poweroutlet_eu
+	Switch item=Priza7_Power label="Priza7 Sufra"  icon=poweroutlet_eu
+	Switch item=Priza8_Power label="Priza8 Fireplace"  icon=poweroutlet_eu
+	Switch item=Priza9_Power label="Priza9 filtru acvariu"  icon=poweroutlet_eu
+	Switch item=Priza9ForceOn
+	Switch item=Priza10_Power label="Priza10 LampaTub Sufragerie"  icon=poweroutlet_eu
+	Switch item=Priza11_Power label="Priza11 Lampa Bucatarie"  icon=poweroutlet_eu
+	Switch item=Priza12_Power label="Priza12 Bucatarie"  icon=poweroutlet_eu
+	Switch item=Priza1_BatteryFull  label="Priza1 Batt Full"
+	Switch item=Priza4_BatteryFull  label="Priza4 Batt Full"
+	Text item=Eco_Sequence_ActivePriza label="ECO active Priza [%s]" icon=poweroutlet_eu
+	}
+	Frame label="PC Alex Runtime Status" {
+	Switch item=TimeLimitPC label="Limita 2H Gaming"
+	Text item=Priza2_Runtime_Minutes label="PC_Alex_Runtime [%d min]"
+	Text item=Priza2_DailyCost label="PC_Alex_Consum [%.3f €]"
+	}
+
+	Frame label="Chart Power Prize Selection"	icon="line"
+	{
+	Switch item=gChart_Power_intervall label="Power consumption"	icon="line"	mappings=[0="1h", 1="12h", 2="Tag", 3="Woche", 4="Monat", 5="Year"]
+	Chart item=gChart_Power		period=h   refresh=60000 		visibility=[gChart_Power_intervall==0, gChart_Power_intervall=="Uninitialized"]	service="rrd4j"
+	Chart item=gChart_Power 	period=12h  refresh=60000 		visibility=[gChart_Power_intervall==1]	service="rrd4j"
+	Chart item=gChart_Power		period=D 	refresh=60000     	visibility=[gChart_Power_intervall==2]	service="rrd4j"
+	Chart item=gChart_Power		period=W 	refresh=60000     	visibility=[gChart_Power_intervall==3]	service="rrd4j"
+	Chart item=gChart_Power		period=M 	refresh=60000     	visibility=[gChart_Power_intervall==4]	service="rrd4j"
+	Chart item=gChart_Power		period=Y 	refresh=60000     	visibility=[gChart_Power_intervall==5]	service="rrd4j"
+	}
+	Frame label="Chart Priza2 Daily Costs"	icon="line"
+	{
+	Switch item=Priza2_Cost_Interval label="Priza2 Cost History" icon="line" mappings=[0="1h", 1="12h", 2="Tag", 3="Woche", 4="Monat", 5="Year"]
+	Chart item=Priza2_DailyCost		period=h   refresh=60000 		visibility=[Priza2_Cost_Interval==0, Priza2_Cost_Interval=="Uninitialized"]	service="rrd4j"
+	Chart item=Priza2_DailyCost		period=12h  refresh=60000 		visibility=[Priza2_Cost_Interval==1]	service="rrd4j"
+	Chart item=Priza2_DailyCost		period=D 	refresh=60000     	visibility=[Priza2_Cost_Interval==2]	service="rrd4j"
+	Chart item=Priza2_DailyCost		period=W 	refresh=60000     	visibility=[Priza2_Cost_Interval==3]	service="rrd4j"
+	Chart item=Priza2_DailyCost		period=M 	refresh=60000     	visibility=[Priza2_Cost_Interval==4]	service="rrd4j"
+	Chart item=Priza2_DailyCost		period=Y 	refresh=60000     	visibility=[Priza2_Cost_Interval==5]	service="rrd4j"
+	}
+	// "Chart Priza2 Alltime Costs" was a duplicate of Daily Costs (same chart item gChart_P2DailyCost).
+	// Commented out until a separate alltime cost chart item is created.
+	Frame label="Priza1 switch status" {
+	Switch item=Switch1_1
+	Switch item=Switch1_2
+	Switch item=Switch1_3
+	Switch item=Switch1_4
+	Switch item=Priza1_Consum
+	Switch item=Priza1RdytoForce
+	Switch item=Priza1ForceOn
+	}
+	Frame label="Priza2 switch status" {
+	Switch item=Switch2_1
+	Switch item=Switch2_2
+	Switch item=Switch2_3
+	Switch item=Switch2_4
+	Switch item=Priza2_Consum
+	Switch item=Priza2RdytoForce
+	Switch item=Priza2ForceOn
+//	Text item=Priza2_Runtime_Minutes label="PC_Alex_Runtime [%.1f min]"
+	}
+	Frame label="Priza3 switch status" {
+	Switch item=Switch3_1
+	Switch item=Switch3_2
+	Switch item=Switch3_3
+	Switch item=Switch3_4
+	Switch item=Priza3_Consum
+	Switch item=Priza3RdytoForce
+	Switch item=Priza3ForceOn
+	}
+	Frame label="Telefoane status" {
+	Text item=ScriptParrot_Samsungs20_batterycharging label="Samsung S20 charging" icon=battery
+	Text item=ScriptParrot_Xiaomi_batterycharging label="Xiaomi charging" icon=battery
+	Text item=ScriptParrot_Samsunga52_batterycharging label="Samsung A52 charging" icon=battery
+	Text item=ScriptParrot_Samsunga12_batterycharging label="Samsung A12 charging" icon=battery
+	}
+}
