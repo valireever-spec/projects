@@ -671,3 +671,14 @@ def hms2mqtt(event):
 #	if is_state(event.itemState, OFF):
 #		if items["vTimeOfDay"] == StringType(evening) or items["vTimeOfDay"] == StringType(day) or items["vTimeOfDay"] == StringType(afternoon):
 #			events.sendCommand("Echo_Bedroom_Kids_TTS", "Alex ist nicht mehr Zuhause")
+
+
+@rule("Bec DormP display OFF when device offline", description="Correct stale Sonoffmini2_Power display when the Sonoff is unreachable", tags=["Sonoffmini2", "display"])
+@when("Item Sonoffmini2_Alive changed to OFF")
+def sonoffmini2_power_display_off(event):
+    # DormP ceiling Sonoff is powered through the light circuit -> Alive OFF == unpowered
+    # == light off. OH otherwise freezes Sonoffmini2_Power at a stale ON. Reflect reality on
+    # the sitemap. postUpdate only (no MQTT command sent to the offline device).
+    if items["Sonoffmini2_Power"] != OFF:
+        events.postUpdate("Sonoffmini2_Power", "OFF")
+        LogAction.logInfo("Sonoffmini2", "device offline -> Sonoffmini2_Power display set OFF")

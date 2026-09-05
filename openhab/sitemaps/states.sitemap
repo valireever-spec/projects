@@ -53,12 +53,12 @@ Frame label="Iluminare"
 Frame label="Chart Home Presence Selection"	icon="line"
 	{
 	Switch item=gChart_Presence_intervall label="Home presence"	icon="line"	mappings=[0="1h", 1="12h", 2="Tag", 3="Woche", 4="Monat", 5="Year"]
-	Chart item=gChart_presence		period=h   refresh=60000 		visibility=[gChart_Presence_intervall==0, gChart_Presence_intervall=="Uninitialized"]	service="rrd4j"
-	Chart item=gChart_presence 		period=12h  refresh=60000 		visibility=[gChart_Presence_intervall==1]	service="rrd4j"
-	Chart item=gChart_presence		period=D 	refresh=60000     	visibility=[gChart_Presence_intervall==2]	service="rrd4j"
-	Chart item=gChart_presence		period=W 	refresh=60000     	visibility=[gChart_Presence_intervall==3]	service="rrd4j"
-	Chart item=gChart_presence		period=M 	refresh=60000     	visibility=[gChart_Presence_intervall==4]	service="rrd4j"
-	Chart item=gChart_presence		period=Y 	refresh=60000     	visibility=[gChart_Presence_intervall==5]	service="rrd4j"
+	Chart item=HomePresence		period=h   refresh=60000 		visibility=[gChart_Presence_intervall==0, gChart_Presence_intervall=="Uninitialized"]	service="rrd4j"
+	Chart item=HomePresence 		period=12h  refresh=60000 		visibility=[gChart_Presence_intervall==1]	service="rrd4j"
+	Chart item=HomePresence		period=D 	refresh=60000     	visibility=[gChart_Presence_intervall==2]	service="rrd4j"
+	Chart item=HomePresence		period=W 	refresh=60000     	visibility=[gChart_Presence_intervall==3]	service="rrd4j"
+	Chart item=HomePresence		period=M 	refresh=60000     	visibility=[gChart_Presence_intervall==4]	service="rrd4j"
+	Chart item=HomePresence		period=Y 	refresh=60000     	visibility=[gChart_Presence_intervall==5]	service="rrd4j"
 	}
   
 Frame label="Chart Current Prize Selection"	icon="line"
@@ -75,12 +75,12 @@ Frame label="Chart Current Prize Selection"	icon="line"
 Frame label="Chart TV-Sufra Active"	icon="line"
 	{
 	Switch item=gChart_TV_intervall label="Telefunken online"	icon="line"	mappings=[0="1h", 1="12h", 2="Tag", 3="Woche", 4="Monat", 5="Year"]
-	Chart item=ScriptParrot_Telefunkentv_online		period=h   refresh=60000 		visibility=[gChart_TV_intervall==0, gChart_TV_intervall=="Uninitialized"]	service="rrd4j"
-	Chart item=ScriptParrot_Telefunkentv_online 		period=12h  refresh=60000 		visibility=[gChart_TV_intervall==1]	service="rrd4j"
-	Chart item=ScriptParrot_Telefunkentv_online		period=D 	refresh=60000     	visibility=[gChart_TV_intervall==2]	service="rrd4j"
-	Chart item=ScriptParrot_Telefunkentv_online		period=W 	refresh=60000     	visibility=[gChart_TV_intervall==3]	service="rrd4j"
-	Chart item=ScriptParrot_Telefunkentv_online		period=M 	refresh=60000     	visibility=[gChart_TV_intervall==4]	service="rrd4j"
-	Chart item=ScriptParrot_Telefunkentv_online		period=Y 	refresh=60000     	visibility=[gChart_TV_intervall==5]	service="rrd4j"
+	Chart item=gChart_TV		period=h   refresh=60000 		visibility=[gChart_TV_intervall==0, gChart_TV_intervall=="Uninitialized"]	service="rrd4j"
+	Chart item=gChart_TV 		period=12h  refresh=60000 		visibility=[gChart_TV_intervall==1]	service="rrd4j"
+	Chart item=gChart_TV		period=D 	refresh=60000     	visibility=[gChart_TV_intervall==2]	service="rrd4j"
+	Chart item=gChart_TV		period=W 	refresh=60000     	visibility=[gChart_TV_intervall==3]	service="rrd4j"
+	Chart item=gChart_TV		period=M 	refresh=60000     	visibility=[gChart_TV_intervall==4]	service="rrd4j"
+	Chart item=gChart_TV		period=Y 	refresh=60000     	visibility=[gChart_TV_intervall==5]	service="rrd4j"
 	}
 
 
