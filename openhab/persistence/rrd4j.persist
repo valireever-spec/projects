@@ -55,6 +55,7 @@ ScriptParrot_OH2_Avail_RAM	:	strategy = everyMinute
 ScriptParrot_Telefunkentv_online	:	strategy = everyMinute
 ScriptParrot_Telefunkentv_state	:	strategy = everyMinute
 HomePresence	:	strategy = everyChange, everyMinute
+Eco_Power_Switch	:	strategy = everyChange, everyMinute
 
 HMS_Efficiency	:	strategy = everyMinute
 
